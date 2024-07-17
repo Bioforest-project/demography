@@ -1,0 +1,161 @@
+---
+title: "Notes on hypotheses and data exploration"
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(data.table)
+library(DiagrammeR)
+```
+
+# Conceptual framework
+
+
+
+## Flux-based approach
+
+-   incoming flux (growth + recruitment) vs. outgoing flux (mortality) applied to a structure variable (biomass or BA) and functional composition (community/flux mean weighted by biomass or **BA**).
+
+=\> would be closer to the objective of this study and more interesting in term of ecological interpretation
+
+=\> would possibly make it easier to use plots with different DBH threshold
+
+```{r}
+grViz("
+
+  digraph boxes_and_circles {
+   # avoid distortion
+  graph [nodesep = 1, rankdir = LR]
+
+  node [shape = box,
+        fontname = Helvetica]
+        s[label = '10-20 cm DBH']
+        l[label = '>20 cm DBH']
+
+  #invisible nodes
+  node [shape = circle,
+        fixedsize = true,
+        width = 0.9,
+        color = white,
+        fontcolor = white]
+        si;sg;sm;so;lg;lm
+
+  # define the labels
+  edge [color = black, arrowhead = normal]
+  si -> s [label = 'ingrowth = recruitment']
+  sg -> s [label = 'growth']
+  s -> sm [label = 'mortality']
+  s -> so [label = 'outgrowth']
+  so -> l [label = 'ingrowth']
+  lg -> l [label = 'growth']
+  l -> lm [label = 'mortality']
+
+  }
+  ")
+```
+
+
+## Link between CWMT and basal area 'fluxes' 
+
+At each census $t$, the mean community functional trait value of a diameter class, weighted by basal area, can be defined as follows:
+
+$$ FT_{t} = \frac{\sum_{i \in At}(ft_i \cdot ba_{i,t})}{\sum_{i \in At}(ba_{i,t})}$$
+where $ft_i$ is the functional trait value of tree $i$, $ba_{i,t}$ is its basal area at census $t$, and $At$ is all trees alive at census $t$. 
+
+We can also divide these trees into two groups: $Rt$ are the trees recruited between censuses $t-1$ and $t$, and $St$ are the trees measured at both the previous census $t-1$ and this census $t$.  
+
+$$ FT_{t} = \frac{\sum_{i \in Rt}(ft_i \cdot ba_{i,t}) + \sum_{i \in St}ft_i \cdot (ba_{i,t})}{\sum_{i \in At}(ba_{i,t})}$$
+This can also be written as:
+
+$$ FT_{t} = \frac{\sum_{i \in Rt}(ft_i \cdot ba_{i,t}) + \sum_{i \in St}(ft_i \cdot (ba_{i,t} - ba_{i,t-1})) + \sum_{i \in St}(ft_i \cdot ba_{i,t-1})}{\sum_{i \in At}(ba_{i,t})}$$
+We can also write the CWMT value at $t-1$ by dividing trees into those who survive between $t-1$ and $t$, and those who die:
+
+$$ FT_{t-1} = \frac{\sum_{i \in St}(tr_i \cdot ba_{i,t0}) + \sum_{i \in Dt}(tr_i \cdot ba_{i,t0}) + \sum_{i \in Ot}(tr_i \cdot ba_{i,t0})}{\sum_{i \in A0}(ba_{i,t0})}$$
+where $Dt$ are all trees that die between $t-1$ and $t$, and $O_t$ the trees that move to the next diameter class.
+
+We are the interested in the changes in CWMT values between two censuses, and linking them to basal area fluxes (recruitment, growth, mortality). To do so, we can first define the following variables: 
+
+$BA_{t} = \sum_{i \in At}ba_{i,t}$ is the basal area of live trees at $t$. 
+
+$BAr_{t} = \sum_{i \in Rt}ba_{i,t}$ is basal area change from tree recruitment (or ingrowth) between $t-1$ and $t$. 
+
+$BAg_{t} = \sum_{i \in St}(ba_{i,t} - ba_{i,t-1})$ is the basal area change from tree growth between $t-1$ and $t$.
+
+$BAm_{t} = - \sum_{i \in Dt}ba_{i,t-1}$  is the basal area change from tree mortality between $t-1$ and $t$. 
+
+$BAo_{t} = - \sum_{i \in Ot}ba_{i,t-1}$  is the basal area change from tree outgrowth between $t-1$ and $t$. 
+
+$FTr_{t} = \sum_{i \in Rt}(tr_i \cdot ba_{i,t})$ is the weighted mean trait value of trees recruited between $t-1$ and $t$. 
+
+$FTg_{t} = \sum_{i \in St}(tr_i \cdot (ba_{i,t} - ba_{i,t-1}))$ is the weighted mean trait value associated to the growth of trees alive between $t-1$ and $t$. 
+
+$FTm_{t} = \sum_{i \in Dt}(tr_i \cdot ba_{i,t-1})$ is the weighted mean trait value of trees that died between $t-1$ and $t$. 
+
+$FTo_{t} = \sum_{i \in Ot}(tr_i \cdot ba_{i,t-1})$ is the weighted mean trait value of trees that changed DBH class between $t-1$ and $t$. 
+
+
+We also have the following: 
+
+$$ BA_{t} = BA_{t-1} + BAr_{t} + BAg_{t} + BAm_{t} + BAo_{t}$$
+
+$$ \sum_{i \in St}ba_{i,t-1} = BA_{t-1} + BAm_{t} + BAo_{t}$$
+
+$$\sum_{i \in St}(tr_i \cdot ba_{i,t-1}) = \frac{FT_{t-1}\cdot BA_{t-1} + FTm_{t}\cdot BAm_{t} + FTo_{t}\cdot BAo_{t}}{BA_{t-1} + BAm_{t} + BAo_{t}}$$
+(where $BAm_t < 0$ and $BAo_t < 0$). 
+
+
+We can then write $FT_t-FT_{t-1}$ as: 
+
+$$ \begin{aligned}
+FT_t-FT_{t-1} = FTr_{t}\frac{BAr_{t}}{BA_{t}}   + FTg_{t}\frac{BAg_{t}}{BA_{t}} \\ + FTm_{t}\frac{BAm_{t}}{BA_{t-1}} + FTo_{t}\frac{BAo_{t}}{BA_{t-1}} \\ + \left(FT_{t-1}\cdot BA_{t-1} + FTm_{t}\cdot BAm_{t} + FTo_{t}\cdot BAo_{t}\right) \left( \frac{1}{BA_{t}} - \frac{1}{BA_{t-1}}\right)
+\end{aligned} $$
+## Visualise data
+
+```{r load-data}
+load("data/derived-data/dataPlot_WG3.rda")
+setDT(dataPlot)
+```
+
+```{r prepare-data}
+# change class levels
+dataPlot$class = factor(dataPlot$class)
+levels(dataPlot$class) = c("< 20 cm", "> 20 cm")
+
+## add logging intensity as % BA loss in the first 5 years after logging
+dataPlot = merge(
+  dataPlot, 
+  rbind(
+    dataPlot[
+      treat == "logged" &
+        meas == "ba" &
+        class == "> 20 cm" &
+        variable == "stock" &
+        Year <= 1990, .(baloss = diff(range(value))/max(value)*100), .(Plot)],
+    data.frame(Plot = dataPlot[treat == "control", unique(Plot)], baloss = 0)
+  )
+) 
+```
+
+```{r vis-stocks, fig.width = 10, fig.height = 4}
+subset(dataPlot, variable=="stock" & meas=="ba") |> 
+  ggplot(aes(x = Year, y = value, col = baloss, group = Plot))  +
+  geom_point() + 
+  geom_line() +
+  labs(x = "year", y = "BA (m2/ha)", col = "Logging intensity\n(% BA loss)") +
+  # theme_classic() +
+  scale_color_viridis_c(option = "A") +
+  facet_wrap(~class, scales = "free")
+```
+
+<!-- ```{r check-with-data} -->
+<!-- dcast(dataPlot, Site + Plot + Year + class) -->
+<!-- dataPlot[ -->
+<!--   , .((value[meas == "ba"]*value[meas == "wd_ba"])[variable=="recruitment"]/(value[meas == "ba" & variable=="recruitment"]) +  -->
+<!--   dataPlot$growth[2]*dataPlot$growth[1]/(dataPlot$stock[1] + dataPlot$change[1]) +  -->
+<!--   dataPlot$mortality[2]*dataPlot$mortality[1]/dataPlot$stock[1] +  -->
+<!--   (dataPlot$stock[2] * dataPlot$stock[1] + dataPlot$mortality[2] * dataPlot$mortality[1]) * -->
+<!--   (1/(dataPlot$stock[1] + dataPlot$change[1]) - 1/dataPlot$stock[1])) -->
+<!--   , .(Site, Plot, Year)] -->
+<!-- ``` -->
+
