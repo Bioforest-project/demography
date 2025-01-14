@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Demography <img src="figures/compendium-sticker.jpg" align="right" style="float:right; height:120px;"/>
+# demography <img src="figures/compendium-sticker.jpg" align="right" style="float:right; height:120px;"/>
 
 <!-- badges: start -->
 <!-- badges: end -->
