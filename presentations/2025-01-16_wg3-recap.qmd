@@ -1,0 +1,221 @@
+---
+title: "Bioforest - WG3 - Demographic Processes"
+format:
+  revealjs:
+    fontsize: 2em
+execute:
+  echo: false
+---
+
+```{r}
+library(ggplot2)
+library(data.table)
+library(DiagrammeR)
+```
+
+# Previous discussions
+
+## Context and motivation
+
+-   Selectively logged forests are becoming the majority of tropical forests $\rightarrow$ Importance of understanding their recovery process;
+
+-   Disturbances such as logging have different effects on the demographic rates of species and can therefore change the species composition and biodiversity in the long term;
+
+-   Demographic processes can therefore provide insights into forest resilience.
+
+## Research questions
+
+i.  What is the contribution of demographic processes (growth, recruitment, mortality) to post-logging changes in biomass, biodiversity and composition?
+
+ii. What is the link between biomass and biodiversity recovery processes?
+
+iii. How do abiotic factors shape demographic processes of recovery?
+
+## Variables
+
+![](images/fluxes_prod.png)
+
+## Variables
+
+For all stocks and fluxes, we propose to estimate:
+
+-   their basal area (or carbon stocks)
+
+-   their functional composition (community weighted functional traits)
+
+-   their diversity (functional or neutral, Hill number TBD)
+
+We also estimate the beta diversity between fluxes and stocks, to be able to assess the contribution of new fluxes to the community's diversity.
+
+## Diversity "fluxes" - beta diversity
+
+::::: columns
+::: {.column width="70%"}
+![](images/beta_diversity.png){width="1000"}
+:::
+
+::: {.column width="30%"}
+$$\beta_P = Div_{t+1} - Div_S$$
+
+$$\beta_M = Div_{t} - Div_S$$
+:::
+:::::
+
+## Diagram from workshop 3
+
+```{r}
+grViz("
+digraph {
+
+  rankdir=LR
+
+  graph [overlap = true, fontsize = 10]
+
+  node [shape = box, fillcolor='coral', style=filled]
+  ba [label='Basal\narea']
+  cwm [label='Functional\ncomposition']
+  div [label='Functional\ndiversity']
+
+  node [fillcolor='powderblue']
+  { rank=same
+  env [label='Environmental\nvariables']
+  intensity [label='Logging\nintensity']
+  }  
+  
+  node [shape = ellipse, fillcolor='whitesmoke'] 
+  { rank=same
+  closure[label='Canopy\nclosure']
+  turnover[label='Turnover\nrate']
+  }
+  
+  intensity -> ba
+  closure -> {ba cwm}
+  ba -> closure
+  turnover -> {ba cwm div}
+  env -> turnover
+  cwm -> turnover
+  div -> ba
+  
+  subgraph cluster_legend{
+    label = 'Legend'; fontsize = 14;
+    node [shape = box, fillcolor='coral',fontsize=12]
+    attribute[label='Attribute']
+    node [fillcolor='powderblue']
+    predictor[label='Predictor']
+    node [shape = ellipse, fillcolor='whitesmoke']
+    latent[label='Latent variable']
+  }
+}
+")
+```
+
+## Recovery model
+
+![](images/recovery_model.png)
+
+Conceptual framework described in [Maurent et al., 2023](http://www.doi.org/10.1016/j.ecolmodel.2023.110418)
+
+
+$$Attribute(t) =\alpha + (\omega - \alpha) \left(STP(t) + LTP(t)\right)$$
+
+# Discussion on the methodological framework
+
+## VDDE model
+
+Volume Dynamics with Differential Equations (VDDE) as described in [Piponiot et al. (2018)](https://doi.org/10.1016/j.ecolmodel.2018.05.023)
+
+![](images/vdde_diagram.jpg)
+
+**Advantages**: limited number of parameters, explicit link between stocks and fluxes
+
+## Integrating fluxes and stocks 
+
+- use recovery model for fluxes, with same asymptotic value ($\alpha$)
+
+- integrate fluxes to estimate stocks $\rightarrow$ decrease the number of parameters, explicit link between sotck sand fluxes
+
+
+$$ stocks(t) = \int_{t0}^{\infty} \left(influx(t) - outflux(t) \right) dt $$
+
+- asymptotic stocks and fluxes will be estimated with data from control plots. 
+
+## Diagram from workshop 3 - revisited
+
+```{r}
+grViz("
+digraph {
+
+  rankdir=LR
+
+  graph [overlap = true, fontsize = 10]
+
+  subgraph cluster_ba{
+    label='Basal area'; fontsize = 14;
+    node [shape = box, fillcolor='coral', style=filled, fontsize=12]
+    ba_stock [label='Stock']
+    ba_in [label='Gain']
+    ba_out [label='Loss']
+  }
+  
+  node [shape = box, fillcolor='coral', style=filled]
+  cwm [label='Functional\ncomposition']
+  div [label='Functional\ndiversity']
+
+  node [fillcolor='powderblue']
+  env [label='Environmental\nvariables']
+  intensity [label='Logging\nintensity']
+  
+  node [shape = ellipse, fillcolor='whitesmoke'] 
+  {rank=same
+  closure[label='Canopy\nclosure']
+  vmax[label='Asymptotic\nparameters*']
+  }
+  
+  intensity -> closure
+  closure -> {ba_in cwm}
+  vmax -> {ba_out ba_in cwm div}
+  env -> {closure vmax}
+  cwm -> {ba_in ba_out div}
+  
+  edge [style = bold]
+  div -> ba_in
+  
+  edge [style = dashed]
+  ba_in -> ba_stock
+  ba_out -> ba_stock
+  
+  node [shape = plaintext, fillcolor='white']
+  legend[label='*Asymptotic stocks: carrying capacity\nor fluxes: equilibrium turnover rate']
+}
+")
+```
+
+## Challenges
+
+-  add demographic rates for diversity and composition (not necessarily additive)
+
+- data is very noisy: we will need to make a lot of hypotheses to estimate the model parameters
+
+# Next steps
+
+## Tasks
+
+- planning for the next 6 months & organise meetings
+
+- start writing the introduction / literature review
+
+- write the complete model with all equations (methods)
+
+- calibrate the model
+
+- continue data preparation
+
+- ...
+
+## How to collaborate? 
+
+- github repository
+
+- googledrive: notes, etc
+
+- other ideas? 
