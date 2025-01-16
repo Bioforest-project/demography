@@ -8,8 +8,6 @@ execute:
 ---
 
 ```{r}
-library(ggplot2)
-library(data.table)
 library(DiagrammeR)
 ```
 
