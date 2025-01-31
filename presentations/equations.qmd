@@ -1,0 +1,291 @@
+---
+title: "WG3 - Equations"
+format: html
+editor: visual
+---
+
+```{r}
+library(DiagrammeR)
+library(tidyverse)
+```
+
+```{r}
+data_path <- "D:/github/Bioforest-project/inventories/data"
+data <- read.csv(paste0(data_path, "/derived_data/aggregated_data.csv"))
+
+control_string <- "unlogged|to be logged|old-growth|control|natural"
+silv_string <- "treatment|devital|thinning"
+
+plot_info <- 
+  read.csv(paste0(data_path, "/raw_data/bioforest-plot-information.csv")) |>
+  mutate(site = ifelse(site == "BAFOG", "Bafog", site)) |>
+  mutate(site = ifelse(site == "Montagne_tortue", "Montagne_Tortue", site)) |>
+  # harmonize treatment information as logging and silvicultural treatments
+  mutate(
+    Treatment = ifelse(Treatment != "", Treatment, NA),
+    logging = !grepl(control_string, tolower(Treatment)),
+    silv_treat = grepl(silv_string, tolower(Treatment)), 
+    year_log = ifelse(site == "Paracou", 1986, 
+                      Year_of_harvest |> substr(1,4) |> as.numeric()
+    )
+  ) |>
+  select(site, plot, logging, silv_treat, year_log)
+```
+
+# Previous decisions
+
+## Diagram from workshop 3 - revisited
+
+```{r}
+grViz("
+digraph {
+
+  rankdir=LR
+
+  graph [overlap = true, fontsize = 10]
+
+  subgraph cluster_ba{
+    label='Basal area'; fontsize = 14;
+    node [shape = box, fillcolor='coral', style=filled, fontsize=12]
+    ba_stock [label='Stock']
+    ba_in [label='Gain']
+    ba_out [label='Loss']
+  }
+  
+  node [shape = box, fillcolor='coral', style=filled]
+  {rank=same
+  cwm [label='Functional\ncomposition']
+  div [label='Functional\ndiversity']
+  }
+  node [fillcolor='powderblue']
+  env [label='Environmental\nvariables']
+  intensity [label='Logging\nintensity']
+  
+  node [shape = ellipse, fillcolor='whitesmoke'] 
+  {rank=same
+  closure[label='Canopy\nclosure']
+  vmax[label='Asymptotic\nparameters*']
+  }
+  
+  intensity -> closure
+  closure -> {ba_in cwm}
+  vmax -> {ba_out ba_in cwm div}
+  env -> {closure vmax}
+  cwm -> {ba_in ba_out div}
+  ba_stock -> closure
+  
+  edge [style = bold]
+  div -> ba_in
+  
+  edge [style = dashed]
+  ba_in -> ba_stock
+  ba_out -> ba_stock
+  
+  node [shape = plaintext, fillcolor='white']
+  legend[label='*Asymptotic stocks: carrying capacity\nor fluxes: equilibrium turnover rate']
+}
+")
+```
+
+## Integrating fluxes and stocks
+
+-   use recovery model for fluxes, with same asymptotic value
+
+-   integrate fluxes to estimate stocks $\rightarrow$ decrease the number of parameters, explicit link between sotck sand fluxes
+
+$$\frac{d (stocks(t))}{dt} = prod(t) - mort(t)$$
+
+$$ stocks(t) = stocks(t_0) + \int_{t_0}^{t} \left(prod - mort \right) $$
+
+**Advantages**: limited number of parameters, explicit link between stocks and fluxes
+
+Constraint: $lim_{\infty}(prod) = lim_{\infty}(mort)$
+
+# Defining functions 
+
+## Productivity
+
+For productivity we can use the general recovery model:
+
+$$ prod = \theta_0 + (\theta_{\infty} -\theta_0)\cdot(STP+LTP)$$ $$LTP = 1 - exp(-\lambda\cdot t) $$ $$STP = \delta \cdot \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2 $$
+
+```{r}
+data |> 
+  merge(plot_info, by.x = c("Site", "Plot"), by.y = c("site", "plot")) |>
+  subset(variable %in% c("ba_growth", "ba_recr")) |> 
+  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Misiones")) |>
+  pivot_wider(names_from = "variable") |>
+  ggplot(aes(Year, ba_recr+ba_growth, col = logging, group = Plot)) +
+    geom_point() +
+  geom_line() +
+  facet_wrap(~Site, scales = "free") +
+  theme_minimal()
+```
+
+## Mortality
+
+$$mort = \gamma \cdot BA $$
+
+```{r}
+data |> 
+  merge(plot_info, by.x = c("Site", "Plot"), by.y = c("site", "plot")) |> 
+  subset(variable %in% c("ba_mort", "ba")) |> 
+  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Misiones")) |>
+  subset((Year > year_log +5 & !is.na(year_log)) | !logging) |> 
+  pivot_wider(names_from = "variable") |> 
+  arrange(Year) |> 
+  ggplot(aes(ba, ba_mort)) +
+  geom_point(aes(col = logging, group = Plot)) +
+  geom_path(aes(col = logging, group = Plot)) +
+  geom_smooth() +
+  scale_x_log10() + scale_y_log10() +
+  facet_wrap(~Site, scales = "free") +
+  theme_minimal() 
+```
+
+We don't see a correlation between BA mortality and BA in the data.
+
+$$mort = \gamma $$ Because we need $lim_{\infty}(prod) = lim_{\infty}(mort)$, we need:
+
+$$mort = \theta_{\infty}$$
+
+## Stocks
+
+$$\frac{dBA}{dt} = prod(t)-mort(t)$$ $$BA(t) = BA(0) + \int_{0}^{t} \left(prod(t)-mort(t)\right)dt $$
+
+# Writing BA as a function of productivity and mortality
+
+## Under assumption of constant mortality
+
+$$BA(t) = BA(0) + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) $$
+
+(see Appendix "Integration of STP")
+
+```{r}
+thetainf = 2.8
+theta0 = 2.5
+lambda = 0.1
+ba0 = 10
+
+ltp = function(x, lambda = 0.01) 1-exp(-lambda*x)
+stp = function(time, delta = 0.5, tau = 10) {
+  delta * (time / tau * exp(1 - time / tau))^2
+}
+int_stp = function(time, delta = 2, tau = 10) {
+  delta*exp(2)*tau/4 - delta * exp((1-time/tau)*2) * (time^2/(2*tau)+time/2+tau/4)
+}
+
+data.frame(t = seq(0,100, length.out = 200)) |> 
+  mutate(prod = theta0 + (thetainf-theta0)*(stp(t)+ltp(t)), 
+         mort = thetainf,
+         ba = ba0 + (thetainf-theta0)*(int_stp(t) - 1/lambda*(1-exp(-lambda*t)))
+         ) |> 
+  pivot_longer(cols = 2:4) |> 
+  ggplot(aes(t, value)) + 
+  geom_line() + 
+  facet_wrap(~name, scales = "free") + 
+  theme_minimal()
+```
+
+
+## Under assumption of proportional mortality
+
+
+
+# Appendix
+
+## Integration of STP
+
+$$\int STP = \delta \cdot e^2 \int \left(\left(\frac{x}{\tau}\right)^2 e^{-\frac{2}{\tau}x}\right) dx $$
+
+IPP: we use \$u' = \frac{2x}{\tau^2}\$ and $v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}$
+
+$$\int STP = \delta \cdot e^2 \left( uv - \int u'v \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( \left(\frac{x}{\tau}\right)^2\cdot(-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{2x}{\tau^2} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x})dx \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \int \frac{x}{\tau} e^{-\frac{2}{\tau}x}dx \right) + C$$
+
+Again, we use an IPP with \$u' = \frac{1}{\tau} \$ and $v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( uv - \int u'v \right) \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( \frac{x}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{1}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) \right) \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}  -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} + \int  \frac{1}{2} \cdot e^{-\frac{2}{\tau}x}  \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x} -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} -\frac{\tau}{4} \cdot e^{-\frac{2}{\tau}x} \right) + C$$
+
+$$\int STP = \delta \cdot e^{(1-\frac{x}{\tau})2} \left( -\frac{x^2}{2\tau}    -\frac{x}{2}  -\frac{\tau}{4}\right) + C$$
+
+$$\int_0^t STP = \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) $$
+
+$$\int_0^t LTP = t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})$$
+
+$$\int_0^t prod = \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) + t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) $$
+
+if $mort = \theta_{\infty}$:
+
+$$\int_0^t mort = \theta_{\infty}\cdot t$$ then:
+
+$$BA(t) = BA(0) + \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) + t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right)  - \theta_{\infty}\cdot t$$
+
+$$BA(t) = BA(0) + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) + t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t}) - t\right) $$
+
+$$BA(t) = BA(0) + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) $$
+
+
+## Differential equation
+
+We want to solve the following differential equation $E$: 
+
+$$ba'(t) = prod(t) - \omega \cdot ba(t)$$
+
+with: 
+
+$$prod(t) = \theta_0 + (\theta_{\infty} - \theta_0)\cdot\left(1 - exp(-\lambda\cdot t) + \delta\left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2\right) $$
+
+which we can write as: 
+
+$$ prod(t) = \theta_{\infty} + \alpha\cdot exp(-\lambda\cdot t) + \beta \left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2$$
+
+with: $\alpha = \theta_{0} - \theta_{\infty}$ and $\beta = (\theta_{\infty} - \theta_{0})\delta $
+
+The general solution of differential equation $E_0$: 
+
+$$ba'(t) + \omega \cdot ba(t) = 0$$
+is $y_G = Kexp(-\omega t)$
+
+A particular solution of differential equation $E_1$:
+
+$$ba'(t) + \omega \cdot ba(t) = \theta_{\infty} + \alpha\cdot exp(-\lambda\cdot t)$$
+
+is $y_{p1} = \frac{\theta_{\infty}}{\omega} + \frac{\alpha \lambda}{\omega\lambda - 1} \cdot exp(-\lambda\cdot x)$
+
+
+A particular solution of differential equation $E_2$:
+
+$$ba'(t) + \omega \cdot ba(t) = \beta \left(\frac{t}{\tau}exp(1-\frac{t}{\tau})\right)^2$$
+
+is $y_{p2} = ...$
+
+Using the variation of constant method, $y_{p2}$ should be of the form: 
+
+$$y_{p2} = K(x) \cdot exp(-\omega x)$$
+
+with: 
+
+$$K(x) = \int \frac{ \beta \left(\frac{t}{\tau}exp(1-\frac{t}{\tau})\right)^2}{Kexp(-\omega\cdot t)}$$
+
+$$K(x) =  \frac{\beta e^2}{K\tau^2} \int t^2 exp(t(\omega - \frac{2}{\tau}))$$ 
+
+$$K(x) = \frac{\beta e^2}{K\tau^2} exp((\omega-\frac{2}{\tau})x)(x^2\frac{1}{\omega-\frac{2}{\tau}} - x \frac{2}{(\omega-\frac{2}{\tau})^2} + \frac{2}{(\omega-\frac{2}{\tau})^3}) $$
+
+then: 
+
+$$y_{p2} = \frac{\beta e^2}{K\tau^2} exp(-\frac{2}{\tau}x)(x^2\frac{1}{\omega-\frac{2}{\tau}} - x \frac{2}{(\omega-\frac{2}{\tau})^2} + \frac{2}{(\omega-\frac{2}{\tau})^3})$$
+
+$$y_{p2}' = \frac{\beta e^2}{K\tau^2} exp(-\frac{2}{\tau}x)\left( \frac{2x}{\omega-\frac{2}{\tau}} - \frac{2}{(\omega-\frac{2}{\tau})^2}-\frac{\tau}{2}(x^2\frac{1}{\omega-\frac{2}{\tau}} - x \frac{2}{(\omega-\frac{2}{\tau})^2} + \frac{2}{(\omega-\frac{2}{\tau})^3})\right)$$
+$$y_{p2}' = \frac{\beta e^2}{K\tau^2} exp(-\frac{2}{\tau}x)\left( x^2\frac{-\tau}{2(\omega-\frac{2}{\tau})} + x\frac{2(\tau+\omega-\frac{2}{\tau})}{\omega-\frac{2}{\tau}} - \frac{2((\omega-\frac{2}{\tau})+\tau)}{(\omega-\frac{2}{\tau})^3}\right)$$
+
+
