@@ -1,0 +1,15 @@
+---
+title: "All data"
+date: today
+date-format: medium
+format: 
+  gfm:
+    toc: true
+    toc-depth: 2
+---
+
+This folder will contains the data for all anlayses.
+
+```{r, comment=""}
+fs::dir_tree()
+```

@@ -1,8 +1,8 @@
-# Outputs
+# Models
 
 Feb 13, 2025
 
-All outputs of the analyses:
+All Bayesian models in stan .
 
 ``` r
 fs::dir_tree()

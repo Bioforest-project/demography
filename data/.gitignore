@@ -1,0 +1,6 @@
+*
+!.gitignore
+!README.md
+!README.qmd
+!derived_data
+!raw_data

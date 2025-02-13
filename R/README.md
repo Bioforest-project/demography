@@ -1,8 +1,8 @@
-# Outputs
+# R
 
 Feb 13, 2025
 
-All outputs of the analyses:
+This folder contains all R functions used in the analyses.
 
 ``` r
 fs::dir_tree()

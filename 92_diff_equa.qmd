@@ -1,0 +1,48 @@
+```{r setup}
+#| message: false
+#| warning: false
+```
+
+## Differential equation {.unnumbered}
+
+We want to solve the following differential equation $E$:
+
+$$ba'(t) = prod(t) - \omega \cdot ba(t)$$
+
+with:
+
+$$ prod(t) = \theta_0 + (\theta_{\infty} - \theta_0)\cdot\left(1 - exp(-\lambda\cdot t) + \delta\left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2\right) $$
+
+which we can write as:
+
+$$ prod(t) = \theta_{\infty} + \alpha\cdot exp(-\lambda\cdot t) + \beta \left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2$$
+
+with: $\alpha = \theta_{0} - \theta_{\infty}$ and \$\beta = (\theta*{*\infty} - \theta{0})\delta \$
+
+The general solution of differential equation $E_0$:
+
+$$ba'(t) + \omega \cdot ba(t) = 0$$
+
+is $y_G = Kexp(-\omega t)$
+
+A particular solution of differential equation $E_1$:
+
+$$ba'(t) + \omega \cdot ba(t) = \theta_{\infty} + \alpha\cdot exp(-\lambda\cdot t)$$
+
+is
+
+$$y_{p1} = \frac{\theta_{\infty}}{\omega} + \frac{\alpha \lambda}{\omega\lambda - 1} \cdot exp(-\lambda\cdot t)$$
+
+A particular solution of differential equation $E_2$:
+
+$$ba'(t) + \omega \cdot ba(t) = \beta \left(\frac{t}{\tau}exp(1-\frac{t}{\tau})\right)^2$$
+
+is
+
+$$y_{p2} = exp(1-\frac{t}{\tau})^2\frac{2\beta}{\tau^2(2\omega-\tau)}\left(t^2 - t\frac{4}{(2\omega-\tau)} + \frac{8}{(2\omega-\tau)^2}\right)$$
+
+The general solution to differential equation (E) is therefore:
+
+$$y(t) = \frac{\theta_{\infty}}{\omega} + Kexp(-\omega t) + \frac{\alpha \lambda}{\omega\lambda - 1} \cdot exp(-\lambda\cdot t) + exp(1-\frac{t}{\tau})^2\frac{2\beta}{\tau^2(2\omega-\tau)}\left(t^2 - t\frac{4}{(2\omega-\tau)} + \frac{8}{(2\omega-\tau)^2}\right)$$ with $y(0) = BA_0$
+
+$$ K = BA_0 - \frac{\theta_{\infty}}{\omega} - \frac{\alpha \lambda}{\omega\lambda - 1} -\frac{16e^2\beta}{\tau^2(2\omega-\tau)^3}$$

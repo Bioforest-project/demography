@@ -1,0 +1,15 @@
+---
+title: "R"
+date: today
+date-format: medium
+format: 
+  gfm:
+    toc: true
+    toc-depth: 2
+---
+
+This folder contains all R functions used in the analyses.
+
+```{r, comment=""}
+fs::dir_tree()
+```

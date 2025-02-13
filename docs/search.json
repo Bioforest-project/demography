@@ -1,0 +1,633 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "modelling",
+    "section": "",
+    "text": "Introduction\ndemography is a sub-project of the BioForest project. It aims to analyse tree demographic rates (growth, mortality) in selectively logged forests and their relationship with tree biodiversity and composition, as well as abiotic factors (climate, soil, etc.).",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "index.html#usage",
+    "href": "index.html#usage",
+    "title": "modelling",
+    "section": "Usage",
+    "text": "Usage\nAll demography analyses rely on the quarto documents (files.qmd) that can be run with R and associated environment defined with renv.",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "index.html#project",
+    "href": "index.html#project",
+    "title": "modelling",
+    "section": "Project",
+    "text": "Project\ndemography includes:\n\nAnalyse of the data with associated documentation and figures:\n\nReproducible analyses in files.qmd\nResulting pages in docs/\nDocument structure definition in _quarto.yml\n\nData in data/ with:\n\nAll raw data in raw_data/\nAll derived data in derived_sata/\n\nStan Bayesian models in models/\nStan Bayesian models outputs in chains/\nR scripts with functions in r/\nIntermediary files in outputs/\nFigures in figures/\nR environment definition with renv in renv/ and renv/lock\nR files (.Rbuildignore , .Rdata , .Rprofile , .Rhistory, .lintr)\nGit and GitHub files (.gitignore , .github/)\nProject documentation (README.qmd , README.md , NEWS.md, LICENSE )",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "index.html#contribution",
+    "href": "index.html#contribution",
+    "title": "modelling",
+    "section": "Contribution",
+    "text": "Contribution\nYou can contribute to the project by forking the repository on github and cloning the fork to your machine using several options, including GitHub desktop GUI. Further information on contribution are detailed in the online document: https://bioforest-project.github.io/data_preparation/98_contributing.html.",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "index.html#help",
+    "href": "index.html#help",
+    "title": "modelling",
+    "section": "Help",
+    "text": "Help\nPlease preferentially create an issue on GitHub for any questions, bugs or help needed regarding demography: https://github.com/Bioforest-project/demography/issues. However, you can contact us by email through people in the core group (see below).",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "index.html#core-group",
+    "href": "index.html#core-group",
+    "title": "modelling",
+    "section": "Core group",
+    "text": "Core group\n\nCamille Piponiot (camille.piponiot-laroche@cirad.fr)\nGéraldine Derroire (geraldine.derroire@cirad.fr)\nIrié Casimir Zo-Bi (casimir.zo@inphb.ci)\nDwinda Putri (dwinda.mariska@gmail.com)\nVincy K Wilson (vincykwilson@gmail.com)\n\nThe whole group consist of participants to the Bioforest project.",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "11_observations.html",
+    "href": "11_observations.html",
+    "title": "Observations",
+    "section": "",
+    "text": "Data exploration.\n\n\nCode\nmetadata &lt;- read_sheet(\"https://docs.google.com/spreadsheets/d/1fq2owxMBLBwwibcdw2uQQFxnIhsMbaH4Qcj_xUwVvSQ/edit?gid=0#gid=0\", col_types = \"c\") %&gt;% # nolint\n  rename_all(tolower) %&gt;%\n  select(site, plot, treatment, year_of_harvest) %&gt;%\n  separate(year_of_harvest, \"year_of_harvest\") %&gt;%\n  mutate(year_of_harvest = as.numeric(year_of_harvest)) %&gt;%\n  rename(harvest_year = year_of_harvest) %&gt;%\n  mutate(treatment = ifelse(\n    treatment %in% c(\"control\", \"Control\", \"Natural_Forest\"),\n    \"control\", \"logged\"\n  )) %&gt;%\n  group_by(site) %&gt;%\n  mutate(harvest_year_min = min(harvest_year, na.rm = TRUE)) %&gt;%\n  mutate(harvest_year = ifelse(site == \"Paracou\", 1986, harvest_year)) %&gt;%\n  mutate(harvest_year_min = ifelse(site == \"Paracou\", 1986, harvest_year_min))\ndata &lt;- read_csv(\"data/raw_data/aggregated_data.csv\") %&gt;%\n  rename_all(tolower) %&gt;%\n  left_join(metadata) %&gt;%\n  filter(!(site %in% c(\"Peteco\", \"Bafog\", \"Tene\",\n                       \"Montagne_Tortue\", \"Manare\"))) %&gt;%\n  filter(!(site == \"Kabo\" & year &lt; 1980)) %&gt;%\n  mutate(rel_year = ifelse(treatment == \"control\",\n    year - harvest_year_min,\n    year - harvest_year\n  )) %&gt;%\n  mutate(sitenum = as.numeric(as.factor(site))) %&gt;%\n  group_by(site) %&gt;%\n  mutate(y = ifelse(variable == \"agb\" & site == \"Kibale\",\n    300, value\n  )) %&gt;%\n  ungroup()\ndata_rec &lt;- data %&gt;%\n  filter(treatment == \"logged\", rel_year &gt; 2) %&gt;%\n  mutate(plotnum_rec = as.numeric(as.factor(paste0(site, \"_\", plot))))\ndata_pre &lt;- data %&gt;%\n  filter(rel_year &lt;= 0) %&gt;%\n  mutate(plotnum_pre = as.numeric(as.factor(paste0(site, \"_\", plot))))\ndata_old &lt;- data %&gt;%\n  filter(treatment == \"control\") %&gt;%\n  mutate(plotnum_old = as.numeric(as.factor(paste0(site, \"_\", plot))))\nwrite_tsv(data, \"data/derived_data/data.tsv\")\nwrite_tsv(data_rec, \"data/derived_data/data_rec.tsv\")\nwrite_tsv(data_pre, \"data/derived_data/data_pre.tsv\")\nwrite_tsv(data_old, \"data/derived_data/data_old.tsv\")\n\n\n\n\nCode\nread_tsv(\"data/derived_data/data.tsv\") %&gt;%\n  ggplot(aes(year, value, group = paste(site, plot))) +\n  geom_line() +\n  theme_bw() +\n  facet_wrap(~variable, scales = \"free_y\") +\n  theme(\n    axis.title = element_blank(),\n    strip.text = element_text(size = 6)\n  )\n\n\n\n\n\nAll attributes trajectories.\n\n\n\n\n\n\nCode\nmake_fig &lt;- function(var) {\n  g &lt;- read_tsv(\"data/derived_data/data.tsv\") %&gt;%\n    filter(variable == var) %&gt;%\n    ggplot(aes(year, value, group = paste(site, plot), col = treatment)) +\n    geom_line() +\n    theme_bw() +\n    xlab(\"\") +\n    ylab(\"\") +\n    facet_wrap(~site, scales = \"free\") +\n    geom_vline(aes(xintercept = harvest_year)) +\n    theme(legend.position = \"bottom\") +\n    ggtitle(var)\n  ggsave(plot = g, filename = paste0(\"figures/obs/\", var, \".png\"))\n}\nunique(read_tsv(\"data/derived_data/data.tsv\")$variable) %&gt;%\n  lapply(make_fig)\n\n\n\n\nCode\nread_tsv(\"data/derived_data/data.tsv\") %&gt;%\n  filter(variable == \"agb\") %&gt;%\n  ggplot(aes(year, value, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(expression(\"AGB [\" ~ Mg ~ ha^{\n    -1\n  } ~ \"]\")) +\n  facet_wrap(~site, scales = \"free\") +\n  geom_vline(aes(xintercept = harvest_year)) +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\nAGB trajectories across sites and treatments."
+  },
+  {
+    "objectID": "21_models.html#ltp",
+    "href": "21_models.html#ltp",
+    "title": "Models",
+    "section": "LTP",
+    "text": "LTP\nLong term process only model:\n\\[\n\\begin{align}\n\\mu_{rec} = \\theta_{0,p} + (\\theta_{\\infty,s} - \\theta_{0,p}) \\times LTP \\\\\nLTP = 1 - e^{-\\lambda_p \\times time}\n\\end{align}\n\\]\nThe model we use is derived from the common framework for modelling recovery in disturbed tropical forests (Maurent et al. 2023). The forest attribute is first disturbed at \\(t=0\\) with either an increase or a decrease depending on the parameter \\(dist\\). Then the attributes recover asymptotically in the long term to an equilibrium value \\(\\theta_{Inf}\\) with a recovery rate \\(\\lambda\\).\n\n\nCode\nltp &lt;- function(time, dist, thetainf, lambda) {\n  theta0 &lt;- thetainf * dist\n  ltp &lt;- 1 - exp(-lambda * time)\n  return(theta0 + (thetainf - theta0) * (ltp))\n}\ndata.frame(time = seq(0.1, 50, length.out = 100)) %&gt;%\n  mutate(y_ltp = ltp(time, dist = 0.5, thetainf = 20, lambda = 0.05)) %&gt;%\n  bind_rows(data.frame(time = 0, y_stp = 20, y_ltp = 20)) %&gt;%\n  ggplot(aes(time)) +\n  geom_line(aes(y = y_ltp)) +\n  theme_bw() +\n  annotate(\"text\",\n    x = 52, y = 19.5, label = \"theta[Inf]\",\n    col = \"#9ea1d4\", parse = TRUE, size = 5\n  ) +\n  annotate(\"text\",\n    x = 20, y = 15, label = \"lambda\",\n    col = \"#a8d2d1\", parse = TRUE, size = 5\n  ) +\n  annotate(\"text\",\n    x = -4, y = 15, label = \"dist\",\n    col = \"#fc8a8a\", parse = TRUE, size = 5\n  ) +\n  theme(axis.title = element_blank()) +\n  geom_segment(aes(x = -2, y = 10, xend = -2, yend = 20),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#fc8a8a\"\n  ) +\n  geom_segment(aes(x = -2, y = 20, xend = -2, yend = 10),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#fc8a8a\"\n  )\n\n\n\n\n\nLTP proj with pars."
+  },
+  {
+    "objectID": "21_models.html#stp",
+    "href": "21_models.html#stp",
+    "title": "Models",
+    "section": "STP",
+    "text": "STP\nLong term and short term processes model based on disturbance index \\(dist\\):\n\\[\n\\begin{align}\n\\mu_{rec} = \\theta_{0,p} + (\\theta_{\\infty,s} - \\theta_{0,p}) \\times (LTP+STP) \\\\\nLTP = 1 - e^{-\\lambda_p \\times time} \\\\\nSTP = \\delta_p \\times (\\frac{time}{\\tau_s} \\times e^{1-\\frac{time}{\\tau_s}})^2 \\\\\n\\theta_{0,p} = \\theta_{\\infty,s} \\times dist_p\n\\end{align}\n\\]\nThe model we use is derived from the common framework for modelling recovery in disturbed tropical forests (Maurent et al. 2023). The forest attribute is first disturbed at \\(t=0\\) with either an increase or a decrease depending on the parameter \\(dist\\). Then the attributes recover asymptotically in the long term to an equilibrium value \\(\\theta_{Inf}\\) with a recovery rate \\(\\lambda\\). But in this second version the recovery trajectory can also accommodate a short term increase of decrease of the attribute at a time \\(\\tau\\) with an intensity \\(\\delta\\).\n\n\nCode\nstp &lt;- function(time, dist, thetainf, lambda, tau, delta) {\n  theta0 &lt;- thetainf * dist\n  ltp &lt;- 1 - exp(-lambda * time)\n  stp &lt;- delta * (time / tau * exp(1 - time / tau))^2\n  return(theta0 + (thetainf - theta0) * (ltp + stp))\n}\ndata.frame(time = seq(0.1, 50, length.out = 100)) %&gt;%\n  mutate(y_stp = stp(time,\n    dist = 0.5, thetainf = 20, lambda = 0.05,\n    tau = 5, delta = 1\n  )) %&gt;%\n  mutate(y_ltp = ltp(time, dist = 0.5, thetainf = 20, lambda = 0.05)) %&gt;%\n  bind_rows(data.frame(time = 0, y_stp = 20, y_ltp = 20)) %&gt;%\n  ggplot(aes(time)) +\n  geom_line(aes(y = y_ltp), col = \"grey\") +\n  geom_line(aes(y = y_stp)) +\n  theme_bw() +\n  annotate(\"text\",\n    x = 52, y = 19.5, label = \"theta[Inf]\",\n    col = \"#9ea1d4\", parse = TRUE, size = 5\n  ) +\n  annotate(\"text\",\n    x = 20, y = 15, label = \"lambda\",\n    col = \"#a8d2d1\", parse = TRUE, size = 5\n  ) +\n  annotate(\"text\",\n    x = -4, y = 15, label = \"dist\",\n    col = \"#fc8a8a\", parse = TRUE, size = 5\n  ) +\n  theme(axis.title = element_blank()) +\n  geom_segment(aes(x = -2, y = 10, xend = -2, yend = 20),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#fc8a8a\"\n  ) +\n  geom_segment(aes(x = -2, y = 20, xend = -2, yend = 10),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#fc8a8a\"\n  ) +\n  annotate(\"text\",\n    x = 6, y = 11.3, label = \"tau\",\n    col = \"#f2e5a9\", parse = TRUE, size = 5\n  ) +\n  annotate(\"text\",\n    x = 5, y = 17.5, label = \"delta\",\n    col = \"#a7d6ac\", parse = TRUE, size = 5\n  ) +\n  geom_segment(aes(x = 6, y = 13, xend = 6, yend = 22),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#a7d6ac\"\n  ) +\n  geom_segment(aes(x = 6, y = 22, xend = 6, yend = 13),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#a7d6ac\"\n  ) +\n  geom_segment(aes(x = 6, y = 11, xend = 6, yend = 10),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#f2e5a9\"\n  ) +\n  theme(axis.title = element_blank())\n\n\n\n\n\nSTP proj with pars.\n\n\n\n\n\nChoices (to be developed as text in an appendix):\n\nUsing the log of y and a normal distribution centred on log(mu)\nCauchy hyperdist\nForced dist_p&lt;1\nBounds of theta\nFree tau\nFree delta\n\n⚠️ Hump is mathematically opposed to the sign of dist_p-1.\n\n\n\n\n\nMaurent, Eliott, Bruno Hérault, Camille Piponiot, Géraldine Derroire, Diego Delgado, Bryan Finegan, Mélaine Aubry Kientz, Bienvenu H. K. Amani, and Marie Ange Ngo Bieng. 2023. “A Common Framework to Model Recovery in Disturbed Tropical Forests.” Ecological Modelling 483 (September): 110418. https://doi.org/10.1016/j.ecolmodel.2023.110418."
+  },
+  {
+    "objectID": "30_trajectories.html",
+    "href": "30_trajectories.html",
+    "title": "Trajectories",
+    "section": "",
+    "text": "This section develop trajectories per attributes. Boundaries of each parameter are listed below with the figure summarising the meaning of each parameter on the trajectory.\n\n\nCode\nltp &lt;- function(time, dist, thetainf, lambda) {\n  theta0 &lt;- thetainf * dist\n  ltp &lt;- 1 - exp(-lambda * time)\n  return(theta0 + (thetainf - theta0) * (ltp))\n}\nstp &lt;- function(time, dist, thetainf, lambda, tau, delta) {\n  theta0 &lt;- thetainf * dist\n  ltp &lt;- 1 - exp(-lambda * time)\n  stp &lt;- delta * (time / tau * exp(1 - time / tau))^2\n  return(theta0 + (thetainf - theta0) * (ltp + stp))\n}\ndata.frame(time = seq(0.1, 50, length.out = 100)) %&gt;%\n  mutate(y_stp = stp(time,\n    dist = 0.5, thetainf = 20, lambda = 0.05,\n    tau = 5, delta = 1\n  )) %&gt;%\n  mutate(y_ltp = ltp(time, dist = 0.5, thetainf = 20, lambda = 0.05)) %&gt;%\n  bind_rows(data.frame(time = 0, y_stp = 20, y_ltp = 20)) %&gt;%\n  ggplot(aes(time)) +\n  geom_line(aes(y = y_ltp), col = \"grey\") +\n  geom_line(aes(y = y_stp)) +\n  theme_bw() +\n  annotate(\"text\",\n    x = 52, y = 19.5, label = \"theta[Inf]\",\n    col = \"#9ea1d4\", parse = TRUE, size = 5\n  ) +\n  annotate(\"text\",\n    x = 20, y = 15, label = \"lambda\",\n    col = \"#a8d2d1\", parse = TRUE, size = 5\n  ) +\n  annotate(\"text\",\n    x = -4, y = 15, label = \"dist\",\n    col = \"#fc8a8a\", parse = TRUE, size = 5\n  ) +\n  theme(axis.title = element_blank()) +\n  geom_segment(aes(x = -2, y = 10, xend = -2, yend = 20),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#fc8a8a\"\n  ) +\n  geom_segment(aes(x = -2, y = 20, xend = -2, yend = 10),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#fc8a8a\"\n  ) +\n  annotate(\"text\",\n    x = 6, y = 11.3, label = \"tau\",\n    col = \"#f2e5a9\", parse = TRUE, size = 5\n  ) +\n  annotate(\"text\",\n    x = 5, y = 17.5, label = \"delta\",\n    col = \"#a7d6ac\", parse = TRUE, size = 5\n  ) +\n  geom_segment(aes(x = 6, y = 13, xend = 6, yend = 22),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#a7d6ac\"\n  ) +\n  geom_segment(aes(x = 6, y = 22, xend = 6, yend = 13),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#a7d6ac\"\n  ) +\n  geom_segment(aes(x = 6, y = 11, xend = 6, yend = 10),\n    arrow = arrow(length = unit(0.2, \"cm\")), col = \"#f2e5a9\"\n  ) +\n  theme(axis.title = element_blank())\n\n\n\n\n\nSTP trajectory with parameters.\n\n\n\n\n\nThe forest attribute is first disturbed at \\(t=0\\) with either an increase or a decrease depending on the parameter \\(dist\\). Then the attributes recover asymptotically in the long term to an equilibrium value \\(\\theta_{Inf}\\) with a recovery rate \\(\\lambda\\). But in this second version the recovery trajectory can also accommodate a short term increase of decrease of the attribute at a time \\(\\tau\\) with an intensity \\(\\delta\\).\n\n\n\nCode\nbounds &lt;- read_sheet(\"https://docs.google.com/spreadsheets/d/1rZZ_dKebVp1RnxI0ZawaSQws72FhubuPZ8O27DzJtFE/edit?usp=sharing\") # nolint\nwrite_tsv(bounds, \"data/derived_data/bounds.tsv\")\n\n\n\n\nCode\nread_tsv(\"data/derived_data/bounds.tsv\") %&gt;%\n  mutate(\n    mu_thetaInf = paste0(\"[\", mu_thetaInf_min, \" ,\", mu_thetaInf_max, \"]\"),\n    thetaInf = paste0(\"[\", thetaInf_min, \" ,\", thetaInf_max, \"]\"),\n    lambda = paste0(\"[\", lambda_min, \" ,\", lambda_max, \"]\"),\n    dist = paste0(\"[\", dist_min, \" ,\", dist_max, \"]\"),\n    delta = paste0(\"[\", delta_min, \" ,\", delta_max, \"]\"),\n    tau = paste0(\"[\", tau_min, \" ,\", tau_max, \"]\")\n  ) %&gt;%\n  select(attribute, mu_thetaInf, thetaInf, lambda, dist, delta, tau) %&gt;%\n  kable(caption = \"Parameters boundaries per attribute.\")\n\n\n\nParameters boundaries per attribute.\n\n\n\n\n\n\n\n\n\n\n\nattribute\nmu_thetaInf\nthetaInf\nlambda\ndist\ndelta\ntau\n\n\n\n\nnstem\n[100 ,1000]\n[50 ,2000]\n[0 ,0.5]\n[0.1 ,1]\n[0 ,5]\n[2 ,30]\n\n\nagb\n[100 ,500]\n[50 ,1000]\n[0 ,0.5]\n[0.1 ,1]\n[0 ,5]\n[2 ,30]\n\n\nWD_cwm_ba\n[0.5 ,1.3]\n[0.5 ,1.3]\n[0 ,0.5]\n[0.1 ,1.5]\n[0 ,2]\n[2 ,30]\n\n\nFDiv\n[0 ,1]\n[0 ,1]\n[0 ,0.5]\n[0.1 ,1.5]\n[0 ,2]\n[2 ,30]\n\n\ndiversity_q1_gen\n[10 ,100]\n[10 ,100]\n[0 ,0.5]\n[0.1 ,1.5]\n[0 ,2]\n[2 ,30]\n\n\ngini\n[0 ,2]\n[0 ,2]\n[0 ,0.5]\n[0.1 ,1.5]\n[0 ,2]\n[2 ,30]\n\n\nba\n[1 ,100]\n[1 ,100]\n[0 ,0.5]\n[0.1 ,1]\n[0 ,5]\n[2 ,30]\n\n\nFEve\n[0 ,1]\n[0 ,1]\n[0 ,0.5]\n[0.1 ,1.5]\n[0 ,2]\n[2 ,30]\n\n\nSLA_cwm_ba\n[1 ,50]\n[1 ,50]\n[0 ,0.5]\n[0.1 ,1.5]\n[0 ,2]\n[2 ,30]\n\n\nN_cwm_ba\n[10 ,50]\n[10 ,50]\n[0 ,0.5]\n[0.1 ,1.5]\n[0 ,2]\n[2 ,30]\n\n\nhmax_cwm_ba\n[30 ,60]\n[30 ,60]\n[0 ,0.5]\n[0.1 ,1.5]\n[0 ,2]\n[2 ,30]\n\n\n\n\n\n\n\nCode\nltp &lt;- cmdstan_model(\"models/ltp.stan\")\nstp &lt;- cmdstan_model(\"models/stp.stan\")\nvars &lt;- c(\n  \"nstem\", \"agb\", \"WD_cwm_ba\", \"FDiv\", \"diversity_q1_gen\", \"gini\",\n  \"ba\", \"FEve\", \"SLA_cwm_ba\", \"N_cwm_ba\", \"hmax_cwm_ba\"\n)\nfor (var in vars) {\n  sample_model(var, \"ltp\")\n}\nfor (var in vars) {\n  sample_model(var, \"stp\")\n}"
+  },
+  {
+    "objectID": "31_stem.html#data",
+    "href": "31_stem.html#data",
+    "title": "Stem",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"nstem\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- expression(\"Stem [ trees\" ~ ha^{\n  -1\n} ~ \"]\")\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "31_stem.html#ltp",
+    "href": "31_stem.html#ltp",
+    "title": "Stem",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       2276.44 2275.98 19.23 19.27 2246.46 2307.99 1.01      377      449\n mu_dist       0.80    0.80  0.02  0.02    0.76    0.84 1.01      387     1237\n sigma_dist    0.09    0.08  0.01  0.01    0.07    0.11 1.00     1709     2934\n dist_p[1]     0.80    0.80  0.07  0.06    0.68    0.89 1.00     1750     2478\n dist_p[2]     0.88    0.88  0.06  0.07    0.77    0.98 1.00     1528     1219\n dist_p[3]     0.78    0.78  0.05  0.05    0.68    0.86 1.00     1972     2153\n dist_p[4]     0.81    0.81  0.07  0.06    0.70    0.91 1.00     1846     1914\n dist_p[5]     0.78    0.79  0.06  0.05    0.69    0.87 1.00     1927     2098\n dist_p[6]     0.83    0.83  0.05  0.05    0.74    0.92 1.00     1609     1181\n dist_p[7]     0.83    0.83  0.06  0.06    0.72    0.94 1.00     1474     1126\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "31_stem.html#stp",
+    "href": "31_stem.html#stp",
+    "title": "Stem",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       2687.10 2686.58 24.14 23.77 2648.60 2729.21 1.02      418      497\n mu_dist       0.74    0.74  0.02  0.02    0.71    0.78 1.00      981     1911\n sigma_dist    0.10    0.09  0.01  0.01    0.07    0.12 1.00     3786     2853\n dist_p[1]     0.71    0.71  0.05  0.04    0.63    0.79 1.00     3638     2397\n dist_p[2]     0.87    0.87  0.06  0.06    0.78    0.96 1.00     2315     1730\n dist_p[3]     0.73    0.73  0.04  0.04    0.67    0.81 1.00     3353     2691\n dist_p[4]     0.73    0.73  0.05  0.05    0.66    0.81 1.00     3383     2091\n dist_p[5]     0.74    0.74  0.04  0.05    0.67    0.81 1.00     3205     2621\n dist_p[6]     0.81    0.81  0.05  0.05    0.74    0.89 1.00     2414     1666\n dist_p[7]     0.77    0.77  0.05  0.05    0.69    0.85 1.00     3499     2609\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "31_stem.html#comparison",
+    "href": "31_stem.html#comparison",
+    "title": "Stem",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models."
+  },
+  {
+    "objectID": "32_wd.html#data",
+    "href": "32_wd.html#data",
+    "title": "WD",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"WD_cwm_ba\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- expression(\"WD [ g\" ~ cm^{\n  -3\n} ~ \"]\")\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "32_wd.html#ltp",
+    "href": "32_wd.html#ltp",
+    "title": "WD",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       4899.02 4897.02 46.03 49.18 4830.01 4982.04 1.08       48       55\n mu_dist       0.97    0.97  0.00  0.01    0.96    0.98 1.06       41      155\n sigma_dist    0.03    0.03  0.00  0.00    0.02    0.03 1.08       30       88\n dist_p[1]     1.01    1.01  0.02  0.02    0.98    1.03 1.11       25      110\n dist_p[2]     0.96    0.96  0.01  0.01    0.94    0.98 1.04       73      427\n dist_p[3]     1.01    1.01  0.01  0.01    0.99    1.04 1.04      625      962\n dist_p[4]     0.98    0.98  0.01  0.01    0.96    1.00 1.03      724     1045\n dist_p[5]     0.98    0.98  0.01  0.01    0.96    1.00 1.06      485      516\n dist_p[6]     0.99    0.99  0.02  0.02    0.96    1.02 1.13       19       23\n dist_p[7]     0.99    0.99  0.01  0.01    0.97    1.01 1.02      318     1201\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "32_wd.html#stp",
+    "href": "32_wd.html#stp",
+    "title": "WD",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       4628.25 4651.86 73.13 52.28 4495.27 4711.41 2.09        5       33\n mu_dist       1.02    1.03  0.02  0.01    0.98    1.05 1.74        6       28\n sigma_dist    0.04    0.04  0.01  0.01    0.03    0.05 1.12       22      318\n dist_p[1]     1.06    1.07  0.03  0.03    1.02    1.11 1.28       10       38\n dist_p[2]     0.99    0.99  0.02  0.02    0.96    1.02 1.15       18      144\n dist_p[3]     1.06    1.06  0.02  0.02    1.02    1.09 1.20       14       44\n dist_p[4]     1.04    1.04  0.03  0.02    0.99    1.08 1.36        9       31\n dist_p[5]     1.02    1.02  0.02  0.02    0.98    1.05 1.23       12       54\n dist_p[6]     1.02    1.02  0.02  0.02    0.99    1.05 1.23       12       59\n dist_p[7]     1.04    1.04  0.02  0.02    1.00    1.07 1.31       10       38\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories.\n\n\n\n\n\n\nCode\nfit_stp$draws(\"dist_p\") %&gt;%\n  mcmc_intervals() +\n  geom_vline(xintercept = 1)\n\n\n\n\n\ndelta posteriors."
+  },
+  {
+    "objectID": "32_wd.html#comparison",
+    "href": "32_wd.html#comparison",
+    "title": "WD",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models."
+  },
+  {
+    "objectID": "33_agb.html#data",
+    "href": "33_agb.html#data",
+    "title": "AGB",
+    "section": "Data",
+    "text": "Data\n\nWe removed Kibale by setting all its AGB vales to 300.\n\n\n\nCode\nvar &lt;- \"agb\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- expression(\"AGB [ t\" ~ ha^{\n  -1\n} ~ \"]\")\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "33_agb.html#ltp",
+    "href": "33_agb.html#ltp",
+    "title": "AGB",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       2866.55 2867.34 14.24 14.23 2842.09 2888.85 1.01     1018     1812\n mu_dist       0.57    0.57  0.03  0.02    0.53    0.61 1.00     4130     3578\n sigma_dist    0.13    0.13  0.02  0.02    0.10    0.16 1.00     3511     2928\n dist_p[1]     0.51    0.51  0.03  0.03    0.47    0.56 1.00     4364     2549\n dist_p[2]     0.72    0.72  0.03  0.03    0.67    0.76 1.00     2727     3223\n dist_p[3]     0.70    0.70  0.05  0.05    0.61    0.77 1.00     4814     2070\n dist_p[4]     0.70    0.70  0.06  0.06    0.59    0.79 1.00     5569     3161\n dist_p[5]     0.68    0.68  0.03  0.03    0.64    0.72 1.00     2993     3138\n dist_p[6]     0.83    0.83  0.06  0.05    0.73    0.92 1.00     3788     2603\n dist_p[7]     0.82    0.82  0.05  0.05    0.73    0.91 1.00     4278     2727\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "33_agb.html#stp",
+    "href": "33_agb.html#stp",
+    "title": "AGB",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       2989.33 2994.75 41.42 49.06 2920.45 3048.94 1.58        6      141\n mu_dist       0.62    0.62  0.03  0.03    0.56    0.67 1.09       29      300\n sigma_dist    0.14    0.14  0.02  0.02    0.11    0.18 1.00     3504     2896\n dist_p[1]     0.51    0.51  0.03  0.03    0.47    0.56 1.00     2731     2929\n dist_p[2]     0.66    0.68  0.08  0.07    0.51    0.76 1.05       78      800\n dist_p[3]     0.70    0.70  0.05  0.04    0.62    0.77 1.00     2458     1553\n dist_p[4]     0.67    0.68  0.08  0.06    0.52    0.77 1.02      379      991\n dist_p[5]     0.68    0.68  0.03  0.03    0.64    0.72 1.02      583      718\n dist_p[6]     0.82    0.83  0.05  0.05    0.74    0.91 1.00     2861     2517\n dist_p[7]     0.83    0.83  0.05  0.05    0.74    0.91 1.00     2766     2403\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories.\n\n\n\n\n\n\nCode\nfit_stp$summary(\"lambda_p\", \"mean\") %&gt;%\n  mutate(t95 = log(20) / mean) %&gt;%\n  ggplot(aes(t95)) +\n  geom_histogram() +\n  theme_bw() +\n  scale_x_log10()\n\n\n\n\n\n95% recovery time."
+  },
+  {
+    "objectID": "33_agb.html#comparison",
+    "href": "33_agb.html#comparison",
+    "title": "AGB",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models.\n\n\n\n\n\n\n\n\nRéjou-Méchain, Maxime, Ariane Tanguy, Camille Piponiot, Jérôme Chave, and Bruno Hérault. 2017. “Biomass: An r Package for Estimating Above-Ground Biomass and Its Uncertainty in Tropical Forests.” Edited by Sarah Goslee. Methods in Ecology and Evolution 8 (9): 1163–67. https://doi.org/10.1111/2041-210x.12753."
+  },
+  {
+    "objectID": "34_fdiv.html#data",
+    "href": "34_fdiv.html#data",
+    "title": "FDiv",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"FDiv\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- expression(\"FDiv\")\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "34_fdiv.html#ltp",
+    "href": "34_fdiv.html#ltp",
+    "title": "FDiv",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       3084.96 3084.08 32.74 31.50 3033.10 3139.53 1.05       98      120\n mu_dist       1.02    1.02  0.01  0.01    1.00    1.05 1.00     1685     1896\n sigma_dist    0.09    0.09  0.01  0.01    0.07    0.12 1.00     2141     2265\n dist_p[1]     1.18    1.18  0.06  0.06    1.09    1.28 1.00      967     1525\n dist_p[2]     1.30    1.31  0.11  0.11    1.10    1.46 1.00      469      664\n dist_p[3]     0.93    0.93  0.05  0.05    0.85    1.00 1.00     1272     1620\n dist_p[4]     0.79    0.79  0.04  0.04    0.73    0.85 1.00     1045     1884\n dist_p[5]     0.91    0.91  0.04  0.04    0.84    0.98 1.00     1037     1362\n dist_p[6]     0.84    0.83  0.04  0.04    0.77    0.91 1.00     1139     1562\n dist_p[7]     0.89    0.89  0.05  0.05    0.80    0.98 1.01      827     1436\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "34_fdiv.html#stp",
+    "href": "34_fdiv.html#stp",
+    "title": "FDiv",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       2915.80 2932.98 65.05 49.30 2797.96 3001.17 2.18        5       45\n mu_dist       1.00    1.01  0.05  0.05    0.93    1.08 1.67        6       47\n sigma_dist    0.14    0.14  0.02  0.02    0.11    0.18 1.04       58     2387\n dist_p[1]     1.24    1.32  0.23  0.13    0.84    1.47 1.56        6       29\n dist_p[2]     1.35    1.36  0.09  0.10    1.19    1.48 1.19       15      142\n dist_p[3]     0.87    0.87  0.05  0.05    0.79    0.96 1.06       43     2283\n dist_p[4]     0.78    0.65  0.26  0.06    0.56    1.23 1.53        7       28\n dist_p[5]     0.84    0.84  0.06  0.05    0.75    0.92 1.03     2661     1734\n dist_p[6]     0.77    0.77  0.05  0.04    0.67    0.84 1.04     1809     1205\n dist_p[7]     0.76    0.77  0.09  0.07    0.62    0.88 1.06     1447      955\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "34_fdiv.html#comparison",
+    "href": "34_fdiv.html#comparison",
+    "title": "FDiv",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models.\n\n\n\n\n\n\n\n\nMouchet, Maud A., Sébastien Villéger, Norman W. H. Mason, and David Mouillot. 2010. “Functional Diversity Measures: An Overview of Their Redundancy and Their Ability to Discriminate Community Assembly Rules.” Functional Ecology 24 (4): 867–76. https://doi.org/10.1111/j.1365-2435.2010.01695.x."
+  },
+  {
+    "objectID": "35_div_q1_gen.html#data",
+    "href": "35_div_q1_gen.html#data",
+    "title": "Genus diversity 1",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"diversity_q1_gen\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- expression(\"Genus diversity\" ~ q == 1)\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "35_div_q1_gen.html#ltp",
+    "href": "35_div_q1_gen.html#ltp",
+    "title": "Genus diversity 1",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       2485.17 2478.00 40.55 36.48 2430.47 2565.00 1.29       11       50\n mu_dist       1.02    1.02  0.03  0.03    0.97    1.07 1.11       24      198\n sigma_dist    0.14    0.14  0.02  0.02    0.11    0.17 1.03       92     2151\n dist_p[1]     1.07    1.06  0.07  0.07    0.96    1.19 1.01     1197     1839\n dist_p[2]     0.76    0.76  0.06  0.05    0.67    0.85 1.01     1101     2302\n dist_p[3]     1.23    1.22  0.08  0.08    1.10    1.37 1.00     1244     1789\n dist_p[4]     0.82    0.82  0.06  0.06    0.73    0.92 1.01      949     1753\n dist_p[5]     1.07    1.06  0.07  0.06    0.96    1.19 1.00     1230     1820\n dist_p[6]     0.91    0.91  0.06  0.06    0.81    1.01 1.01     1097     1911\n dist_p[7]     0.69    0.69  0.06  0.06    0.58    0.78 1.02      261     1924\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "35_div_q1_gen.html#stp",
+    "href": "35_div_q1_gen.html#stp",
+    "title": "Genus diversity 1",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median     sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       2244.92 2188.56 145.21 84.74 2091.78 2512.24 2.27        5       15\n mu_dist       1.02    1.02   0.05  0.05    0.94    1.10 1.45        7       22\n sigma_dist    0.16    0.16   0.02  0.02    0.13    0.21 1.08       33      424\n dist_p[1]     1.12    1.11   0.09  0.09    0.99    1.28 1.00      828     1495\n dist_p[2]     0.75    0.75   0.07  0.07    0.65    0.87 1.01      870     1763\n dist_p[3]     1.28    1.28   0.10  0.10    1.12    1.44 1.01      756      849\n dist_p[4]     0.84    0.84   0.07  0.08    0.73    0.96 1.02      359     1572\n dist_p[5]     1.10    1.10   0.09  0.09    0.96    1.26 1.01      576      522\n dist_p[6]     0.92    0.92   0.08  0.08    0.80    1.05 1.02      291     1565\n dist_p[7]     0.65    0.64   0.07  0.07    0.55    0.77 1.02      685     1823\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "35_div_q1_gen.html#comparison",
+    "href": "35_div_q1_gen.html#comparison",
+    "title": "Genus diversity 1",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models.\n\n\n\n\n\n\n\n\nMarcon, Eric, and Bruno Hérault. 2015. “Entropart: AnRPackage to Measure and Partition Diversity.” Journal of Statistical Software 67 (8). https://doi.org/10.18637/jss.v067.i08."
+  },
+  {
+    "objectID": "37_gini.html#data",
+    "href": "37_gini.html#data",
+    "title": "Gini",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"gini\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- \"Gini index\"\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "37_gini.html#ltp",
+    "href": "37_gini.html#ltp",
+    "title": "Gini",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       4092.50 4092.78 15.18 15.20 4067.03 4116.78 1.00      761     1467\n mu_dist       0.89    0.89  0.01  0.01    0.87    0.91 1.00     2179     2691\n sigma_dist    0.06    0.06  0.01  0.01    0.05    0.07 1.00     4066     3141\n dist_p[1]     0.85    0.85  0.03  0.03    0.80    0.89 1.01     1200     2165\n dist_p[2]     0.92    0.92  0.02  0.02    0.88    0.96 1.01     1084     1496\n dist_p[3]     0.95    0.95  0.03  0.03    0.90    1.01 1.01     1370     1851\n dist_p[4]     1.00    1.00  0.04  0.03    0.94    1.06 1.01      986     2057\n dist_p[5]     0.97    0.96  0.05  0.03    0.92    1.06 1.01      775      720\n dist_p[6]     1.02    1.02  0.04  0.04    0.95    1.08 1.01     1110     1747\n dist_p[7]     0.98    0.98  0.04  0.04    0.92    1.04 1.01     1096     1589\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "37_gini.html#stp",
+    "href": "37_gini.html#stp",
+    "title": "Gini",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median     sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       3865.99 3799.86 145.76 51.80 3732.05 4158.47 1.84        5       28\n mu_dist       0.91    0.91   0.01  0.01    0.88    0.93 1.24       12       92\n sigma_dist    0.06    0.06   0.01  0.01    0.05    0.08 1.02      766     2416\n dist_p[1]     0.84    0.85   0.03  0.03    0.79    0.90 1.03      143     1610\n dist_p[2]     0.91    0.92   0.03  0.03    0.87    0.96 1.03      126      774\n dist_p[3]     0.95    0.95   0.04  0.04    0.89    1.01 1.00     2284     2900\n dist_p[4]     1.00    1.00   0.04  0.04    0.94    1.07 1.01     1907     2688\n dist_p[5]     0.96    0.95   0.05  0.04    0.87    1.04 1.03      141      287\n dist_p[6]     1.02    1.02   0.04  0.04    0.94    1.09 1.00     1677     1215\n dist_p[7]     0.98    0.98   0.04  0.04    0.91    1.04 1.00     1916     2654\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "37_gini.html#comparison",
+    "href": "37_gini.html#comparison",
+    "title": "Gini",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models."
+  },
+  {
+    "objectID": "38_ba.html#data",
+    "href": "38_ba.html#data",
+    "title": "BA",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"ba\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- expression(\"BA [\" ~ m^2 ~ m^{\n  -2\n} ~ \"]\")\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "38_ba.html#ltp",
+    "href": "38_ba.html#ltp",
+    "title": "BA",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       2566.41 2567.12 14.60 14.22 2541.63 2589.55 1.00      823     1714\n mu_dist       0.61    0.61  0.02  0.02    0.57    0.65 1.00     4561     3419\n sigma_dist    0.13    0.13  0.02  0.02    0.10    0.16 1.00     3608     2853\n dist_p[1]     0.55    0.55  0.04  0.04    0.49    0.62 1.00     4112     2555\n dist_p[2]     0.76    0.76  0.04  0.04    0.69    0.83 1.00     2741     2699\n dist_p[3]     0.71    0.71  0.06  0.05    0.62    0.80 1.00     4084     2593\n dist_p[4]     0.69    0.69  0.07  0.07    0.58    0.80 1.00     4992     2997\n dist_p[5]     0.69    0.69  0.04  0.04    0.63    0.75 1.00     2801     2935\n dist_p[6]     0.83    0.83  0.06  0.06    0.73    0.93 1.00     2297     2017\n dist_p[7]     0.78    0.78  0.07  0.07    0.66    0.90 1.00     3119     1523\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "38_ba.html#stp",
+    "href": "38_ba.html#stp",
+    "title": "BA",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       2695.69 2696.08 19.92 19.83 2662.66 2728.17 1.00      734     1428\n mu_dist       0.65    0.65  0.03  0.03    0.60    0.70 1.00     2335     3059\n sigma_dist    0.15    0.14  0.02  0.02    0.12    0.18 1.00     3751     2852\n dist_p[1]     0.55    0.55  0.04  0.04    0.49    0.61 1.00     3364     2838\n dist_p[2]     0.76    0.76  0.04  0.04    0.69    0.82 1.00     2147     2584\n dist_p[3]     0.72    0.72  0.05  0.05    0.65    0.80 1.00     3413     2343\n dist_p[4]     0.71    0.71  0.05  0.05    0.62    0.79 1.00     2925     2458\n dist_p[5]     0.69    0.69  0.03  0.03    0.64    0.75 1.00     2499     2871\n dist_p[6]     0.85    0.85  0.05  0.05    0.76    0.94 1.00     1824     1501\n dist_p[7]     0.79    0.79  0.06  0.06    0.70    0.89 1.00     3103     2276\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "38_ba.html#comparison",
+    "href": "38_ba.html#comparison",
+    "title": "BA",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models."
+  },
+  {
+    "objectID": "39_feve.html#data",
+    "href": "39_feve.html#data",
+    "title": "FEve",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"FEve\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- \"FEve\"\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "39_feve.html#ltp",
+    "href": "39_feve.html#ltp",
+    "title": "FEve",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       1980.96 1979.44 26.37 26.25 1939.73 2027.31 1.01      219      199\n mu_dist       1.03    1.03  0.03  0.03    0.98    1.07 1.00     1147     2243\n sigma_dist    0.13    0.12  0.02  0.02    0.10    0.16 1.00     1033     1834\n dist_p[1]     1.07    1.07  0.09  0.08    0.94    1.22 1.00     1199      691\n dist_p[2]     1.10    1.09  0.09  0.08    0.97    1.27 1.00     1425     1188\n dist_p[3]     1.10    1.10  0.09  0.08    0.97    1.26 1.00     1454     1031\n dist_p[4]     0.46    0.46  0.07  0.07    0.35    0.60 1.00     1538      543\n dist_p[5]     0.77    0.77  0.08  0.08    0.65    0.90 1.00     1479     2495\n dist_p[6]     1.00    1.00  0.07  0.07    0.88    1.12 1.00     1214      791\n dist_p[7]     1.09    1.09  0.09  0.08    0.96    1.24 1.00     1639     1601\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "39_feve.html#stp",
+    "href": "39_feve.html#stp",
+    "title": "FEve",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median     sd    mad      q5     q95 rhat ess_bulk\n lp__       1868.97 1842.22 169.53 200.82 1648.74 2159.71 2.92        4\n mu_dist       0.99    0.99   0.05   0.05    0.91    1.06 1.46        7\n sigma_dist    0.14    0.14   0.03   0.03    0.10    0.19 1.26       11\n dist_p[1]     0.98    0.99   0.12   0.12    0.76    1.16 1.19       14\n dist_p[2]     1.11    1.10   0.11   0.11    0.94    1.33 1.02      771\n dist_p[3]     1.05    1.05   0.11   0.10    0.88    1.23 1.07       36\n dist_p[4]     0.44    0.44   0.08   0.07    0.33    0.57 1.09       29\n dist_p[5]     0.72    0.72   0.09   0.09    0.58    0.87 1.05       62\n dist_p[6]     0.99    0.99   0.10   0.09    0.84    1.15 1.01     1386\n dist_p[7]     1.02    1.02   0.12   0.11    0.82    1.20 1.14       19\n ess_tail\n       21\n       68\n      122\n      160\n     1111\n      280\n       61\n      400\n     1517\n      291\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "39_feve.html#comparison",
+    "href": "39_feve.html#comparison",
+    "title": "FEve",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models."
+  },
+  {
+    "objectID": "40_sla.html#data",
+    "href": "40_sla.html#data",
+    "title": "SLA",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"SLA_cwm_ba\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- expression(\"SLA [\" ~ mm^2 ~ mg^{\n  -1\n} ~ \"]\")\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "40_sla.html#ltp",
+    "href": "40_sla.html#ltp",
+    "title": "SLA",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       3957.17 3957.14 14.41 14.55 3933.45 3981.40 1.00      892     1736\n mu_dist       0.96    0.96  0.02  0.02    0.94    0.99 1.00     1131     2237\n sigma_dist    0.08    0.08  0.01  0.01    0.06    0.10 1.00     3794     2618\n dist_p[1]     0.94    0.94  0.03  0.03    0.89    0.98 1.00      785     2078\n dist_p[2]     1.03    1.03  0.06  0.08    0.95    1.13 1.00      684     2392\n dist_p[3]     0.98    0.98  0.03  0.03    0.93    1.03 1.00      753     2253\n dist_p[4]     0.97    0.97  0.03  0.03    0.92    1.01 1.00      763     2462\n dist_p[5]     1.05    1.06  0.03  0.03    1.00    1.11 1.00      829     2333\n dist_p[6]     1.13    1.13  0.03  0.03    1.08    1.18 1.00      828     2785\n dist_p[7]     1.07    1.07  0.03  0.03    1.01    1.12 1.00      818     2312\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "40_sla.html#stp",
+    "href": "40_sla.html#stp",
+    "title": "SLA",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median     sd    mad      q5     q95 rhat ess_bulk\n lp__       3653.58 3665.00 346.53 514.40 3253.69 4054.00 2.23        5\n mu_dist       0.97    0.97   0.03   0.03    0.93    1.02 1.49        7\n sigma_dist    0.08    0.08   0.01   0.01    0.06    0.11 1.15       17\n dist_p[1]     0.93    0.93   0.04   0.03    0.87    0.98 1.08       32\n dist_p[2]     1.01    1.02   0.07   0.07    0.90    1.11 1.37        8\n dist_p[3]     0.97    0.97   0.04   0.04    0.90    1.03 1.11       24\n dist_p[4]     0.95    0.96   0.04   0.03    0.89    1.01 1.09       27\n dist_p[5]     1.04    1.04   0.04   0.04    0.97    1.11 1.13       20\n dist_p[6]     1.12    1.12   0.04   0.04    1.04    1.19 1.10       26\n dist_p[7]     1.05    1.05   0.04   0.04    0.98    1.12 1.13       20\n ess_tail\n       36\n       32\n      140\n       97\n       22\n      161\n      138\n       56\n       58\n       77\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "40_sla.html#comparison",
+    "href": "40_sla.html#comparison",
+    "title": "SLA",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models."
+  },
+  {
+    "objectID": "41_n.html#data",
+    "href": "41_n.html#data",
+    "title": "N",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"N_cwm_ba\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- expression(\"N [\" ~ mg ~ g^{\n  -1\n} ~ \"]\")\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "41_n.html#ltp",
+    "href": "41_n.html#ltp",
+    "title": "N",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       4584.07 4582.75 26.22 26.78 4544.55 4629.59 1.01      201      256\n mu_dist       0.99    0.99  0.01  0.01    0.97    1.00 1.00     1417     1839\n sigma_dist    0.05    0.05  0.01  0.01    0.04    0.06 1.00     2407     1802\n dist_p[1]     0.98    0.98  0.02  0.02    0.95    1.01 1.00     1333     2312\n dist_p[2]     1.03    1.03  0.02  0.02    1.00    1.06 1.00     1509     2531\n dist_p[3]     0.97    0.97  0.02  0.02    0.94    1.00 1.00     1552     2117\n dist_p[4]     0.95    0.95  0.02  0.02    0.92    0.98 1.00     1389     2415\n dist_p[5]     1.05    1.05  0.02  0.02    1.01    1.08 1.00     1368     2261\n dist_p[6]     0.97    0.97  0.02  0.02    0.94    1.00 1.00     1367     2135\n dist_p[7]     0.95    0.95  0.02  0.02    0.92    0.98 1.00     1358     2467\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "41_n.html#stp",
+    "href": "41_n.html#stp",
+    "title": "N",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median     sd    mad      q5     q95 rhat ess_bulk\n lp__       4598.98 4576.14 114.99 153.17 4434.54 4780.93 2.35        4\n mu_dist       0.99    0.99   0.01   0.01    0.97    1.02 1.56        6\n sigma_dist    0.05    0.05   0.01   0.01    0.04    0.07 1.13       20\n dist_p[1]     0.99    0.99   0.02   0.02    0.95    1.02 1.10       26\n dist_p[2]     1.03    1.03   0.02   0.02    1.00    1.07 1.07       37\n dist_p[3]     0.97    0.97   0.02   0.02    0.94    1.00 1.09       29\n dist_p[4]     0.95    0.95   0.02   0.02    0.92    0.99 1.09       34\n dist_p[5]     1.05    1.05   0.02   0.02    1.01    1.08 1.08       36\n dist_p[6]     0.97    0.97   0.02   0.02    0.94    1.00 1.09       32\n dist_p[7]     0.95    0.95   0.02   0.02    0.92    0.98 1.08       34\n ess_tail\n       29\n       30\n       95\n      117\n      199\n       94\n      115\n      201\n      146\n      119\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "41_n.html#comparison",
+    "href": "41_n.html#comparison",
+    "title": "N",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models."
+  },
+  {
+    "objectID": "42_hmax.html#data",
+    "href": "42_hmax.html#data",
+    "title": "hmax",
+    "section": "Data",
+    "text": "Data\n\n\nCode\nvar &lt;- \"hmax_cwm_ba\"\nif (!exists(file.path(\"chains\", var))) {\n  dir.create(file.path(\"chains\", var))\n}\nlab &lt;- expression(\"hmax [\" ~ m ~ \"]\")\ndata_rec &lt;- read_tsv(\"data/derived_data/data_rec.tsv\") %&gt;%\n  filter(variable == var)\ndata_pre &lt;- read_tsv(\"data/derived_data/data_pre.tsv\") %&gt;%\n  filter(variable == var)\ndata_old &lt;- read_tsv(\"data/derived_data/data_old.tsv\") %&gt;%\n  filter(variable == var)\n\n\n\n\nCode\nbind_rows(data_rec, data_pre, data_old) %&gt;%\n  ggplot(aes(rel_year, y, group = paste(site, plot), col = treatment)) +\n  geom_line() +\n  facet_wrap(~site) +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(lab) +\n  theme(legend.position = \"bottom\") +\n  scale_color_discrete(\"\")\n\n\n\n\n\nModelled trajectories."
+  },
+  {
+    "objectID": "42_hmax.html#ltp",
+    "href": "42_hmax.html#ltp",
+    "title": "hmax",
+    "section": "LTP",
+    "text": "LTP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"ltp\")\nfit_ltp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_ltp\n\n\n   variable    mean  median    sd   mad      q5     q95 rhat ess_bulk ess_tail\n lp__       4953.59 4953.66 18.42 18.05 4923.40 4983.63 1.01      403     1105\n mu_dist       0.99    0.99  0.01  0.01    0.98    1.00 1.00     2282     2769\n sigma_dist    0.03    0.03  0.01  0.01    0.02    0.04 1.00     3620     3071\n dist_p[1]     1.02    1.02  0.01  0.01    1.00    1.04 1.00     1930     2284\n dist_p[2]     1.02    1.02  0.01  0.01    1.00    1.05 1.00     2031     2561\n dist_p[3]     0.99    0.99  0.01  0.01    0.97    1.01 1.00     1967     2346\n dist_p[4]     0.96    0.96  0.01  0.01    0.94    0.98 1.00     2320     2637\n dist_p[5]     0.98    0.97  0.01  0.01    0.95    1.00 1.00     2079     2693\n dist_p[6]     1.00    1.00  0.01  0.01    0.98    1.02 1.00     2133     2722\n dist_p[7]     1.00    1.00  0.01  0.01    0.98    1.03 1.00     1963     2090\n\n # showing 10 of 9054 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_ltp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_ltp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "42_hmax.html#stp",
+    "href": "42_hmax.html#stp",
+    "title": "hmax",
+    "section": "STP",
+    "text": "STP\n\n\nCode\npath &lt;- file.path(\"chains\", var, \"stp\")\nfit_stp &lt;- as_cmdstan_fit(list.files(path, full.names = TRUE))\nfit_stp\n\n\n   variable    mean  median     sd    mad      q5     q95 rhat ess_bulk\n lp__       4822.61 4823.01 128.41 150.68 4632.07 5034.86 2.85        4\n mu_dist       1.00    1.00   0.01   0.01    0.98    1.01 1.28       10\n sigma_dist    0.04    0.04   0.01   0.01    0.03    0.05 1.16       17\n dist_p[1]     1.02    1.02   0.02   0.02    1.00    1.05 1.04       76\n dist_p[2]     1.03    1.03   0.02   0.02    1.00    1.06 1.04       86\n dist_p[3]     0.99    0.99   0.02   0.02    0.97    1.02 1.04      113\n dist_p[4]     0.96    0.96   0.02   0.02    0.93    0.98 1.02      165\n dist_p[5]     0.98    0.98   0.02   0.02    0.95    1.00 1.03      164\n dist_p[6]     1.00    1.00   0.02   0.02    0.98    1.03 1.05       61\n dist_p[7]     1.01    1.01   0.02   0.02    0.98    1.04 1.04       65\n ess_tail\n       16\n       36\n      137\n      668\n     1549\n     2573\n     1156\n     2366\n     1186\n     1800\n\n # showing 10 of 10132 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)\n\n\n\n\nCode\npvo_fig(data_rec, data_pre, fit_stp)\n\n\n\n\n\nPredicted versus observed.\n\n\n\n\n\n\nCode\nproj_fig(data_rec, data_pre, data_old, fit_stp, lab)\n\n\n\n\n\nPredicted trajectories."
+  },
+  {
+    "objectID": "42_hmax.html#comparison",
+    "href": "42_hmax.html#comparison",
+    "title": "hmax",
+    "section": "Comparison",
+    "text": "Comparison\n\n\nCode\ncomp_lambda_fig(data_rec, fit_ltp, fit_stp)\n\n\n\n\n\nlambda comparison across models.\n\n\n\n\n\n\n\n\nMolto, Q., B. Hérault, J.-J. Boreux, M. Daullet, A. Rousteau, and V. Rossi. 2014. “Predicting Tree Heights for Biomass Estimates in Tropical Forests  a Test from French Guiana.” Biogeosciences 11 (12): 3121–30. https://doi.org/10.5194/bg-11-3121-2014."
+  },
+  {
+    "objectID": "50_parameters.html#likelihood-convergence",
+    "href": "50_parameters.html#likelihood-convergence",
+    "title": "Parameters",
+    "section": "Likelihood convergence",
+    "text": "Likelihood convergence\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lp__\") %&gt;%\n  ggplot(aes(forcats::fct_reorder(attribute, desc(rhat)),\n    rhat,\n    fill = rhat\n  )) +\n  geom_col() +\n  coord_flip() +\n  theme_bw() +\n  scale_fill_viridis_c(expression(hat(R)), trans = \"log\") +\n  theme(axis.title = element_blank())\n\n\n\n\n\nLikelihood convergence per forest attribute."
+  },
+  {
+    "objectID": "50_parameters.html#inter-site",
+    "href": "50_parameters.html#inter-site",
+    "title": "Parameters",
+    "section": "Inter-site",
+    "text": "Inter-site\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(\n    level == \"inter\",\n    parameter != \"lp__\", parameter != \"mu_thetaInf\"\n  ) %&gt;%\n  mutate(parameter = recode(parameter,\n    \"mu_delta\" = \"mu[~delta]\",\n    \"mu_dist\" = \"mu[~dist]\",\n    \"mu_lambda\" = \"mu[~lambda]\",\n    \"mu_tau\" = \"mu[~tau]\"\n  )) %&gt;%\n  ggplot(aes(x = attribute, col = type)) +\n  geom_point(aes(y = median)) +\n  geom_segment(aes(y = median - sd, yend = median + sd)) +\n  geom_segment(aes(y = q5, yend = q95), size = .1) +\n  facet_wrap(~parameter, scales = \"free_x\", labeller = label_parsed) +\n  coord_flip() +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(\"\")\n\n\n\n\n\nthetaInf across sites"
+  },
+  {
+    "objectID": "50_parameters.html#site",
+    "href": "50_parameters.html#site",
+    "title": "Parameters",
+    "section": "Site",
+    "text": "Site\n\nAsymptotic value \\(\\theta_{inf}\\)\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"thetaInf\") %&gt;%\n  unique() %&gt;%\n  ggplot(aes(site, color = continent)) +\n  geom_point(aes(y = median)) +\n  geom_segment(aes(y = median - sd, yend = median + sd)) +\n  geom_segment(aes(y = q5, yend = q95), size = .1) +\n  facet_wrap(~attribute, scales = \"free_x\") +\n  theme_bw() +\n  coord_flip() +\n  ylab(expression(theta[Inf])) +\n  xlab(\"\")\n\n\n\n\n\nthetaInf across sites\n\n\n\n\n\n\nBump time \\(\\tau\\)\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"tau\") %&gt;%\n  unique() %&gt;%\n  ggplot(aes(site, color = continent)) +\n  geom_point(aes(y = median)) +\n  geom_segment(aes(y = median - sd, yend = median + sd)) +\n  geom_segment(aes(y = q5, yend = q95), size = .1) +\n  facet_wrap(~attribute) +\n  theme_bw() +\n  coord_flip() +\n  ylab(expression(tau)) +\n  xlab(\"\")\n\n\n\n\n\ntau across sites"
+  },
+  {
+    "objectID": "50_parameters.html#plot",
+    "href": "50_parameters.html#plot",
+    "title": "Parameters",
+    "section": "Plot",
+    "text": "Plot\n\nDisturbance index \\(dist\\)\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"dist\", attribute == \"agb\") %&gt;%\n  unique() %&gt;%\n  ggplot(aes(plot)) +\n  geom_point(aes(y = median)) +\n  geom_segment(aes(y = median - sd, yend = median + sd)) +\n  geom_segment(aes(y = q5, yend = q95), size = .1) +\n  facet_wrap(~site, scales = \"free_y\") +\n  theme_bw() +\n  coord_flip() +\n  ylab(expression(dist)) +\n  xlab(\"Plot\") +\n  ggtitle(\"AGB\")\n\n\n\n\n\ndist across sites & plots for AGB\n\n\n\n\n\n\nBump intensity \\(\\delta\\)\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"delta\", attribute == \"diversity_q1_gen\") %&gt;%\n  unique() %&gt;%\n  ggplot(aes(plot)) +\n  geom_point(aes(y = median)) +\n  geom_segment(aes(y = median - sd, yend = median + sd)) +\n  geom_segment(aes(y = q5, yend = q95), size = .1) +\n  facet_wrap(~site, scales = \"free_y\") +\n  theme_bw() +\n  coord_flip() +\n  ylab(expression(delta)) +\n  xlab(\"Plot\") +\n  ggtitle(\"diversity_q1_gen\")\n\n\n\n\n\ndelta across sites & plots for AGB\n\n\n\n\n\n\nRecovery time \\(t_{95}\\)\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\", attribute == \"agb\") %&gt;%\n  unique() %&gt;%\n  ggplot(aes(plot)) +\n  geom_point(aes(y = median)) +\n  facet_wrap(~site, scales = \"free_y\") +\n  theme_bw() +\n  coord_flip() +\n  ylab(expression(dist)) +\n  xlab(\"Plot\") +\n  ggtitle(\"AGB\") +\n  scale_y_log10()\n\n\n\n\n\nt95 across sites & plots for AGB"
+  },
+  {
+    "objectID": "51_group1.html#h1---diversity-time",
+    "href": "51_group1.html#h1---diversity-time",
+    "title": "Group 1",
+    "section": "H1 - Diversity & time",
+    "text": "H1 - Diversity & time\n\nH1: tree diversity long-term response increases through time to a maximum value, after which it then declines in late succession\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(level == \"inter\") %&gt;%\n  filter((type == \"diversity\" & parameter %in% c(\"mu_delta\", \"mu_tau\")) |\n           (type == \"structure\" & parameter %in% c(\"mu_dist\"))) %&gt;%\n  mutate_at(\n    c(\"median\", \"sd\", \"q5\", \"q95\"),\n    ~ ifelse(parameter == \"mu_dist\", (1 - .) * 100, .)\n  ) %&gt;%\n  mutate_at(\n    c(\"median\", \"sd\", \"q5\", \"q95\"),\n    ~ ifelse(parameter == \"mu_delta\", . * 100, .)\n  ) %&gt;%\n  mutate(parameter = recode(parameter,\n    \"mu_delta\" = \"mu[~delta]~'['~'%'~']'\",\n    \"mu_dist\" = \"1-mu[~dist]~'['~'%'~']'\",\n    \"mu_tau\" = \"mu[~tau]~'['~year~']'\"\n  )) %&gt;%\n  ggplot(aes(x = attribute, col = attribute, label = attribute)) +\n  geom_text(aes(y = median), nudge_x = .15, size = 3) +\n  geom_point(aes(y = median)) +\n  geom_segment(aes(y = q5, yend = q95), size = .1) +\n  facet_wrap(~parameter, scales = \"free\", labeller = label_parsed) +\n  coord_flip() +\n  theme_bw() +\n  xlab(\"\") +\n  ylab(\"\") +\n  theme(\n    axis.text.y = element_blank(),\n    axis.ticks.y = element_blank()\n  ) +\n  scale_color_discrete(guide = \"none\") +\n  ggtitle(\"Mean intersite\")\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(level == \"site\") %&gt;%\n  filter(type == \"diversity\" & parameter == \"tau\") %&gt;%\n  ggplot(aes(x = site, col = continent)) +\n  geom_point(aes(y = median)) +\n  geom_segment(aes(y = median - sd, yend = median + sd)) +\n  geom_segment(aes(y = q5, yend = q95), size = .1) +\n  facet_wrap(~attribute) +\n  coord_flip() +\n  theme_bw() +\n  ylab(expression(tau ~ \"[ year ]\")) +\n  xlab(\"\") +\n  scale_color_discrete(\"\") +\n  ggtitle(expression(Site ~ tau)) +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(level == \"plot\") %&gt;%\n  filter(type == \"diversity\" & parameter == \"delta\") %&gt;%\n  ggplot(aes(x = 100 * median, y = site, fill = continent)) +\n  ggridges::geom_density_ridges() +\n  facet_wrap(~attribute) +\n  theme_bw() +\n  xlab(expression(delta ~ \"[ % ]\")) +\n  ylab(\"\") +\n  scale_fill_discrete(\"\") +\n  ggtitle(expression(Plot ~ delta)) +\n  theme(legend.position = \"bottom\") +\n  scale_x_log10()\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(\n    type == \"diversity\",\n    parameter %in% c(\"delta\", \"tau\")\n  ) %&gt;%\n  select(attribute, parameter, site, median) %&gt;%\n  pivot_wider(names_from = parameter, values_from = median) %&gt;%\n  unnest(tau, delta) %&gt;%\n  ggplot(aes(tau, delta * 100, fill = site)) +\n  geom_boxplot(varwidth = FALSE, width = 6) +\n  theme_bw() +\n  scale_y_log10() +\n  ylab(expression(delta ~ \"[ % ]\")) +\n  xlab(expression(tau ~ \"[ year ]\")) +\n  scale_fill_discrete(\"\") +\n  ggtitle(expression(Plot ~ delta ~ \"~\" ~ Site ~ tau)) +\n  facet_wrap(~attribute)"
+  },
+  {
+    "objectID": "51_group1.html#h2---diversity-intensity",
+    "href": "51_group1.html#h2---diversity-intensity",
+    "title": "Group 1",
+    "section": "H2 - Diversity & intensity",
+    "text": "H2 - Diversity & intensity\n\nH2: tree diversity also shows a non-linear response to increased intensity of logging: lightly logged forests show a transient increase in tree diversity, but more intensively logged forests show a strong negative effect on diversity\n\n\n\nCode\ndist_p &lt;- read_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"dist\", attribute == \"ba\") %&gt;%\n  select(site, plot, median, sd, q5, q95) %&gt;%\n  unique() %&gt;%\n  rename_at(c(\"median\", \"sd\", \"q5\", \"q95\"), ~ paste0(., \"_dist_ba\"))\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"delta\", type == \"diversity\") %&gt;%\n  left_join(dist_p) %&gt;%\n  ggplot(aes((1 - median_dist_ba) * 100, median * 100, col = site)) +\n  geom_smooth(method = \"lm\", se = FALSE, col = \"black\", aes(group = NA)) +\n  geom_point() +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  xlab(expression(dist[BA] ~ \"[ % lost ]\")) +\n  ylab(expression(delta ~ \"[ % ]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  ggtitle(expression(Plot ~ delta ~ \"~\" ~ dist[BA])) +\n  ggpubr::stat_cor(aes(group = NA))"
+  },
+  {
+    "objectID": "52_group2.html#q1---recovery-rates",
+    "href": "52_group2.html#q1---recovery-rates",
+    "title": "Group 2",
+    "section": "Q1 - Recovery rates",
+    "text": "Q1 - Recovery rates\n\nQ1. How do forest attributes vary in recovery rates in the long-term?\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(\n    level == \"inter\",\n    parameter != \"lp__\", parameter == \"mu_lambda\"\n  ) %&gt;%\n  ggplot(aes(x = attribute, col = type)) +\n  geom_point(aes(y = median)) +\n  geom_segment(aes(y = median - sd, yend = median + sd)) +\n  geom_segment(aes(y = q5, yend = q95), size = .1) +\n  coord_flip() +\n  theme_bw() +\n  ylab(expression(mu[~lambda])) +\n  xlab(\"\")\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(\n    level == \"inter\",\n    parameter != \"lp__\", parameter == \"mu_lambda\"\n  ) %&gt;%\n  mutate_at(c(\"median\", \"sd\", \"q5\", \"q95\"), ~ log(20) / .) %&gt;%\n  ggplot(aes(x = attribute, col = type)) +\n  geom_point(aes(y = median)) +\n  geom_segment(aes(y = q5, yend = q95), size = .1) +\n  coord_flip() +\n  theme_bw() +\n  ylab(expression(mu[~t95] ~ \"[\" ~ years ~ \"]\")) +\n  xlab(\"\") +\n  scale_y_log10()"
+  },
+  {
+    "objectID": "52_group2.html#q2---recovery-time-intensity",
+    "href": "52_group2.html#q2---recovery-time-intensity",
+    "title": "Group 2",
+    "section": "Q2 - Recovery time & intensity",
+    "text": "Q2 - Recovery time & intensity\n\nQ2. How does recovery time vary with disturbance intensities?\n\n\n\nCode\ndist_p &lt;- read_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"dist\", attribute == \"ba\") %&gt;%\n  select(site, plot, median, sd, q5, q95) %&gt;%\n  unique() %&gt;%\n  rename_at(c(\"median\", \"sd\", \"q5\", \"q95\"), ~ paste0(., \"_dist_ba\"))\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  left_join(dist_p) %&gt;%\n  ggplot(aes((1 - median_dist_ba) * 100, median, col = site)) +\n  geom_smooth(method = \"lm\", se = FALSE, col = \"black\", aes(group = NA)) +\n  geom_point() +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  xlab(expression(dist[BA] ~ \"[ % lost ]\")) +\n  ylab(expression(lambda)) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nCode\ndist_p &lt;- read_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"dist\", attribute == \"ba\") %&gt;%\n  select(site, plot, median, sd, q5, q95) %&gt;%\n  unique() %&gt;%\n  rename_at(c(\"median\", \"sd\", \"q5\", \"q95\"), ~ paste0(., \"_dist_ba\"))\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  left_join(dist_p) %&gt;%\n  ggplot(aes((1 - median_dist_ba) * 100, median, col = site)) +\n  geom_smooth(method = \"lm\", se = FALSE, col = \"black\", aes(group = NA)) +\n  geom_point() +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  xlab(expression(dist[BA] ~ \"[ % lost ]\")) +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")"
+  },
+  {
+    "objectID": "52_group2.html#q3---recovery-rates-abiotic-and-biotic-factors",
+    "href": "52_group2.html#q3---recovery-rates-abiotic-and-biotic-factors",
+    "title": "Group 2",
+    "section": "Q3 - Recovery rates & abiotic and biotic factors",
+    "text": "Q3 - Recovery rates & abiotic and biotic factors\n\nQ3. How do abiotic and biotic factors modify recovery rates?\n\nabiotic factors = soil fertility + climate stress + landscape connectivity\nbiotic factors = biodiversity + Ecological strategy (acquisitive versus conservative) + structural diversity\n\n\\(\\lambda\\) & abiotic\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  ggplot(aes(cwd, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(lambda)) +\n  scale_x_log10() +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Climate ~ Water ~ Deficit ~ \"[\" ~ mm ~ year^{\n    -1\n  } ~ \"]\"))\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  ggplot(aes(tmax, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(lambda)) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Maximum ~ Temperature ~ \"[\" ~ \"°\" ~ \"]\"))\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  ggplot(aes(bdod, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(lambda)) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Bulk ~ Density ~ \"[\" ~ kg ~ dm^{\n    -3\n  } ~ \"]\"))\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  ggplot(aes(soc, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(lambda)) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Soil ~ organic ~ Carbon ~ \"[\" ~ g ~ kg^{\n    -1\n  } ~ \"]\"))\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  ggplot(aes(deforested, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(lambda)) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Deforested ~ landscape ~ \"[\" ~ \"%\" ~ \"]\")) +\n  scale_x_log10()\n\n\n\n\n\n\n\n\\(\\lambda\\) & biotic\nAll site variables are the mean values for site \\(s\\) across controls and pre-logging inventories.\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  ggplot(aes(gini_s, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(lambda)) +\n  xlab(expression(Gini[s])) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  ggplot(aes(SLA_cwm_ba_s, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(lambda)) +\n  xlab(expression(SLA ~ \"[\" ~ mm^2 ~ mg^{\n    -1\n  } ~ \"]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  ggplot(aes(WD_cwm_ba_s, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(lambda)) +\n  xlab(expression(WD ~ \"[\" ~ g ~ cm^{\n    -3\n  } ~ \"]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"lambda\") %&gt;%\n  ggplot(aes(diversity_q1_gen_s, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(lambda)) +\n  xlab(expression(\"Genus diversity\" ~ q == 1)) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\n\\(t_{95}\\) & abiotic\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  ggplot(aes(cwd, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  scale_x_log10() +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Climate ~ Water ~ Deficit ~ \"[\" ~ mm ~ year^{\n    -1\n  } ~ \"]\"))\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  ggplot(aes(tmax, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Maximum ~ Temperature ~ \"[\" ~ \"°\" ~ \"]\"))\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  ggplot(aes(bdod, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Bulk ~ Density ~ \"[\" ~ kg ~ dm^{\n    -3\n  } ~ \"]\"))\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  ggplot(aes(soc, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Soil ~ organic ~ Carbon ~ \"[\" ~ g ~ kg^{\n    -1\n  } ~ \"]\"))\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  ggplot(aes(deforested, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\") +\n  xlab(expression(Deforested ~ landscape ~ \"[\" ~ \"%\" ~ \"]\")) +\n  scale_x_log10()\n\n\n\n\n\n\n\n\\(t_{95}\\) & biotic\nAll site variables are the mean values for site \\(s\\) across controls and pre-logging inventories.\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  ggplot(aes(gini_s, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  xlab(expression(Gini[s])) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  ggplot(aes(SLA_cwm_ba_s, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  xlab(expression(SLA ~ \"[\" ~ mm^2 ~ mg^{\n    -1\n  } ~ \"]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  ggplot(aes(WD_cwm_ba_s, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  xlab(expression(WD ~ \"[\" ~ g ~ cm^{\n    -3\n  } ~ \"]\")) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nCode\nread_tsv(\"outputs/parameters.tsv\") %&gt;%\n  filter(parameter == \"t95\") %&gt;%\n  ggplot(aes(diversity_q1_gen_s, median)) +\n  geom_smooth(method = \"lm\", se = FALSE) +\n  geom_point(aes(col = site)) +\n  facet_wrap(~attribute, scales = \"free_y\") +\n  scale_y_log10() +\n  theme_bw() +\n  ylab(expression(t[95] ~ \"[\" ~ years ~ \"]\")) +\n  xlab(expression(\"Genus diversity\" ~ q == 1)) +\n  scale_color_discrete(\"\") +\n  theme(legend.position = \"bottom\")"
+  },
+  {
+    "objectID": "91_stp_negative.html",
+    "href": "91_stp_negative.html",
+    "title": "STP negatives",
+    "section": "",
+    "text": "Using long term and short term processes model based on initial value \\(\\theta_0\\) we had issue with negatives values of \\(\\mu_{rec}\\) resulting in impossible log-values:\n\\[\n\\begin{align}\n\\mu_{rec} = \\theta_{0,p} + (\\theta_{\\infty,s} - \\theta_{0,p}) \\times (LTP+STP) \\\\\nLTP = 1 - e^{-\\lambda_p \\times time} \\\\\nSTP = \\delta_p \\times (\\frac{time}{\\tau_s} \\times e^{1-\\frac{time}{\\tau_s}})^2\n\\end{align}\n\\]\nNegatives values happen when the trajectory is negative and the difference of \\(\\theta\\) and the bump fall below 0, so when \\(time=\\tau\\):\n\\[\n\\begin{align}\n\\theta_{0,p} + (\\theta_{\\infty,s} - \\theta_{0,p}) \\times (1 - e^{-\\lambda_p \\times \\tau_s}+\\delta_p) \\leq 0\\\\\n\\end{align}\n\\]\nEn \\(\\lambda_p=0.5\\) et \\(\\tau_s=30\\) , \\(LTP = 1-e^{-0.5*30} \\approx 1\\), thus:\n\\[\n\\begin{align}\n\\theta_{0,p} + (\\theta_{\\infty,s} - \\theta_{0,p}) \\times (1+\\delta_p) \\leq 0\\\\\n\\theta_{\\infty,s} + (\\theta_{\\infty,s} - \\theta_{0,p}) \\times \\delta_p \\leq 0\\\\\n\\delta_p \\geq \\frac{-\\theta_{\\infty,s}}  {\\theta_{\\infty,s} - \\theta_{0,p}} ~|~ \\theta_{\\infty,s} - \\theta_{0,p} &lt; 0 \\\\\n\\delta_p \\geq \\frac{-1}  {1 - dist_p} ~|~\\theta_{0,p}=dist_p\\times\\theta_{\\infty,s} \\\\\n\\delta_p \\geq \\frac{1}  {dist_p-1}\n\\end{align}\n\\]\nWe could thus use this inequality to constrain \\(\\delta_p\\) on \\(dist_p\\) knowing that stan now accepts parameters bounds to depend on another parameter. However, this is complicated as it depends on the sign in the division above, \\(dist=1\\) is no possible, and near 1 values results in positive or negative infinite values. Thus we simply bounded \\(dist_p\\) to 1.5 for now (50% gain of attribute post-disturbance).\n\n\nCode\nmodel &lt;- function(time, dist, thetainf, lambda, tau, delta) {\n  theta0 &lt;- thetainf * dist\n  ltp &lt;- 1 - exp(-lambda * time)\n  stp &lt;- delta * (time / tau * exp(1 - time / tau))^2\n  return(theta0 + (thetainf - theta0) * (ltp + stp))\n}\ndata.frame(time = 1:50) %&gt;%\n  mutate(y = model(time,\n    dist = 2, thetainf = 20,\n    lambda = 0.5, tau = 30, delta = 0.5\n  )) %&gt;%\n  mutate(y2 = model(time,\n    dist = 2, thetainf = 20,\n    lambda = 0.5, tau = 30, delta = 2\n  )) %&gt;%\n  mutate(y3 = model(time,\n    dist = 2, thetainf = 20,\n    lambda = 0.5, tau = 30, delta = 1\n  )) %&gt;%\n  ggplot(aes(time)) +\n  geom_line(aes(y = y, col = \"dist=2, delta=.5\")) +\n  geom_line(aes(y = y2, col = \"dist=2, delta=2\")) +\n  geom_line(aes(y = y3, col = \"dist=2, delta=1\")) +\n  theme_bw()\n\n\n\n\n\nNegative STR examples with delta-dist link.\n\n\n\n\n\n\nCode\ndata.frame(dist = seq(.5, 2, length.out = 100)) %&gt;%\n  mutate(delta_max = 2 - (1 / (dist - 1))) %&gt;%\n  ggplot(aes(dist, delta_max)) +\n  geom_line() +\n  theme_bw()\n\n\n\n\n\ndelta_max with dist."
+  },
+  {
+    "objectID": "92_model_devs.html#stp-sum",
+    "href": "92_model_devs.html#stp-sum",
+    "title": "Models devs",
+    "section": "STP sum",
+    "text": "STP sum\nmodels/stp_sum.stan\n\\[\n\\begin{align}\n\\mu_{rec} = \\theta_{0,p} + (\\theta_{\\infty,s} - \\theta_{0,p}) \\times (LTP+STP) \\\\\nLTP = 1 - e^{-\\lambda_p \\times time} \\\\\nSTP = \\delta_p \\times (\\frac{time}{\\tau_s} \\times e^{1-\\frac{time}{\\tau_s}})^2 \\\\\n\\theta_{0,p} = \\theta_{\\infty,s} \\times dist_p\n\\end{align}\n\\]"
+  },
+  {
+    "objectID": "92_model_devs.html#stp-lognormal",
+    "href": "92_model_devs.html#stp-lognormal",
+    "title": "Models devs",
+    "section": "STP lognormal",
+    "text": "STP lognormal\nmodels/stp.stan\n\\[\n\\begin{align}\n\\mu_{rec} = \\theta_{0,p} + (\\theta_{\\infty,s} - \\theta_{0,p}) \\times (LTP+STP) \\\\\nLTP = 1 - e^{-\\lambda_p \\times time} \\\\\nSTP = \\delta_p \\times (\\frac{time}{\\tau_s} \\times e^{1-\\frac{time}{\\tau_s}})^2 \\\\\n\\theta_{0,p} = \\theta_{\\infty,s} \\times dist_p\n\\end{align}\n\\]"
+  },
+  {
+    "objectID": "92_model_devs.html#stp-correlated",
+    "href": "92_model_devs.html#stp-correlated",
+    "title": "Models devs",
+    "section": "STP correlated",
+    "text": "STP correlated\nmodels/stp_cor.stan\nImposed variance-covariance matrix on dist_p and delta_p.\n\\[\n\\begin{align}\n\\mu_{rec} = \\theta_{0,p} + (\\theta_{\\infty,s} - \\theta_{0,p}) \\times (LTP+STP) \\\\\nLTP = 1 - e^{-\\lambda_p \\times time} \\\\\nSTP = \\delta_p \\times (\\frac{time}{\\tau_s} \\times e^{1-\\frac{time}{\\tau_s}})^2 \\\\\n\\theta_{0,p} = \\theta_{\\infty,s} \\times dist_p\n\\end{align}\n\\]"
+  },
+  {
+    "objectID": "92_model_devs.html#parrallel",
+    "href": "92_model_devs.html#parrallel",
+    "title": "Models devs",
+    "section": "Parrallel",
+    "text": "Parrallel\ndummy_par.stan"
+  },
+  {
+    "objectID": "93_notes.html#section",
+    "href": "93_notes.html#section",
+    "title": "Notes",
+    "section": "29/01/24",
+    "text": "29/01/24\nSill to do list:\n\nBefore Thursday:\n\nlog SLA and LA change SLA to LMA\n\nAfter:\n\nthetaInfp\njoint or sequential inference across attributes\nGroup 3 help\nN fixation & dispersal"
+  },
+  {
+    "objectID": "93_notes.html#section-1",
+    "href": "93_notes.html#section-1",
+    "title": "Notes",
+    "section": "24/01/24",
+    "text": "24/01/24\nSections are randomly ordered.\n\nData preparation\nSLA and LA should be logged in species functional trait preparation and SLA inverted in LMA. The N fixation and dispersal still needs to be cleaned.\n\n\nModels structure\nWe must use the random effect for control plots by adding thetaInf_p for controls and pre-inventories with only a hyperdistribution on mu_thetaInf and sigma_thetaInf_p (either concatenating or with two likelihoods) and by modifying thetaInfp in the equation (l. 43 & 44 on mu_old and mu_rec).\n\n\nTrajectories\nAdd box plots for prelogging and controls, and plot longer time series from 1 to 60 years with scale transformation for time. The diversity trajectories are not that bad, but may require better data preparation rather than tweaking the model.\n\n\nModel selection\nLOO model selection fails and does not take into account parsimony with the number of parameters. However, the results show that \\(\\lambda\\) is highly correlated between STP and LTP models (e.g. AGB) and the choice may not be necessary or may be made post hoc.\n\n\nDisturbance intensity\n\\(dist_p\\) can represent the intensity of disturbance for attributes where it is well modelled (to be verified with data where possible) to provide information after the HDI on diversity trajectories. Sequential inference problem (uncertainty transmission?) or joint but with influence of diversity trajectory back on \\(dist_p\\). Camille proposes to use a hyperdistribution on \\(dist_p\\), informed with harvested volumes if available.\n\n\nOnline workshop\n3-4 sessions with :\n\nGeneral session on Thursday, a quick introduction to data preparation including environment and species, model development, re-introduction to the model with a quick focus on the constrained disturbance index.\nSubgroup session on Thursday, where subgroups make a first exploration of preliminary parameters for their question of interest with associated covariates.\nGeneral session on Friday where sub-groups present their results.\nOptional subgroup session on Friday if they wish.\n\nWe need to prepare for this:\n\nTrajectory attributes: agb, gini, stem, ba, hill q1 genus index, FDiv, Feve, CWM wd, lma, n, hmax.\nAutomatic rmarkdown pdf report for PIs (no pages yet): agb, gini, stem, ba, hill q1 genus index, FDiv, CWM wd, lma, hmax.\nUpdate Mithila Monday afternoon\nPrepare subgroup data and figures for Wednesday (all parameters with fifth usual quantiles, derived parameter \\(t_{95}\\), associated environmental data with description, maybe some graphs).\n\n\n\nSubgroup 3\nMuch remains to be explored, Sylvain’s offers punctual help on theoretical development in sessions with Géraldine and Camille."
+  },
+  {
+    "objectID": "99_references.html",
+    "href": "99_references.html",
+    "title": "References",
+    "section": "",
+    "text": "Marcon, Eric, and Bruno Hérault. 2015.\n“Entropart:\nAnRPackage to Measure and Partition\nDiversity.” Journal of Statistical Software 67 (8). https://doi.org/10.18637/jss.v067.i08.\n\n\nMaurent, Eliott, Bruno Hérault, Camille Piponiot, Géraldine Derroire,\nDiego Delgado, Bryan Finegan, Mélaine Aubry Kientz, Bienvenu H. K.\nAmani, and Marie Ange Ngo Bieng. 2023. “A Common Framework to\nModel Recovery in Disturbed Tropical Forests.” Ecological\nModelling 483 (September): 110418. https://doi.org/10.1016/j.ecolmodel.2023.110418.\n\n\nMolto, Q., B. Hérault, J.-J. Boreux, M. Daullet, A. Rousteau, and V.\nRossi. 2014. “Predicting Tree Heights for Biomass Estimates in\nTropical Forests  a Test from French Guiana.”\nBiogeosciences 11 (12): 3121–30. https://doi.org/10.5194/bg-11-3121-2014.\n\n\nMouchet, Maud A., Sébastien Villéger, Norman W. H. Mason, and David\nMouillot. 2010. “Functional Diversity Measures: An Overview of\nTheir Redundancy and Their Ability to Discriminate Community Assembly\nRules.” Functional Ecology 24 (4): 867–76. https://doi.org/10.1111/j.1365-2435.2010.01695.x.\n\n\nRéjou-Méchain, Maxime, Ariane Tanguy, Camille Piponiot, Jérôme Chave,\nand Bruno Hérault. 2017. “Biomass: An r Package for Estimating\nAbove-Ground Biomass and Its Uncertainty in Tropical\nForests.” Edited by Sarah Goslee. Methods in Ecology and\nEvolution 8 (9): 1163–67. https://doi.org/10.1111/2041-210x.12753."
+  },
+  {
+    "objectID": "20_flux_model.html",
+    "href": "20_flux_model.html",
+    "title": "Integrating fluxes and stocks",
+    "section": "",
+    "text": "To create a consistent framework between fluxes (influx: productivity and outflux: mortality) and stocks, we integrate fluxes to estimate stocks as follows:\n\\[\\frac{d (stocks(t))}{dt} = prod(t) - mort(t)\\]\n\\[ stocks(t) = stocks(t_0) + \\int_{t_0}^{t} \\left(prod - mort \\right) \\] Additionally, since we assume that stocks are asymptotically stable, influxes and outfluxes have the same asymptotic value.\n\\[lim_{\\infty}(prod) = lim_{\\infty}(mort)\\]\nThe advantages of this approach are that we can reduce the number of parameters and create an explicit link between stocks and fluxes, which ensures better consistency in our predictions.",
+    "crumbs": [
+      "Integrating fluxes and stocks"
+    ]
+  },
+  {
+    "objectID": "11_general_framework.html",
+    "href": "11_general_framework.html",
+    "title": "Conceptual framework",
+    "section": "",
+    "text": "Context and motivation",
+    "crumbs": [
+      "Conceptual framework"
+    ]
+  },
+  {
+    "objectID": "21_productivity.html",
+    "href": "21_productivity.html",
+    "title": "Productivity",
+    "section": "",
+    "text": "Code\nlibrary(tidyverse)\n\n\nFor productivity we can use the general recovery model as described in (Maurent2023?).\n\\[ prod = \\theta_0 + (\\theta_{\\infty} -\\theta_0)\\cdot(STP+LTP)\\]\n\\[LTP = 1 - exp(-\\lambda\\cdot t) \\]\n\\[STP = \\delta \\cdot \\left(\\frac{t}{\\tau} \\cdot exp\\left(1 - \\frac{t}{\\tau}\\right)\\right)^2 \\] Below we show the productivity in four sites that have been remeasured for multiple decades.\n\n\nCode\ndata &lt;- read.csv(\"data/derived_data/aggregated_data.csv\")\n\ncontrol_string &lt;- \"unlogged|to be logged|old-growth|control|natural\"\nsilv_string &lt;- \"treatment|devital|thinning\"\n\nplot_info &lt;- \n  read.csv(\"data/raw_data/bioforest-plot-information.csv\") |&gt;\n  mutate(site = ifelse(site == \"BAFOG\", \"Bafog\", site)) |&gt;\n  mutate(site = ifelse(site == \"Montagne_tortue\", \"Montagne_Tortue\", site)) |&gt;\n  # harmonize treatment information as logging and silvicultural treatments\n  mutate(\n    Treatment = ifelse(Treatment != \"\", Treatment, NA),\n    logging = !grepl(control_string, tolower(Treatment)),\n    silv_treat = grepl(silv_string, tolower(Treatment)), \n    year_log = ifelse(site == \"Paracou\", 1986, \n                      Year_of_harvest |&gt; substr(1,4) |&gt; as.numeric()\n    )\n  ) |&gt;\n  select(site, plot, logging, silv_treat, year_log)\n\n\n\n\nCode\ndata |&gt; \n  merge(plot_info, by.x = c(\"Site\", \"Plot\"), by.y = c(\"site\", \"plot\")) |&gt;\n  subset(variable %in% c(\"ba_growth\", \"ba_recr\")) |&gt; \n  subset(Site %in% c(\"Mbaiki\", \"Paracou\", \"Ulu Muda\", \"Misiones\")) |&gt;\n  pivot_wider(names_from = \"variable\") |&gt;\n  ggplot(aes(Year, ba_recr+ba_growth, , group = Plot,\n             col = ifelse(logging, \"Logged\", \"Control\"))) +\n  geom_point() +\n  geom_line() +\n  labs(y = \"Productivity [Mg/ha/yr]\", col = NULL) +\n  facet_wrap(~Site, scales = \"free\") +\n  theme_minimal()",
+    "crumbs": [
+      "Integrating fluxes and stocks",
+      "Productivity"
+    ]
+  },
+  {
+    "objectID": "23_stocks_cst_mortality.html",
+    "href": "23_stocks_cst_mortality.html",
+    "title": "Stocks - with constant mortality",
+    "section": "",
+    "text": "Code\nlibrary(tidyverse)\n\n\nHere we define productivity with the general recovery model, and we hypothesize that mortality is a constant:\n\\[ prod(t) = \\theta_0 + (\\theta_{\\infty} -\\theta_0)\\cdot\\left(1 - exp(-\\lambda\\cdot t)+\\delta \\cdot \\left(\\frac{t}{\\tau} \\cdot exp\\left(1 - \\frac{t}{\\tau}\\right)\\right)^2\\right)\\]\n\\[ba'(t) = prod(t) - k\\] We need \\(lim_{\\infty}(prod) = lim_{\\infty}(mort)\\) to have a stable asymptotic basal area. We therefore have:\n\\(k = \\theta_{\\infty}\\)\nWe can therefore write :\n\\[ba(t) =  ba(0) + \\int_{t=0}^{\\infty}prod(x) dx - \\theta_{\\infty}\\]\nAfter integrating the productivity equation (see Appendix “Integration of STP” for the integration ), we get the following equation for basal area: \\[ba(t) = ba(0) + (\\theta_{\\infty} - \\theta_0)\\left(\\frac{\\delta \\cdot e^{2} \\cdot\\tau}{4} - \\delta \\cdot e^{(1-\\frac{t}{\\tau})2} \\left(\\frac{t^2}{2\\tau}+\\frac{t}{2}+\\frac{\\tau}{4}\\right) - \\frac{1}{\\lambda} (1-e^{-\\lambda\\cdot t})\\right) \\]\nThe figure below illustrates the resulting stocks and fluxes with parameters set to:\n\n\\(\\tau = 10\\)\n\\(\\lambda = 0.05\\)\n\\(\\delta = 1\\)\n\\(\\theta_{\\infty} = 0.5\\)\n\\(\\theta_0 = 0.4\\)\n\\(ba_0 = 10\\)\n\n\n\nCode\nthetainf = 0.5\ntheta0 = 0.4\nba0 = 10\nlambda = 0.05\n\nltp = function(x, lambda = 0.05) 1-exp(-lambda*x)\nstp = function(time, delta = 1, tau = 10) {\n  delta * (time / tau * exp(1 - time / tau))^2\n}\nint_stp = function(time, delta = 1, tau = 10) {\n  delta*exp(2)*tau/4 - delta * exp((1-time/tau)*2) * (time^2/(2*tau)+time/2+tau/4)\n}\n\nfacet_labs &lt;- c(\"ba\" = \"Basal area [m2/ha]\", \n                \"prod\" = \"Productivity [m2/ha/yr]\", \n                \"mort\" = \"Mortality [m2/ha/yr]\")\n\ndata.frame(t = seq(0, 100, length.out = 200)) |&gt; \n  mutate(prod = theta0 + (thetainf-theta0)*(stp(t)+ltp(t)), \n         mort = thetainf,\n         ba = ba0 + (thetainf-theta0)*(int_stp(t) - 1/lambda*(1-exp(-lambda*t)))\n  ) |&gt;   \n  pivot_longer(-t) |&gt;\n  ggplot(aes(t, value)) + \n  geom_line() + \n  facet_wrap(~name, scales = \"free\", nrow = 3, \n             labeller = labeller(name = facet_labs), \n             strip.position=\"left\") +\n  labs(x = \"Recovery time [yr]\", y = NULL) +\n  theme_minimal() + theme(strip.placement = \"outside\")",
+    "crumbs": [
+      "Integrating fluxes and stocks",
+      "Stocks - with constant mortality"
+    ]
+  },
+  {
+    "objectID": "92_diff_equa.html",
+    "href": "92_diff_equa.html",
+    "title": "Differential equation",
+    "section": "",
+    "text": "We want to solve the following differential equation \\(E\\):\n\\[ba'(t) = prod(t) - \\omega \\cdot ba(t)\\]\nwith:\n\\[ prod(t) = \\theta_0 + (\\theta_{\\infty} - \\theta_0)\\cdot\\left(1 - exp(-\\lambda\\cdot t) + \\delta\\left(\\frac{x}{\\tau}\\cdot exp(1-\\frac{x}{\\tau})\\right)^2\\right) \\]\nwhich we can write as:\n\\[ prod(t) = \\theta_{\\infty} + \\alpha\\cdot exp(-\\lambda\\cdot t) + \\beta \\left(\\frac{x}{\\tau}\\cdot exp(1-\\frac{x}{\\tau})\\right)^2\\]\nwith: \\(\\alpha = \\theta_{0} - \\theta_{\\infty}\\) and $= ( - )$\nThe general solution of differential equation \\(E_0\\):\n\\[ba'(t) + \\omega \\cdot ba(t) = 0\\]\nis \\(y_G = Kexp(-\\omega t)\\)\nA particular solution of differential equation \\(E_1\\):\n\\[ba'(t) + \\omega \\cdot ba(t) = \\theta_{\\infty} + \\alpha\\cdot exp(-\\lambda\\cdot t)\\]\nis\n\\[y_{p1} = \\frac{\\theta_{\\infty}}{\\omega} + \\frac{\\alpha \\lambda}{\\omega\\lambda - 1} \\cdot exp(-\\lambda\\cdot t)\\]\nA particular solution of differential equation \\(E_2\\):\n\\[ba'(t) + \\omega \\cdot ba(t) = \\beta \\left(\\frac{t}{\\tau}exp(1-\\frac{t}{\\tau})\\right)^2\\]\nis\n\\[y_{p2} = exp(1-\\frac{t}{\\tau})^2\\frac{2\\beta}{\\tau^2(2\\omega-\\tau)}\\left(t^2 - t\\frac{4}{(2\\omega-\\tau)} + \\frac{8}{(2\\omega-\\tau)^2}\\right)\\]\nThe general solution to differential equation (E) is therefore:\n\\[y(t) = \\frac{\\theta_{\\infty}}{\\omega} + Kexp(-\\omega t) + \\frac{\\alpha \\lambda}{\\omega\\lambda - 1} \\cdot exp(-\\lambda\\cdot t) + exp(1-\\frac{t}{\\tau})^2\\frac{2\\beta}{\\tau^2(2\\omega-\\tau)}\\left(t^2 - t\\frac{4}{(2\\omega-\\tau)} + \\frac{8}{(2\\omega-\\tau)^2}\\right)\\] with \\(y(0) = BA_0\\)\n\\[ K = BA_0 - \\frac{\\theta_{\\infty}}{\\omega} - \\frac{\\alpha \\lambda}{\\omega\\lambda - 1} -\\frac{16e^2\\beta}{\\tau^2(2\\omega-\\tau)^3}\\]",
+    "crumbs": [
+      "Appendices",
+      "Differential equation"
+    ]
+  },
+  {
+    "objectID": "11_general_framework.html#context-and-motivation",
+    "href": "11_general_framework.html#context-and-motivation",
+    "title": "Conceptual framework",
+    "section": "",
+    "text": "Selectively logged forests are becoming the majority of tropical forests \\(\\rightarrow\\) Importance of understanding their recovery process;\nDisturbances such as logging have different effects on the demographic rates of species and can therefore change the species composition and biodiversity in the long term;\nDemographic processes can therefore provide insights into forest resilience.",
+    "crumbs": [
+      "Conceptual framework"
+    ]
+  },
+  {
+    "objectID": "11_general_framework.html#research-questions",
+    "href": "11_general_framework.html#research-questions",
+    "title": "Conceptual framework",
+    "section": "Research questions",
+    "text": "Research questions\n\nWhat is the contribution of demographic processes (growth, recruitment, mortality) to post-logging changes in biomass, biodiversity and composition?\nWhat is the link between biomass and biodiversity recovery processes?\nHow do abiotic factors shape demographic processes of recovery?",
+    "crumbs": [
+      "Conceptual framework"
+    ]
+  },
+  {
+    "objectID": "11_general_framework.html#general-diagram",
+    "href": "11_general_framework.html#general-diagram",
+    "title": "Conceptual framework",
+    "section": "General diagram",
+    "text": "General diagram\n\n\nCode\ngrViz(\"\ndigraph {\n\n  rankdir=LR\n\n  graph [overlap = true, fontsize = 10]\n\n  subgraph cluster_ba{\n    label='Basal area'; fontsize = 14;\n    node [shape = box, fillcolor='coral', style=filled, fontsize=12]\n    ba_stock [label='Stock']\n    ba_in [label='Gain']\n    ba_out [label='Loss']\n  }\n  \n  node [shape = box, fillcolor='coral', style=filled]\n  {rank=same\n  cwm [label='Functional\\ncomposition']\n  div [label='Functional\\ndiversity']\n  }\n  node [fillcolor='powderblue']\n  env [label='Environmental\\nvariables']\n  intensity [label='Logging\\nintensity']\n  \n  node [shape = ellipse, fillcolor='whitesmoke'] \n  {rank=same\n  closure[label='Canopy\\nclosure']\n  vmax[label='Asymptotic\\nparameters*']\n  }\n  \n  intensity -&gt; closure\n  closure -&gt; {ba_in cwm}\n  vmax -&gt; {ba_out ba_in cwm div}\n  env -&gt; {closure vmax}\n  cwm -&gt; {ba_in ba_out div}\n  ba_stock -&gt; closure\n  \n  edge [style = bold]\n  div -&gt; ba_in\n  \n  edge [style = dashed]\n  ba_in -&gt; ba_stock\n  ba_out -&gt; ba_stock\n  \n  node [shape = plaintext, fillcolor='white']\n  legend[label='*Asymptotic stocks: carrying capacity\\nor fluxes: equilibrium turnover rate']\n}\n\")",
+    "crumbs": [
+      "Conceptual framework"
+    ]
+  },
+  {
+    "objectID": "24_stocks_prop_mortality.html",
+    "href": "24_stocks_prop_mortality.html",
+    "title": "Stocks - with proportional mortality",
+    "section": "",
+    "text": "Code\nlibrary(tidyverse)\n\n\nHere we define productivity with the general recovery model, and we hypothesize that mortality is proportional to basal area:\n\\[ prod(t) = \\theta_0 + (\\theta_{\\infty} -\\theta_0)\\cdot\\left(1 - exp(-\\lambda\\cdot t)+\\delta \\cdot \\left(\\frac{t}{\\tau} \\cdot exp\\left(1 - \\frac{t}{\\tau}\\right)\\right)^2\\right)\\]\n\\[ba'(t) = prod(t) - \\omega \\cdot ba(t)\\] and the initial condition:\n\\[ba(t=0) = BA_0\\]\nThe solution to this equation is:\n\\[ba(t) = \\frac{\\theta_{\\infty}}{\\omega} + Kexp(-\\omega t) + \\frac{\\lambda(\\theta_{\\infty}-\\theta_0) }{1-\\omega\\lambda} \\cdot exp(-\\lambda\\cdot t) + exp(1-\\frac{t}{\\tau})^2\\frac{2\\delta(\\theta_{\\infty}-\\theta_0)}{\\tau^2(2\\omega-\\tau)}\\left(t^2 - t\\frac{4}{(2\\omega-\\tau)} + \\frac{8}{(2\\omega-\\tau)^2}\\right)\\]\nwith:\n\\[ K = ba_0 - \\frac{\\theta_{\\infty}}{\\omega} - \\frac{\\lambda(\\theta_{\\infty}-\\theta_0) }{1-\\omega\\lambda} -\\frac{16e^2\\delta(\\theta_{\\infty}-\\theta_0)}{\\tau^2(2\\omega-\\tau)^3}\\] (see Appendix “Differential equation”)\n\n\nCode\nba &lt;- function(x,\n               tau = 10,\n               lambda = 0.05,\n               delta = 1,\n               thetainf = 0.5,\n               theta0 = 0.4,\n               omega = 0.02,\n               ba0 = 10) {\n  k = ba0 - thetainf / omega - ((theta0 - thetainf) * lambda) / (omega * lambda - 1) -\n    (16 * exp(2) * delta * (thetainf - theta0)) / (tau^2 * (2 * omega - tau)^3)\n  return(\n    thetainf / omega + k * exp(-omega * x) + ((theta0 - thetainf) * lambda) / (omega * lambda - 1) * exp(-lambda * x) + (exp(1 - x / tau))^2 * (2 * delta * (thetainf - theta0)) / (tau^2 * (2 * omega - tau)) * (x^2 - x * 4 / (2 * omega - tau) + 8 / (2 * omega - tau)^2)\n  )\n}\nprod = function(x,\n                tau = 10,\n                lambda = 0.05,\n                delta = 1,\n                thetainf = 0.5,\n                theta0 = 0.4\n) {\n  return(theta0 + (thetainf-theta0)*((1-exp(-lambda*x)) + delta*((x/tau)*exp(1-x/tau))^2))\n}\nmort &lt;- function(x,\n                 tau = 10,\n                 lambda = 0.05,\n                 delta = 1,\n                 thetainf = 0.5,\n                 theta0 = 0.4,\n                 omega = 0.02,\n                 ba0 = 10\n) {\n  return(omega * ba(x, tau, lambda, delta, thetainf, theta0, omega, ba0))\n}\n\n\nBelow is a graph of the resulting fluxes and stocks with parameter values:\n\n\\(\\tau = 10\\)\n\\(\\lambda = 0.05\\)\n\\(\\delta = 1\\)\n\\(\\theta_{\\infty} = 0.5\\)\n\\(\\theta_0 = 0.4\\)\n\\(\\omega = 0.02\\)\n\\(ba_0 = 10\\)\n\n\n\nCode\nfacet_labs &lt;- c(\"ba\" = \"Basal area [m2/ha]\", \n                \"prod\" = \"Productivity [m2/ha/yr]\", \n                \"mort\" = \"Mortality [m2/ha/yr]\")\n\ndata.frame(t = seq(0, 200, 1e-2)) |&gt; \n  mutate(ba = ba(t, tau = 5), prod = prod(t, tau = 5), mort = mort(t, tau = 5)) |&gt;  \n  pivot_longer(-t) |&gt;\n  ggplot(aes(t, value)) + \n  geom_line() + \n  scale_x_sqrt() +\n  facet_wrap(~name, scales = \"free\", nrow = 3, \n             labeller = labeller(name = facet_labs), \n             strip.position=\"left\") +\n  labs(x = \"Recovery time [yr]\", y = NULL) +\n  theme_minimal() + theme(strip.placement = \"outside\")\n\n\n\n\n\n\n\n\n\nTo identify which parameters of the model have the strongest effect on the recovery rate of the basal area, we performed a sensitivity analysis by making each parameter vary while others remained constant, and estimated the time (in years) to recover 95% of basal area lost, estimated as the asymptotic basal area (equal to \\(\\frac{\\theta_{\\infty}}{\\omega}\\)) minus the post-logging basal area \\(BA_0\\).\n\n\nCode\n# what parameters have the most effect on the recovery rate of ba? \npars &lt;- data.frame(\n  param = c(\"tau\", \"lambda\", \"delta\", \"theta[infinity]\", \n            \"theta[0]\", \"omega\", \"ba[0]\"), \n  min = c(1, 1e-3, 1e-3, 0.1, 0.1, 0.001, 1e-3), \n  max = c(50, 1, 10, 1, 1, 0.2, 20)\n)\n\nget_t95 &lt;- function(tau, lambda, delta, thetainf, theta0, omega, ba0) {\n  min(which(\n    ba(1:1e4, tau, lambda, delta, thetainf, theta0, omega, ba0) &gt; 0.95 * (thetainf / omega - ba0) + ba0\n  ))\n}\npars |&gt; \n  group_by(param) |&gt; \n  reframe(value = exp(seq(log(min), log(max), length.out = 10))) |&gt; \n  cbind(data.frame(\n    tau = 10, lambda = 0.05, delta = 1, thetainf = 0.5,\n    theta0 = 0.4, omega = 0.02, ba0 = 10)) |&gt; \n  mutate(tau = ifelse(param == \"tau\", value, tau), , \n         lambda = ifelse(param == \"lambda\", value, lambda), \n         delta = ifelse(param == \"delta\", value, delta), \n         thetainf = ifelse(param == \"theta[infinity]\", value, thetainf),\n         theta0 = ifelse(param == \"theta[0]\", value, theta0),\n         omega = ifelse(param == \"omega\", value, omega),\n         ba0 = ifelse(param == \"ba[0]\", value, ba0)) |&gt; \n  # constraints: theta0 &lt; thetainf and ba0 &lt; bainf = thetainf/omega\n  subset(theta0&lt;thetainf &  ba0 &lt; thetainf/omega) |&gt; \n  rowwise() |&gt;\n  mutate(t95 = get_t95(tau, lambda, delta, thetainf, theta0, omega, ba0)) |&gt; \n  ggplot(aes(value, t95)) +\n  geom_line() +\n  scale_x_log10() + scale_y_log10() +\n  facet_wrap(~param, scales = \"free\", \n             labeller = label_parsed, \n             strip.position=\"bottom\") +\n  labs(x = NULL, y = \"t95 [yr]\") +\n  theme_minimal() + theme(strip.placement = \"outside\")",
+    "crumbs": [
+      "Integrating fluxes and stocks",
+      "Stocks - with proportional mortality"
+    ]
+  },
+  {
+    "objectID": "22_mortality.html",
+    "href": "22_mortality.html",
+    "title": "Mortality",
+    "section": "",
+    "text": "Code\nlibrary(tidyverse)\n\n\nDue to its high stochasticity, it is challenging to identify any general trend in mortality. To avoid overcomplicating the model, two simple assumptions can be considered:\n\nthe absolute mortality remains constant over time;\nthe mortality rate (mortality/stocks) remains constant over time.\n\nThe second hypothesis has the advantage of being more robust to limit conditions (e.g. when the stocks tend towards zero, the absolute mortality cannot be higher than the stocks).\n\n\nCode\ndata &lt;- read.csv(\"data/derived_data/aggregated_data.csv\")\n\ncontrol_string &lt;- \"unlogged|to be logged|old-growth|control|natural\"\nsilv_string &lt;- \"treatment|devital|thinning\"\n\nplot_info &lt;- \n  read.csv(\"data/raw_data/bioforest-plot-information.csv\") |&gt;\n  mutate(site = ifelse(site == \"BAFOG\", \"Bafog\", site)) |&gt;\n  mutate(site = ifelse(site == \"Montagne_tortue\", \"Montagne_Tortue\", site)) |&gt;\n  # harmonize treatment information as logging and silvicultural treatments\n  mutate(\n    Treatment = ifelse(Treatment != \"\", Treatment, NA),\n    logging = !grepl(control_string, tolower(Treatment)),\n    silv_treat = grepl(silv_string, tolower(Treatment)), \n    year_log = ifelse(site == \"Paracou\", 1986, \n                      Year_of_harvest |&gt; substr(1,4) |&gt; as.numeric()\n    )\n  ) |&gt;\n  select(site, plot, logging, silv_treat, year_log)\n\n\n\n\nCode\ndata |&gt; \n  merge(plot_info, by.x = c(\"Site\", \"Plot\"), by.y = c(\"site\", \"plot\")) |&gt; \n  subset(variable %in% c(\"ba_mort\", \"ba\")) |&gt; \n  subset(Site %in% c(\"Mbaiki\", \"Paracou\", \"Ulu Muda\", \"Misiones\")) |&gt;\n  subset((Year &gt; year_log +5 & !is.na(year_log)) | !logging) |&gt; \n  pivot_wider(names_from = \"variable\") |&gt; \n  arrange(Year) |&gt; \n  ggplot(aes(ba, ba_mort)) +\n  geom_point(aes(col = logging, group = Plot)) +\n  geom_path(aes(col = logging, group = Plot)) +\n  geom_smooth() +\n  scale_x_log10() + scale_y_log10() +\n  facet_wrap(~Site, scales = \"free\") +\n  theme_minimal() \n\n\n\n\n\n\n\n\n\n\n\nCode\ndata |&gt; \n  merge(plot_info, by.x = c(\"Site\", \"Plot\"), by.y = c(\"site\", \"plot\")) |&gt; \n  subset(variable %in% c(\"ba_mort\", \"ba\")) |&gt; \n  subset(Site %in% c(\"Mbaiki\", \"Paracou\", \"Ulu Muda\", \"Misiones\")) |&gt;\n  subset((Year &gt; year_log +5 & !is.na(year_log)) | !logging) |&gt; \n  pivot_wider(names_from = \"variable\") |&gt; \n  arrange(Year) |&gt; \n  ggplot(aes(Year, ba_mort/ba)) +\n  geom_point(aes(col = logging, group = Plot)) +\n  geom_path(aes(col = logging, group = Plot)) +\n  labs(y = \"Relative mortality = BAmort/BA\") +\n  # geom_smooth() +\n  scale_x_log10() + scale_y_log10() +\n  facet_wrap(~Site, scales = \"free\") +\n  theme_minimal() \n\n\n\n\n\n\n\n\n\nThere doesn’t seem to be a strong correlation between BA mortality and BA in our data, but as a first approximation considering that mortality is proportional to basal area might work.",
+    "crumbs": [
+      "Integrating fluxes and stocks",
+      "Mortality"
+    ]
+  },
+  {
+    "objectID": "91_ipp.html",
+    "href": "91_ipp.html",
+    "title": "Integration of STP",
+    "section": "",
+    "text": "\\[\\int STP = \\delta \\cdot e^2 \\int \\left(\\left(\\frac{x}{\\tau}\\right)^2 e^{-\\frac{2}{\\tau}x}\\right) dx \\]\nIPP: we use $u’ = $ and \\(v = -\\frac{\\tau}{2} \\cdot e^{-\\frac{2}{\\tau}x}\\)\n\\[\\int STP = \\delta \\cdot e^2 \\left( uv - \\int u'v \\right) + C\\]\n\\[\\int STP = \\delta \\cdot e^2 \\left( \\left(\\frac{x}{\\tau}\\right)^2\\cdot(-\\frac{\\tau}{2} \\cdot e^{-\\frac{2}{\\tau}x}) - \\int \\frac{2x}{\\tau^2} (-\\frac{\\tau}{2} \\cdot e^{-\\frac{2}{\\tau}x})dx \\right) + C\\]\n\\[\\int STP = \\delta \\cdot e^2 \\left( -\\left(\\frac{x^2}{2\\tau}\\right)   e^{-\\frac{2}{\\tau}x}+ \\int \\frac{x}{\\tau} e^{-\\frac{2}{\\tau}x}dx \\right) + C\\]\nAgain, we use an IPP with $u’ = $ and \\(v = -\\frac{\\tau}{2} \\cdot e^{-\\frac{2}{\\tau}x}\\)\n\\[\\int STP = \\delta \\cdot e^2 \\left( -\\left(\\frac{x^2}{2\\tau}\\right)   e^{-\\frac{2}{\\tau}x}+ \\left( uv - \\int u'v \\right) \\right) + C\\]\n\\[\\int STP = \\delta \\cdot e^2 \\left( -\\left(\\frac{x^2}{2\\tau}\\right)   e^{-\\frac{2}{\\tau}x}+ \\left( \\frac{x}{\\tau} (-\\frac{\\tau}{2} \\cdot e^{-\\frac{2}{\\tau}x}) - \\int \\frac{1}{\\tau} (-\\frac{\\tau}{2} \\cdot e^{-\\frac{2}{\\tau}x}) \\right) \\right) + C\\]\n\\[\\int STP = \\delta \\cdot e^2 \\left( -\\left(\\frac{x^2}{2\\tau}\\right)   e^{-\\frac{2}{\\tau}x}  -\\frac{x}{2} \\cdot e^{-\\frac{2}{\\tau}x} + \\int  \\frac{1}{2} \\cdot e^{-\\frac{2}{\\tau}x}  \\right) + C\\]\n\\[\\int STP = \\delta \\cdot e^2 \\left( -\\left(\\frac{x^2}{2\\tau}\\right)   e^{-\\frac{2}{\\tau}x} -\\frac{x}{2} \\cdot e^{-\\frac{2}{\\tau}x} -\\frac{\\tau}{4} \\cdot e^{-\\frac{2}{\\tau}x} \\right) + C\\]\n\\[\\int STP = \\delta \\cdot e^{(1-\\frac{x}{\\tau})2} \\left( -\\frac{x^2}{2\\tau}    -\\frac{x}{2}  -\\frac{\\tau}{4}\\right) + C\\]\n\\[\\int_0^t STP = \\frac{\\delta \\cdot e^{2} \\cdot\\tau}{4} - \\delta \\cdot e^{(1-\\frac{t}{\\tau})2} \\left(\\frac{t^2}{2\\tau}+\\frac{t}{2}+\\frac{\\tau}{4}\\right) \\]\n\\[\\int_0^t LTP = t - \\frac{1}{\\lambda} (1-e^{-\\lambda\\cdot t})\\]\n\\[\\int_0^t prod = \\theta_0\\cdot t + (\\theta_{\\infty} - \\theta_0)\\left(\\frac{\\delta \\cdot e^{2} \\cdot\\tau}{4} - \\delta \\cdot e^{(1-\\frac{t}{\\tau})2} \\left(\\frac{t^2}{2\\tau}+\\frac{t}{2}+\\frac{\\tau}{4}\\right) + t - \\frac{1}{\\lambda} (1-e^{-\\lambda\\cdot t})\\right) \\]\nif \\(mort = \\theta_{\\infty}\\):\n\\[\\int_0^t mort = \\theta_{\\infty}\\cdot t\\] then:\n\\[BA(t) = BA(0) + \\theta_0\\cdot t + (\\theta_{\\infty} - \\theta_0)\\left(\\frac{\\delta \\cdot e^{2} \\cdot\\tau}{4} - \\delta \\cdot e^{(1-\\frac{t}{\\tau})2} \\left(\\frac{t^2}{2\\tau}+\\frac{t}{2}+\\frac{\\tau}{4}\\right) + t - \\frac{1}{\\lambda} (1-e^{-\\lambda\\cdot t})\\right)  - \\theta_{\\infty}\\cdot t\\]\n\\[BA(t) = BA(0) + (\\theta_{\\infty} - \\theta_0)\\left(\\frac{\\delta \\cdot e^{2} \\cdot\\tau}{4} - \\delta \\cdot e^{(1-\\frac{t}{\\tau})2} \\left(\\frac{t^2}{2\\tau}+\\frac{t}{2}+\\frac{\\tau}{4}\\right) + t - \\frac{1}{\\lambda} (1-e^{-\\lambda\\cdot t}) - t\\right) \\]\n\\[BA(t) = BA(0) + (\\theta_{\\infty} - \\theta_0)\\left(\\frac{\\delta \\cdot e^{2} \\cdot\\tau}{4} - \\delta \\cdot e^{(1-\\frac{t}{\\tau})2} \\left(\\frac{t^2}{2\\tau}+\\frac{t}{2}+\\frac{\\tau}{4}\\right) - \\frac{1}{\\lambda} (1-e^{-\\lambda\\cdot t})\\right) \\]",
+    "crumbs": [
+      "Appendices",
+      "Integration of STP"
+    ]
+  }
+]

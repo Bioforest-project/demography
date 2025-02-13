@@ -1,0 +1,80 @@
+```{r setup}
+#| message: false
+#| warning: false
+library(tidyverse)
+```
+
+## Mortality {.unnumbered}
+
+Due to its high stochasticity, it is challenging to identify any general trend in mortality. To avoid overcomplicating the model, two simple assumptions can be considered:
+
+i.  the absolute mortality remains constant over time;
+
+ii. the mortality rate (mortality/stocks) remains constant over time.
+
+The second hypothesis has the advantage of being more robust to limit conditions (e.g. when the stocks tend towards zero, the absolute mortality cannot be higher than the stocks).
+
+```{r}
+data <- read.csv("data/derived_data/aggregated_data.csv")
+
+control_string <- "unlogged|to be logged|old-growth|control|natural"
+silv_string <- "treatment|devital|thinning"
+
+plot_info <-
+  read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  mutate(site = ifelse(site == "BAFOG", "Bafog", site)) |>
+  mutate(site = ifelse(site == "Montagne_tortue", "Montagne_Tortue", site)) |>
+  # harmonize treatment information as logging and silvicultural treatments
+  mutate(
+    Treatment = ifelse(Treatment != "", Treatment, NA),
+    logging = !grepl(control_string, tolower(Treatment)),
+    silv_treat = grepl(silv_string, tolower(Treatment)),
+    year_log = ifelse(site == "Paracou", 1986,
+      Year_of_harvest |> substr(1, 4) |> as.numeric()
+    )
+  ) |>
+  select(site, plot, logging, silv_treat, year_log)
+```
+
+```{r}
+#| message: false
+#| warning: false
+data |>
+  merge(plot_info, by.x = c("Site", "Plot"), by.y = c("site", "plot")) |>
+  subset(variable %in% c("ba_mort", "ba")) |>
+  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Misiones")) |>
+  subset((Year > year_log + 5 & !is.na(year_log)) | !logging) |>
+  pivot_wider(names_from = "variable") |>
+  arrange(Year) |>
+  ggplot(aes(ba, ba_mort)) +
+  geom_point(aes(col = logging, group = Plot)) +
+  geom_path(aes(col = logging, group = Plot)) +
+  geom_smooth() +
+  scale_x_log10() +
+  scale_y_log10() +
+  facet_wrap(~Site, scales = "free") +
+  theme_minimal()
+```
+
+```{r}
+#| message: false
+#| warning: false
+data |>
+  merge(plot_info, by.x = c("Site", "Plot"), by.y = c("site", "plot")) |>
+  subset(variable %in% c("ba_mort", "ba")) |>
+  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Misiones")) |>
+  subset((Year > year_log + 5 & !is.na(year_log)) | !logging) |>
+  pivot_wider(names_from = "variable") |>
+  arrange(Year) |>
+  ggplot(aes(Year, ba_mort / ba)) +
+  geom_point(aes(col = logging, group = Plot)) +
+  geom_path(aes(col = logging, group = Plot)) +
+  labs(y = "Relative mortality = BAmort/BA") +
+  # geom_smooth() +
+  scale_x_log10() +
+  scale_y_log10() +
+  facet_wrap(~Site, scales = "free") +
+  theme_minimal()
+```
+
+There doesn't seem to be a strong correlation between BA mortality and BA in our data, but as a first approximation considering that mortality is proportional to basal area might work.

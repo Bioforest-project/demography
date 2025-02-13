@@ -1,0 +1,19 @@
+---
+title: "Raw data"
+date: today
+date-format: medium
+format: 
+  gfm:
+    toc: true
+    toc-depth: 2
+---
+
+This folder contains the raw data and metadata for all analyses. In particular:
+
+- **bioforest-plot-information.csv**: plot-level metadata as provided by PIs. 
+
+- **plot_area.csv**: plots' metadata information. 
+
+```{r, comment=""}
+fs::dir_tree()
+```

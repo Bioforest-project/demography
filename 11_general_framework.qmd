@@ -1,0 +1,77 @@
+```{r setup}
+#| message: false
+#| warning: false
+library(DiagrammeR)
+```
+
+# Conceptual framework {.unnumbered}
+
+## Context and motivation
+
+-   Selectively logged forests are becoming the majority of tropical forests $\rightarrow$ Importance of understanding their recovery process;
+
+-   Disturbances such as logging have different effects on the demographic rates of species and can therefore change the species composition and biodiversity in the long term;
+
+-   Demographic processes can therefore provide insights into forest resilience.
+
+## Research questions
+
+i.  What is the contribution of demographic processes (growth, recruitment, mortality) to post-logging changes in biomass, biodiversity and composition?
+
+ii. What is the link between biomass and biodiversity recovery processes?
+
+iii. How do abiotic factors shape demographic processes of recovery?
+
+## General diagram 
+
+```{r}
+grViz("
+digraph {
+
+  rankdir=LR
+
+  graph [overlap = true, fontsize = 10]
+
+  subgraph cluster_ba{
+    label='Basal area'; fontsize = 14;
+    node [shape = box, fillcolor='coral', style=filled, fontsize=12]
+    ba_stock [label='Stock']
+    ba_in [label='Gain']
+    ba_out [label='Loss']
+  }
+
+  node [shape = box, fillcolor='coral', style=filled]
+  {rank=same
+  cwm [label='Functional\ncomposition']
+  div [label='Functional\ndiversity']
+  }
+  node [fillcolor='powderblue']
+  env [label='Environmental\nvariables']
+  intensity [label='Logging\nintensity']
+
+  node [shape = ellipse, fillcolor='whitesmoke']
+  {rank=same
+  closure[label='Canopy\nclosure']
+  vmax[label='Asymptotic\nparameters*']
+  }
+
+  intensity -> closure
+  closure -> {ba_in cwm}
+  vmax -> {ba_out ba_in cwm div}
+  env -> {closure vmax}
+  cwm -> {ba_in ba_out div}
+  ba_stock -> closure
+
+  edge [style = bold]
+  div -> ba_in
+
+  edge [style = dashed]
+  ba_in -> ba_stock
+  ba_out -> ba_stock
+
+  node [shape = plaintext, fillcolor='white']
+  legend[label='*Asymptotic stocks: carrying capacity
+  or fluxes: equilibrium turnover rate']
+}
+")
+```

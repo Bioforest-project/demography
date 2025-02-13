@@ -1,0 +1,44 @@
+```{r setup}
+#| message: false
+#| warning: false
+```
+
+## Integration of STP {.unnumbered}
+
+$$\int STP = \delta \cdot e^2 \int \left(\left(\frac{x}{\tau}\right)^2 e^{-\frac{2}{\tau}x}\right) dx $$
+
+IPP: we use \$u' = \frac{2x}{\tau^2}\$ and $v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}$
+
+$$\int STP = \delta \cdot e^2 \left( uv - \int u'v \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( \left(\frac{x}{\tau}\right)^2\cdot(-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{2x}{\tau^2} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x})dx \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \int \frac{x}{\tau} e^{-\frac{2}{\tau}x}dx \right) + C$$
+
+Again, we use an IPP with \$u' = \frac{1}{\tau} \$ and $v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( uv - \int u'v \right) \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( \frac{x}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{1}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) \right) \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}  -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} + \int  \frac{1}{2} \cdot e^{-\frac{2}{\tau}x}  \right) + C$$
+
+$$\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x} -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} -\frac{\tau}{4} \cdot e^{-\frac{2}{\tau}x} \right) + C$$
+
+$$\int STP = \delta \cdot e^{(1-\frac{x}{\tau})2} \left( -\frac{x^2}{2\tau}    -\frac{x}{2}  -\frac{\tau}{4}\right) + C$$
+
+$$\int_0^t STP = \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) $$
+
+$$\int_0^t LTP = t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})$$
+
+$$\int_0^t prod = \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) + t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) $$
+
+if $mort = \theta_{\infty}$:
+
+$$\int_0^t mort = \theta_{\infty}\cdot t$$ then:
+
+$$BA(t) = BA(0) + \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) + t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right)  - \theta_{\infty}\cdot t$$
+
+$$BA(t) = BA(0) + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) + t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t}) - t\right) $$
+
+$$BA(t) = BA(0) + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) $$

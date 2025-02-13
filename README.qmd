@@ -1,0 +1,57 @@
+---
+title: "demography"
+date: today
+date-format: medium
+format: 
+  gfm:
+    toc: true
+    toc-depth: 1
+---
+
+[![](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip) 
+
+**demography** is a sub-project of the [**BioForest**](https://github.com/Bioforest-project) project. It aims to analyse tree demographic rates (growth, mortality) in selectively logged forests and their relationship with tree biodiversity and composition, as well as abiotic factors (climate, soil, etc.).
+
+## Usage
+
+All **demography** analyses rely on the quarto documents (`files.qmd`) that can be run with R and associated environment defined with [renv](#0).
+
+## Project
+
+**demography** includes:
+
+-   Analyse of the data with associated [documentation and figures](https://bioforest-project.github.io/demography/):
+    -   Reproducible analyses in `files.qmd`
+    -   Resulting pages in `docs/`
+    -   Document structure definition in `_quarto.yml`
+-   Data in `data/` with:
+    -   All raw data in `raw_data/`
+    -   All derived data in `derived_sata/`
+-   Stan Bayesian models in `models/`
+-   Stan Bayesian models outputs in `chains/`
+-   R scripts with functions in `r/`
+-   Intermediary files in `outputs/`
+-   Figures in `figures/`
+-   R environment definition with [renv](https://rstudio.github.io/renv/articles/renv.html) in `renv/` and `renv/lock`
+-   R files (`.Rbuildignore` , `.Rdata` , `.Rprofile` , `.Rhistory`, `.lintr`)
+-   Git and GitHub files (`.gitignore` , `.github/`)
+-   Project documentation (`README.qmd` , `README.md` , `NEWS.md`, `LICENSE` )
+
+## Contribution
+
+You can contribute to the project by forking the repository on github and cloning the fork to your machine using several options, including GitHub desktop GUI. Further information on contribution are detailed in the online document: <https://bioforest-project.github.io/data_preparation/98_contributing.html>.
+
+## Help
+
+Please preferentially create an issue on GitHub for any questions, bugs or help needed regarding **demography**: [https://github.com/Bioforest-project/demography/issues](https://github.com/Bioforest-project/species/issues){.uri}. Alternatively, you can contact us by email through people in the core group (see below).
+
+## Core group
+
+-   Camille Piponiot (camille.piponiot-laroche\@cirad.fr)
+-   Géraldine Derroire (geraldine.derroire\@cirad.fr)
+-   Irié Casimir Zo-Bi (casimir.zo\@inphb.ci)
+-   Dwinda Putri (dwinda.mariska\@gmail.com)
+-   Vincy K Wilson (vincykwilson\@gmail.com)
+
+The whole group consist of participants to the [Bioforest project](https://www.fondationbiodiversite.fr/la-frb-en-action/programmes-et-projets/le-cesab/bioforest/).
+

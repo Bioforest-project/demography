@@ -1,0 +1,17 @@
+---
+title: "Derived data"
+date: today
+date-format: medium
+format: 
+  gfm:
+    toc: true
+    toc-depth: 2
+---
+
+This folder contains the derived data for all analyses. In particular:
+
+-   **aggregated_data.csv**: sites' aggregated data prepared for analysis.
+
+```{r, comment=""}
+fs::dir_tree()
+```

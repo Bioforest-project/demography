@@ -1,0 +1,15 @@
+---
+title: "Analyses"
+date: today
+date-format: medium
+format: 
+  gfm:
+    toc: true
+    toc-depth: 2
+---
+
+Folder with additional analyses, presentations and reports.
+
+```{r, comment=""}
+fs::dir_tree()
+```

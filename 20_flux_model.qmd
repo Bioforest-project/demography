@@ -1,0 +1,16 @@
+```{r setup}
+#| message: false
+#| warning: false
+```
+
+# Integrating fluxes and stocks
+
+To create a consistent framework between fluxes (influx: productivity and outflux: mortality) and stocks, we integrate fluxes to estimate stocks as follows:
+
+$$\frac{d (stocks(t))}{dt} = prod(t) - mort(t)$$
+
+$$ stocks(t) = stocks(t_0) + \int_{t_0}^{t} \left(prod - mort \right) $$ Additionally, since we assume that stocks are asymptotically stable, influxes and outfluxes have the same asymptotic value.
+
+$$lim_{\infty}(prod) = lim_{\infty}(mort)$$
+
+The **advantages** of this approach are that we can reduce the number of parameters and create an explicit link between stocks and fluxes, which ensures better consistency in our predictions.

@@ -1,0 +1,16 @@
+---
+title: "Figures"
+date: today
+date-format: medium
+format: 
+  gfm:
+    toc: true
+    toc-depth: 2
+---
+
+All figures (.png, .pdf, etc.):
+
+
+```{r, comment=""}
+fs::dir_tree()
+```
