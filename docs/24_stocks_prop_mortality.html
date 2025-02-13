@@ -294,32 +294,35 @@ window.Quarto = {
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">theta0 =</span> <span class="fl">0.4</span>,</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">omega =</span> <span class="fl">0.02</span>,</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">ba0 =</span> <span class="dv">10</span>) {</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  k <span class="ot">=</span> ba0 <span class="sc">-</span> thetainf <span class="sc">/</span> omega <span class="sc">-</span> ((theta0 <span class="sc">-</span> thetainf) <span class="sc">*</span> lambda) <span class="sc">/</span> (omega <span class="sc">*</span> lambda <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">-</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">16</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">2</span>) <span class="sc">*</span> delta <span class="sc">*</span> (thetainf <span class="sc">-</span> theta0)) <span class="sc">/</span> (tau<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau)<span class="sc">^</span><span class="dv">3</span>)</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    thetainf <span class="sc">/</span> omega <span class="sc">+</span> k <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>omega <span class="sc">*</span> x) <span class="sc">+</span> ((theta0 <span class="sc">-</span> thetainf) <span class="sc">*</span> lambda) <span class="sc">/</span> (omega <span class="sc">*</span> lambda <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> x) <span class="sc">+</span> (<span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> x <span class="sc">/</span> tau))<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (<span class="dv">2</span> <span class="sc">*</span> delta <span class="sc">*</span> (thetainf <span class="sc">-</span> theta0)) <span class="sc">/</span> (tau<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau)) <span class="sc">*</span> (x<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> x <span class="sc">*</span> <span class="dv">4</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau) <span class="sc">+</span> <span class="dv">8</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>prod <span class="ot">=</span> <span class="cf">function</span>(x,</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">tau =</span> <span class="dv">10</span>,</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>                <span class="at">lambda =</span> <span class="fl">0.05</span>,</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>                <span class="at">delta =</span> <span class="dv">1</span>,</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>                <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>                <span class="at">theta0 =</span> <span class="fl">0.4</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>) {</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(theta0 <span class="sc">+</span> (thetainf<span class="sc">-</span>theta0)<span class="sc">*</span>((<span class="dv">1</span><span class="sc">-</span><span class="fu">exp</span>(<span class="sc">-</span>lambda<span class="sc">*</span>x)) <span class="sc">+</span> delta<span class="sc">*</span>((x<span class="sc">/</span>tau)<span class="sc">*</span><span class="fu">exp</span>(<span class="dv">1</span><span class="sc">-</span>x<span class="sc">/</span>tau))<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>mort <span class="ot">&lt;-</span> <span class="cf">function</span>(x,</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tau =</span> <span class="dv">10</span>,</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                 <span class="at">lambda =</span> <span class="fl">0.05</span>,</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>                 <span class="at">delta =</span> <span class="dv">1</span>,</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>                 <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>                 <span class="at">theta0 =</span> <span class="fl">0.4</span>,</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>                 <span class="at">omega =</span> <span class="fl">0.02</span>,</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ba0 =</span> <span class="dv">10</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>) {</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(omega <span class="sc">*</span> <span class="fu">ba</span>(x, tau, lambda, delta, thetainf, theta0, omega, ba0))</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  k <span class="ot">&lt;-</span> ba0 <span class="sc">-</span> thetainf <span class="sc">/</span> omega <span class="sc">-</span> ((theta0 <span class="sc">-</span> thetainf) <span class="sc">*</span> lambda) <span class="sc">/</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    (omega <span class="sc">*</span> lambda <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">-</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">16</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">2</span>) <span class="sc">*</span> delta <span class="sc">*</span> (thetainf <span class="sc">-</span> theta0)) <span class="sc">/</span> (tau<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau)<span class="sc">^</span><span class="dv">3</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    thetainf <span class="sc">/</span> omega <span class="sc">+</span> k <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>omega <span class="sc">*</span> x) <span class="sc">+</span> ((theta0 <span class="sc">-</span> thetainf) <span class="sc">*</span> lambda) <span class="sc">/</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      (omega <span class="sc">*</span> lambda <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> x) <span class="sc">+</span> (<span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> x <span class="sc">/</span> tau))<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">2</span> <span class="sc">*</span> delta <span class="sc">*</span> (thetainf <span class="sc">-</span> theta0)) <span class="sc">/</span> (tau<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau)) <span class="sc">*</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      (x<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> x <span class="sc">*</span> <span class="dv">4</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau) <span class="sc">+</span> <span class="dv">8</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>prod <span class="ot">&lt;-</span> <span class="cf">function</span>(x,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tau =</span> <span class="dv">10</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>                 <span class="at">lambda =</span> <span class="fl">0.05</span>,</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>                 <span class="at">delta =</span> <span class="dv">1</span>,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>                 <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>                 <span class="at">theta0 =</span> <span class="fl">0.4</span>) {</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(theta0 <span class="sc">+</span> (thetainf <span class="sc">-</span> theta0) <span class="sc">*</span> ((<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> x)) <span class="sc">+</span> delta <span class="sc">*</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                                           ((x <span class="sc">/</span> tau) <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> x <span class="sc">/</span> tau))<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>mort <span class="ot">&lt;-</span> <span class="cf">function</span>(x,</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tau =</span> <span class="dv">10</span>,</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>                 <span class="at">lambda =</span> <span class="fl">0.05</span>,</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>                 <span class="at">delta =</span> <span class="dv">1</span>,</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>                 <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>                 <span class="at">theta0 =</span> <span class="fl">0.4</span>,</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>                 <span class="at">omega =</span> <span class="fl">0.02</span>,</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ba0 =</span> <span class="dv">10</span>) {</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(omega <span class="sc">*</span> <span class="fu">ba</span>(x, tau, lambda, delta, thetainf, theta0, omega, ba0))</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p>Below is a graph of the resulting fluxes and stocks with parameter values:</p>
@@ -335,21 +338,30 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>facet_labs <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ba"</span> <span class="ot">=</span> <span class="st">"Basal area [m2/ha]"</span>, </span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                <span class="st">"prod"</span> <span class="ot">=</span> <span class="st">"Productivity [m2/ha/yr]"</span>, </span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                <span class="st">"mort"</span> <span class="ot">=</span> <span class="st">"Mortality [m2/ha/yr]"</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">t =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">200</span>, <span class="fl">1e-2</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ba =</span> <span class="fu">ba</span>(t, <span class="at">tau =</span> <span class="dv">5</span>), <span class="at">prod =</span> <span class="fu">prod</span>(t, <span class="at">tau =</span> <span class="dv">5</span>), <span class="at">mort =</span> <span class="fu">mort</span>(t, <span class="at">tau =</span> <span class="dv">5</span>)) <span class="sc">|&gt;</span>  </span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>t) <span class="sc">|&gt;</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(t, value)) <span class="sc">+</span> </span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_sqrt</span>() <span class="sc">+</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name, <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">nrow =</span> <span class="dv">3</span>, </span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">name =</span> facet_labs), </span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">strip.position=</span><span class="st">"left"</span>) <span class="sc">+</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Recovery time [yr]"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">strip.placement =</span> <span class="st">"outside"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>facet_labs <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ba"</span> <span class="ot">=</span> <span class="st">"Basal area [m2/ha]"</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"prod"</span> <span class="ot">=</span> <span class="st">"Productivity [m2/ha/yr]"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mort"</span> <span class="ot">=</span> <span class="st">"Mortality [m2/ha/yr]"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">t =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">200</span>, <span class="fl">1e-2</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba =</span> <span class="fu">ba</span>(t, <span class="at">tau =</span> <span class="dv">5</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> <span class="fu">prod</span>(t, <span class="at">tau =</span> <span class="dv">5</span>),</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> <span class="fu">mort</span>(t, <span class="at">tau =</span> <span class="dv">5</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>t) <span class="sc">|&gt;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(t, value)) <span class="sc">+</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_sqrt</span>() <span class="sc">+</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">nrow =</span> <span class="dv">3</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">name =</span> facet_labs),</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.position =</span> <span class="st">"left"</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Recovery time [yr]"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.placement =</span> <span class="st">"outside"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -363,44 +375,54 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># what parameters have the most effect on the recovery rate of ba? </span></span>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># what parameters have the most effect on the recovery rate of ba?</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>pars <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">param =</span> <span class="fu">c</span>(<span class="st">"tau"</span>, <span class="st">"lambda"</span>, <span class="st">"delta"</span>, <span class="st">"theta[infinity]"</span>, </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>            <span class="st">"theta[0]"</span>, <span class="st">"omega"</span>, <span class="st">"ba[0]"</span>), </span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">min =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">1e-3</span>, <span class="fl">1e-3</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.001</span>, <span class="fl">1e-3</span>), </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">max =</span> <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="fl">0.2</span>, <span class="dv">20</span>)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>get_t95 <span class="ot">&lt;-</span> <span class="cf">function</span>(tau, lambda, delta, thetainf, theta0, omega, ba0) {</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">min</span>(<span class="fu">which</span>(</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ba</span>(<span class="dv">1</span><span class="sc">:</span><span class="fl">1e4</span>, tau, lambda, delta, thetainf, theta0, omega, ba0) <span class="sc">&gt;</span> <span class="fl">0.95</span> <span class="sc">*</span> (thetainf <span class="sc">/</span> omega <span class="sc">-</span> ba0) <span class="sc">+</span> ba0</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  ))</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>pars <span class="sc">|&gt;</span> </span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(param) <span class="sc">|&gt;</span> </span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reframe</span>(<span class="at">value =</span> <span class="fu">exp</span>(<span class="fu">seq</span>(<span class="fu">log</span>(min), <span class="fu">log</span>(max), <span class="at">length.out =</span> <span class="dv">10</span>))) <span class="sc">|&gt;</span> </span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">tau =</span> <span class="dv">10</span>, <span class="at">lambda =</span> <span class="fl">0.05</span>, <span class="at">delta =</span> <span class="dv">1</span>, <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">theta0 =</span> <span class="fl">0.4</span>, <span class="at">omega =</span> <span class="fl">0.02</span>, <span class="at">ba0 =</span> <span class="dv">10</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tau =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"tau"</span>, value, tau), , </span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">lambda =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"lambda"</span>, value, lambda), </span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">delta =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"delta"</span>, value, delta), </span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">thetainf =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"theta[infinity]"</span>, value, thetainf),</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>         <span class="at">theta0 =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"theta[0]"</span>, value, theta0),</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">omega =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"omega"</span>, value, omega),</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>         <span class="at">ba0 =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"ba[0]"</span>, value, ba0)) <span class="sc">|&gt;</span> </span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># constraints: theta0 &lt; thetainf and ba0 &lt; bainf = thetainf/omega</span></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(theta0<span class="sc">&lt;</span>thetainf <span class="sc">&amp;</span>  ba0 <span class="sc">&lt;</span> thetainf<span class="sc">/</span>omega) <span class="sc">|&gt;</span> </span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">t95 =</span> <span class="fu">get_t95</span>(tau, lambda, delta, thetainf, theta0, omega, ba0)) <span class="sc">|&gt;</span> </span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(value, t95)) <span class="sc">+</span></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>() <span class="sc">+</span> <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>param, <span class="at">scales =</span> <span class="st">"free"</span>, </span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>             <span class="at">labeller =</span> label_parsed, </span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>             <span class="at">strip.position=</span><span class="st">"bottom"</span>) <span class="sc">+</span></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"t95 [yr]"</span>) <span class="sc">+</span></span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">strip.placement =</span> <span class="st">"outside"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">param =</span> <span class="fu">c</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"tau"</span>, <span class="st">"lambda"</span>, <span class="st">"delta"</span>, <span class="st">"theta[infinity]"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"theta[0]"</span>, <span class="st">"omega"</span>, <span class="st">"ba[0]"</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">min =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">1e-3</span>, <span class="fl">1e-3</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.001</span>, <span class="fl">1e-3</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">max =</span> <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="fl">0.2</span>, <span class="dv">20</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>get_t95 <span class="ot">&lt;-</span> <span class="cf">function</span>(tau, lambda, delta, thetainf, theta0, omega, ba0) {</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">min</span>(<span class="fu">which</span>(</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ba</span>(<span class="dv">1</span><span class="sc">:</span><span class="fl">1e4</span>, tau, lambda, delta, thetainf, theta0, omega, ba0) <span class="sc">&gt;</span> <span class="fl">0.95</span> <span class="sc">*</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>      (thetainf <span class="sc">/</span> omega <span class="sc">-</span> ba0) <span class="sc">+</span> ba0</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>pars <span class="sc">|&gt;</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(param) <span class="sc">|&gt;</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reframe</span>(<span class="at">value =</span> <span class="fu">exp</span>(<span class="fu">seq</span>(<span class="fu">log</span>(min), <span class="fu">log</span>(max), <span class="at">length.out =</span> <span class="dv">10</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">tau =</span> <span class="dv">10</span>, <span class="at">lambda =</span> <span class="fl">0.05</span>, <span class="at">delta =</span> <span class="dv">1</span>, <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">theta0 =</span> <span class="fl">0.4</span>, <span class="at">omega =</span> <span class="fl">0.02</span>, <span class="at">ba0 =</span> <span class="dv">10</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">tau =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"tau"</span>, value, tau), ,</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">lambda =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"lambda"</span>, value, lambda),</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">delta =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"delta"</span>, value, delta),</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">thetainf =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"theta[infinity]"</span>, value, thetainf),</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">theta0 =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"theta[0]"</span>, value, theta0),</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">omega =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"omega"</span>, value, omega),</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba0 =</span> <span class="fu">ifelse</span>(param <span class="sc">==</span> <span class="st">"ba[0]"</span>, value, ba0)</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  <span class="co"># constraints: theta0 &lt; thetainf and ba0 &lt; bainf = thetainf/omega</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(theta0 <span class="sc">&lt;</span> thetainf <span class="sc">&amp;</span> ba0 <span class="sc">&lt;</span> thetainf <span class="sc">/</span> omega) <span class="sc">|&gt;</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">t95 =</span> <span class="fu">get_t95</span>(tau, lambda, delta, thetainf, theta0, omega, ba0)) <span class="sc">|&gt;</span></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(value, t95)) <span class="sc">+</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>() <span class="sc">+</span></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>param,</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>,</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> label_parsed,</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.position =</span> <span class="st">"bottom"</span></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"t95 [yr]"</span>) <span class="sc">+</span></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.placement =</span> <span class="st">"outside"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>

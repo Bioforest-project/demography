@@ -22,7 +22,7 @@ ii. What is the link between biomass and biodiversity recovery processes?
 
 iii. How do abiotic factors shape demographic processes of recovery?
 
-## General diagram 
+## General diagram
 
 ```{r}
 grViz("

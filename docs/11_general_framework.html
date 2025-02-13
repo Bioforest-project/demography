@@ -203,25 +203,25 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./21_productivity.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Productivity</span></span></a>
+ <span class="menu-text">Productivity</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./22_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">22_mortality.html</span></span></a>
+ <span class="menu-text">Mortality</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./23_stocks_cst_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">23_stocks_cst_mortality.html</span></span></a>
+ <span class="menu-text">Stocks - with constant mortality</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./24_stocks_prop_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">what parameters have the most effect on the recovery rate of ba?</span></span></a>
+ <span class="menu-text">Stocks - with proportional mortality</span></a>
   </div>
 </li>
       </ul>
@@ -238,13 +238,13 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./91_ipp.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Integration of STP</span></span></a>
+ <span class="menu-text">Integration of STP</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./92_diff_equa.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Differential equation</span></span></a>
+ <span class="menu-text">Differential equation</span></a>
   </div>
 </li>
       </ul>
@@ -328,7 +328,7 @@ window.Quarto = {
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="st">    ba_in [label='Gain']</span></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="st">    ba_out [label='Loss']</span></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="st">  node [shape = box, fillcolor='coral', style=filled]</span></span>
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="st">  {rank=same</span></span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="st">  cwm [label='Functional</span><span class="sc">\n</span><span class="st">composition']</span></span>
@@ -337,35 +337,36 @@ window.Quarto = {
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="st">  node [fillcolor='powderblue']</span></span>
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="st">  env [label='Environmental</span><span class="sc">\n</span><span class="st">variables']</span></span>
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="st">  intensity [label='Logging</span><span class="sc">\n</span><span class="st">intensity']</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="st">  node [shape = ellipse, fillcolor='whitesmoke'] </span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="st">  node [shape = ellipse, fillcolor='whitesmoke']</span></span>
 <span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="st">  {rank=same</span></span>
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="st">  closure[label='Canopy</span><span class="sc">\n</span><span class="st">closure']</span></span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="st">  vmax[label='Asymptotic</span><span class="sc">\n</span><span class="st">parameters*']</span></span>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="st">  intensity -&gt; closure</span></span>
 <span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="st">  closure -&gt; {ba_in cwm}</span></span>
 <span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="st">  vmax -&gt; {ba_out ba_in cwm div}</span></span>
 <span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="st">  env -&gt; {closure vmax}</span></span>
 <span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="st">  cwm -&gt; {ba_in ba_out div}</span></span>
 <span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="st">  ba_stock -&gt; closure</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="st">  edge [style = bold]</span></span>
 <span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="st">  div -&gt; ba_in</span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="st">  edge [style = dashed]</span></span>
 <span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="st">  ba_in -&gt; ba_stock</span></span>
 <span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="st">  ba_out -&gt; ba_stock</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="st">  node [shape = plaintext, fillcolor='white']</span></span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="st">  legend[label='*Asymptotic stocks: carrying capacity</span><span class="sc">\n</span><span class="st">or fluxes: equilibrium turnover rate']</span></span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="st">  legend[label='*Asymptotic stocks: carrying capacity</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="st">  or fluxes: equilibrium turnover rate']</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div class="grViz html-widget html-fill-item" id="htmlwidget-93e7370bcc4c0b3a9846" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-93e7370bcc4c0b3a9846">{"x":{"diagram":"\ndigraph {\n\n  rankdir=LR\n\n  graph [overlap = true, fontsize = 10]\n\n  subgraph cluster_ba{\n    label=\"Basal area\"; fontsize = 14;\n    node [shape = box, fillcolor=\"coral\", style=filled, fontsize=12]\n    ba_stock [label=\"Stock\"]\n    ba_in [label=\"Gain\"]\n    ba_out [label=\"Loss\"]\n  }\n  \n  node [shape = box, fillcolor=\"coral\", style=filled]\n  {rank=same\n  cwm [label=\"Functional\ncomposition\"]\n  div [label=\"Functional\ndiversity\"]\n  }\n  node [fillcolor=\"powderblue\"]\n  env [label=\"Environmental\nvariables\"]\n  intensity [label=\"Logging\nintensity\"]\n  \n  node [shape = ellipse, fillcolor=\"whitesmoke\"] \n  {rank=same\n  closure[label=\"Canopy\nclosure\"]\n  vmax[label=\"Asymptotic\nparameters*\"]\n  }\n  \n  intensity -> closure\n  closure -> {ba_in cwm}\n  vmax -> {ba_out ba_in cwm div}\n  env -> {closure vmax}\n  cwm -> {ba_in ba_out div}\n  ba_stock -> closure\n  \n  edge [style = bold]\n  div -> ba_in\n  \n  edge [style = dashed]\n  ba_in -> ba_stock\n  ba_out -> ba_stock\n  \n  node [shape = plaintext, fillcolor=\"white\"]\n  legend[label=\"*Asymptotic stocks: carrying capacity\nor fluxes: equilibrium turnover rate\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-5d36597f3305b93557a0" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-5d36597f3305b93557a0">{"x":{"diagram":"\ndigraph {\n\n  rankdir=LR\n\n  graph [overlap = true, fontsize = 10]\n\n  subgraph cluster_ba{\n    label=\"Basal area\"; fontsize = 14;\n    node [shape = box, fillcolor=\"coral\", style=filled, fontsize=12]\n    ba_stock [label=\"Stock\"]\n    ba_in [label=\"Gain\"]\n    ba_out [label=\"Loss\"]\n  }\n\n  node [shape = box, fillcolor=\"coral\", style=filled]\n  {rank=same\n  cwm [label=\"Functional\ncomposition\"]\n  div [label=\"Functional\ndiversity\"]\n  }\n  node [fillcolor=\"powderblue\"]\n  env [label=\"Environmental\nvariables\"]\n  intensity [label=\"Logging\nintensity\"]\n\n  node [shape = ellipse, fillcolor=\"whitesmoke\"]\n  {rank=same\n  closure[label=\"Canopy\nclosure\"]\n  vmax[label=\"Asymptotic\nparameters*\"]\n  }\n\n  intensity -> closure\n  closure -> {ba_in cwm}\n  vmax -> {ba_out ba_in cwm div}\n  env -> {closure vmax}\n  cwm -> {ba_in ba_out div}\n  ba_stock -> closure\n\n  edge [style = bold]\n  div -> ba_in\n\n  edge [style = dashed]\n  ba_in -> ba_stock\n  ba_out -> ba_stock\n\n  node [shape = plaintext, fillcolor=\"white\"]\n  legend[label=\"*Asymptotic stocks: carrying capacity\n  or fluxes: equilibrium turnover rate\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 

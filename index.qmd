@@ -1,4 +1,4 @@
-<!-- [![](https://www.repostatus.org/badges/latest/wip.svg)](#0) [![lint](https://github.com/Bioforest-project/demography/workflows/lint/badge.svg)](https://github.com/Bioforest-project/demography/actions?query=workflow%3Alint) -->
+[![](https://www.repostatus.org/badges/latest/wip.svg)](#0) [![lint](https://github.com/Bioforest-project/demography/workflows/lint/badge.svg)](https://github.com/Bioforest-project/demography/actions?query=workflow%3Alint)
 
 # Introduction {.unnumbered}
 
