@@ -8,7 +8,8 @@ format:
     toc-depth: 1
 ---
 
-[![](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip) 
+[![](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+[![lint](https://github.com/Bioforest-project/demography/workflows/lint/badge.svg)](https://github.com/Bioforest-project/demography/actions?query=workflow%3Alint)
 
 **demography** is a sub-project of the [**BioForest**](https://github.com/Bioforest-project) project. It aims to analyse tree demographic rates (growth, mortality) in selectively logged forests and their relationship with tree biodiversity and composition, as well as abiotic factors (climate, soil, etc.).
 
@@ -54,4 +55,3 @@ Please preferentially create an issue on GitHub for any questions, bugs or help 
 -   Vincy K Wilson (vincykwilson\@gmail.com)
 
 The whole group consist of participants to the [Bioforest project](https://www.fondationbiodiversite.fr/la-frb-en-action/programmes-et-projets/le-cesab/bioforest/).
-
