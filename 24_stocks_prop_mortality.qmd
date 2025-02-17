@@ -1,6 +1,7 @@
 ```{r setup}
 #| message: false
 #| warning: false
+#| include: false
 library(tidyverse)
 list.files("r", full.names = TRUE, pattern = ".R") %>%
   lapply(source)

@@ -214,6 +214,12 @@ window.Quarto = {
  <span class="menu-text">Stocks - with proportional mortality</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./25_calibrate_flux_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Calibrate the model with forest inventory data</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -319,7 +325,7 @@ window.Quarto = {
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> theta0 <span class="sc">+</span> (thetainf <span class="sc">-</span> theta0) <span class="sc">*</span> <span class="fu">ltp</span>(t) <span class="sc">+</span> thetainf <span class="sc">*</span> <span class="fu">stp</span>(t),</span>
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> thetainf,</span>
 <span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba =</span> ba0 <span class="sc">+</span> thetainf <span class="sc">*</span> <span class="fu">int_stp</span>(t) <span class="sc">-</span> (thetainf <span class="sc">-</span> theta0) <span class="sc">/</span> lambda <span class="sc">*</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                                        (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> t))</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> t))</span>
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>t) <span class="sc">|&gt;</span></span>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(t, value)) <span class="sc">+</span></span>

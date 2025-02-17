@@ -1,6 +1,8 @@
 ```{r setup}
 #| message: false
 #| warning: false
+#| include: false
+
 library(tidyverse)
 library(cmdstanr)
 library(bayesplot)
@@ -9,9 +11,9 @@ list.files("r", full.names = TRUE, pattern = ".R") %>%
   lapply(source)
 ```
 
-# Calibrate the model with forest inventory data  {.unnumbered}
+# Calibrate the model with forest inventory data {.unnumbered}
 
-## Data 
+## Data
 
 ```{r}
 control_string <- "unlogged|to be logged|old-growth|control|natural"
@@ -61,7 +63,7 @@ for (var in c("stocks", "prod", "mort")) {
 }
 ```
 
-## Model 
+## Model
 
 ```{r}
 bounds <- data.frame(
@@ -84,8 +86,7 @@ bounds <- data.frame(
 )
 ```
 
-```{r fit_flux_model}
-#| eval: false
+```{r}
 data_rec <- data |>
   subset(logging & trec > 3) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
@@ -102,6 +103,10 @@ data_pre <- data |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
   mutate(sitenum = as.numeric(as.factor(Site)))
+```
+
+```{r fit_flux_model}
+#| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
   unique() |>
@@ -165,4 +170,89 @@ mdata <- list(
 sample_model("flux", mdata)
 ```
 
+```{r}
+#| message: false
+#| warning: false
 
+fit_flux <- as_cmdstan_fit(list.files("chains/flux", full.names = TRUE))
+fit_flux
+```
+
+```{r}
+c("mu_dist", "mu_thetaInf", "mu_delta", "mu_lambda", "mu_omega") |>
+  fit_flux$summary()
+```
+
+```{r}
+#| warning: false
+#| fig-cap: "Predicted vs observed values."
+#| fig-width: 8
+#| fig-height: 3
+
+pred_data <- data_rec |>
+  mutate(
+    stocks = fit_flux$summary(c("mu_y_rec"), median)$median,
+    prod = fit_flux$summary(c("mu_in_rec"), median)$median,
+    mort = fit_flux$summary(c("mu_out_rec"), median)$median,
+    val = "pred",
+    type = "rec"
+  ) |>
+  select(-plotnum) |>
+  rbind(mutate(
+    data_pre,
+    stocks = fit_flux$summary(c("mu_y_pre"), median)$median,
+    prod = fit_flux$summary(c("mu_in_pre"), median)$median,
+    mort = fit_flux$summary(c("mu_out_pre"), median)$median,
+    val = "pred",
+    type = "old"
+  )) |>
+  rbind(mutate(
+    data_old,
+    stocks = fit_flux$summary(c("mu_y_old"), median)$median,
+    prod = fit_flux$summary(c("mu_in_old"), median)$median,
+    mort = fit_flux$summary(c("mu_out_old"), median)$median,
+    val = "pred",
+    type = "old"
+  ))
+
+obs_data <- data_rec |>
+  mutate(
+    val = "obs",
+    type = "rec"
+  ) |>
+  select(-plotnum) |>
+  rbind(mutate(
+    data_pre,
+    val = "obs",
+    type = "old"
+  )) |>
+  rbind(mutate(
+    data_old,
+    val = "obs",
+    type = "old"
+  ))
+
+pov_data <- rbind(pred_data, obs_data) |>
+  pivot_longer(cols = c(stocks, prod, mort), names_to = "variable") |>
+  pivot_wider(names_from = val, values_from = value)
+
+df_rmse <- pov_data |>
+  group_by(variable) |>
+  summarise(rmse = sqrt(mean((pred - obs)^2)))
+
+pov_data |>
+  ggplot(aes(pred, obs)) +
+  geom_point(alpha = 0.25, aes(col = type)) +
+  geom_abline(col = "red", linetype = "dashed") +
+  geom_text(
+    data = df_rmse,
+    aes(
+      x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
+      label = paste("RMSE =", round(rmse, 2))
+    )
+  ) +
+  theme_bw() +
+  xlab("Predicted") +
+  ylab("Observed") +
+  facet_wrap(~variable, scales = "free")
+```

@@ -14,6 +14,7 @@ book:
         - 22_mortality.qmd
         - 23_stocks_cst_mortality.qmd
         - 24_stocks_prop_mortality.qmd
+        - 25_calibrate_flux_model.qmd
   appendices:
     - 91_ipp.qmd
     - 92_diff_equa.qmd
