@@ -1,0 +1,168 @@
+```{r setup}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(cmdstanr)
+library(bayesplot)
+library(patchwork)
+list.files("r", full.names = TRUE, pattern = ".R") %>%
+  lapply(source)
+```
+
+# Calibrate the model with forest inventory data  {.unnumbered}
+
+## Data 
+
+```{r}
+control_string <- "unlogged|to be logged|old-growth|control|natural"
+silv_string <- "treatment|devital|thinning"
+
+plot_info <-
+  read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  mutate(site = ifelse(site == "BAFOG", "Bafog", site)) |>
+  mutate(site = ifelse(site == "Montagne_tortue", "Montagne_Tortue", site)) |>
+  # harmonize treatment information as logging and silvicultural treatments
+  mutate(
+    Treatment = ifelse(Treatment != "", Treatment, NA),
+    logging = !grepl(control_string, tolower(Treatment)),
+    silv_treat = grepl(silv_string, tolower(Treatment)),
+    year_log = ifelse(site == "Paracou", 1986,
+      Year_of_harvest |> substr(1, 4) |> as.numeric()
+    )
+  ) |>
+  select(site, plot, logging, silv_treat, year_log)
+
+data <- read.csv("data/derived_data/aggregated_data.csv") |>
+  subset(Site %in% c(
+    "Lesong", "Mbaiki", "Misiones", "Moju", "Paracou",
+    "Sg Lalang", "Ulu Muda"
+  )) |>
+  subset(variable %in% c("ba_mort", "ba_growth", "ba_recr", "ba")) |>
+  pivot_wider(names_from = "variable", values_from = "value") |>
+  mutate(prod = ba_growth + ba_recr, mort = ba_mort, stocks = ba) |>
+  select(!contains("ba")) |>
+  pivot_longer(cols = c("stocks", "prod", "mort"), names_to = "variable") |>
+  merge(plot_info, by.x = c("Site", "Plot"), by.y = c("site", "plot")) |>
+  mutate(trec = Year - year_log) |>
+  subset(!logging | !is.na(year_log))
+```
+
+```{r}
+for (var in c("stocks", "prod", "mort")) {
+  data |>
+    subset(variable == var) |>
+    ggplot(aes(trec, value)) +
+    geom_point(aes(group = Plot, colour = Plot)) +
+    geom_line(aes(group = Plot, colour = Plot)) +
+    facet_wrap(~Site, scales = "free") +
+    guides(colour = "none") +
+    labs(y = var) +
+    theme_minimal()
+}
+```
+
+## Model 
+
+```{r}
+bounds <- data.frame(
+  "mu_thetaInf_min" = 0.01,
+  "mu_thetaInf_max" = 1,
+  "thetaInf_min" = 0.01,
+  "thetaInf_max" = 5,
+  "lambda_min" = 1e-3,
+  "lambda_max" = 1,
+  "dist_min" = 1e-2,
+  "dist_max" = 1,
+  "delta_min" = 0,
+  "delta_max" = 1,
+  "tau_min" = 2,
+  "tau_max" = 30,
+  "omega_min" = 1e-3,
+  "omega_max" = 0.5,
+  "y0_min" = 1,
+  "y0_max" = 30
+)
+```
+
+```{r fit_flux_model}
+#| eval: false
+data_rec <- data |>
+  subset(logging & trec > 3) |>
+  pivot_wider(names_from = "variable", values_from = "value") |>
+  subset(!is.na(prod) & !is.na(mort)) |>
+  mutate(sitenum = as.numeric(as.factor(Site))) |>
+  mutate(plotnum = as.numeric(as.factor(paste(Site, Plot))))
+data_old <- data |>
+  subset(!logging) |>
+  pivot_wider(names_from = "variable", values_from = "value") |>
+  subset(!is.na(prod) & !is.na(mort)) |>
+  mutate(sitenum = as.numeric(as.factor(Site)))
+data_pre <- data |>
+  subset(logging & trec < 0) |>
+  pivot_wider(names_from = "variable", values_from = "value") |>
+  subset(!is.na(prod) & !is.na(mort)) |>
+  mutate(sitenum = as.numeric(as.factor(Site)))
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+
+mdata <- list(
+  n_rec = nrow(data_rec),
+  n_old = nrow(data_old),
+  n_pre = nrow(data_pre),
+  n_site = max(data_rec$sitenum),
+  n_plot_rec = max(data_rec$plotnum),
+  y_rec = data_rec$stocks,
+  y_old = data_old$stocks,
+  y_pre = data_pre$stocks,
+  in_rec = data_rec$prod,
+  in_old = data_old$prod,
+  in_pre = data_pre$prod,
+  out_rec = data_rec$mort,
+  out_old = data_old$mort,
+  out_pre = data_pre$mort,
+  time = data_rec$trec - 3,
+  site_rec = data_rec$sitenum,
+  site_old = data_old$sitenum,
+  site_pre = data_pre$sitenum,
+  plot_rec = data_rec$plotnum,
+  site_plot_rec = ind_rec$sitenum,
+  mu_thetaInf_bounds = c(
+    bounds$mu_thetaInf_min,
+    bounds$mu_thetaInf_max
+  ),
+  thetaInf_bounds = c(
+    bounds$thetaInf_min,
+    bounds$thetaInf_max
+  ),
+  lambda_bounds = c(
+    bounds$lambda_min,
+    bounds$lambda_max
+  ),
+  dist_bounds = c(
+    bounds$dist_min,
+    bounds$dist_max
+  ),
+  delta_bounds = c(
+    bounds$delta_min,
+    bounds$delta_max
+  ),
+  tau_bounds = c(
+    bounds$tau_min,
+    bounds$tau_max
+  ),
+  omega_bounds = c(
+    bounds$omega_min,
+    bounds$omega_max
+  ),
+  y0_bounds = c(
+    bounds$y0_min,
+    bounds$y0_max
+  )
+)
+
+sample_model("flux", mdata)
+```
+
+
