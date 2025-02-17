@@ -214,6 +214,12 @@ window.Quarto = {
  <span class="menu-text">Stocks - with proportional mortality</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./25_calibrate_flux_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Calibrating the flux model with forest inventory data</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -276,7 +282,7 @@ window.Quarto = {
 </details>
 </div>
 <p>For productivity we can use the general recovery model as described in <span class="citation" data-cites="Maurent2023">(<a href="#ref-Maurent2023" role="doc-biblioref"><strong>Maurent2023?</strong></a>)</span>.</p>
-<p><span class="math display">\[ prod = \theta_0 + (\theta_{\infty} -\theta_0)\cdot(STP+LTP)\]</span></p>
+<p><span class="math display">\[prod = \theta_0 + (\theta_{\infty} -\theta_0)\cdot LTP + \theta_{\infty} \cdot STP\]</span></p>
 <p><span class="math display">\[LTP = 1 - exp(-\lambda\cdot t) \]</span></p>
 <p><span class="math display">\[STP = \delta \cdot \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2 \]</span> Below we show the productivity in four sites that have been remeasured for multiple decades.</p>
 <div class="cell">

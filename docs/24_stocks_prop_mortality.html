@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Stocks - with proportional mortality – modelling</title>
+<title>Stocks - with proportional mortality – demography</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -159,7 +159,7 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">modelling</a> 
+      <a href="./">demography</a> 
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -272,64 +272,94 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">list.files</span>(<span class="st">"r"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>, <span class="at">pattern =</span> <span class="st">".R"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(source)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[[1]]$value
+function (x, tau = 10, lambda = 0.05, delta = 0.2, thetainf = 0.5, 
+    theta0 = 0.4, omega = 0.02, ba0 = 10) 
+{
+    k &lt;- ba0 - thetainf/omega - ((theta0 - thetainf) * lambda)/(omega * 
+        lambda - 1) - (16 * exp(2) * delta * thetainf)/(tau^2 * 
+        (2 * omega - tau)^3)
+    return(thetainf/omega + k * exp(-omega * x) + ((theta0 - 
+        thetainf) * lambda)/(omega * lambda - 1) * exp(-lambda * 
+        x) + (exp(1 - x/tau))^2 * (2 * delta * thetainf)/(tau^2 * 
+        (2 * omega - tau)) * (x^2 - x * 4/(2 * omega - tau) + 
+        8/(2 * omega - tau)^2))
+}
+
+[[1]]$visible
+[1] FALSE
+
+
+[[2]]
+[[2]]$value
+function (x, tau = 10, lambda = 0.05, delta = 0.2, thetainf = 0.5, 
+    theta0 = 0.4, omega = 0.02, ba0 = 10) 
+{
+    k &lt;- ba0 - thetainf/omega - ((theta0 - thetainf) * lambda)/(omega * 
+        lambda - 1) - (16 * exp(2) * delta * thetainf)/(tau^2 * 
+        (2 * omega - tau)^3)
+    stocks &lt;- thetainf/omega + k * exp(-omega * x) + ((theta0 - 
+        thetainf) * lambda)/(omega * lambda - 1) * exp(-lambda * 
+        x) + (exp(1 - x/tau))^2 * (2 * delta * thetainf)/(tau^2 * 
+        (2 * omega - tau)) * (x^2 - x * 4/(2 * omega - tau) + 
+        8/(2 * omega - tau)^2)
+    return(omega * stocks)
+}
+
+[[2]]$visible
+[1] FALSE
+
+
+[[3]]
+[[3]]$value
+function (x, tau = 10, lambda = 0.05, delta = 0.2, thetainf = 0.5, 
+    theta0 = 0.4) 
+{
+    return(theta0 + (thetainf - theta0) * (1 - exp(-lambda * 
+        x)) + thetainf * delta * ((x/tau) * exp(1 - x/tau))^2)
+}
+
+[[3]]$visible
+[1] FALSE
+
+
+[[4]]
+[[4]]$value
+function (model, mdata) 
+{
+    model_path &lt;- file.path("models", paste0(model, ".stan"))
+    stan_model &lt;- cmdstan_model(model_path)
+    chains_path &lt;- file.path("chains", model)
+    unlink(chains_path, recursive = TRUE)
+    dir.create(chains_path)
+    fit &lt;- stan_model$sample(data = mdata, chains = 4, parallel_chains = 4, 
+        save_warmup = FALSE, output_dir = chains_path)
+    print(paste(model, "done!"))
+}
+
+[[4]]$visible
+[1] FALSE</code></pre>
+</div>
 </div>
 <p>Here we define productivity with the general recovery model, and we hypothesize that mortality is proportional to basal area:</p>
-<p><span class="math display">\[ prod(t) = \theta_0 + (\theta_{\infty} -\theta_0)\cdot\left(1 - exp(-\lambda\cdot t)+\delta \cdot \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2\right)\]</span></p>
+<p><span class="math display">\[ prod(t) = \theta_0 + (\theta_{\infty} -\theta_0)\cdot\left(1 - exp(-\lambda\cdot t) \right) + \theta_{\infty}\cdot\delta \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2\]</span></p>
 <p><span class="math display">\[ba'(t) = prod(t) - \omega \cdot ba(t)\]</span> and the initial condition:</p>
 <p><span class="math display">\[ba(t=0) = BA_0\]</span></p>
 <p>The solution to this equation is:</p>
-<p><span class="math display">\[ba(t) = \frac{\theta_{\infty}}{\omega} + Kexp(-\omega t) + \frac{\lambda(\theta_{\infty}-\theta_0) }{1-\omega\lambda} \cdot exp(-\lambda\cdot t) + exp(1-\frac{t}{\tau})^2\frac{2\delta(\theta_{\infty}-\theta_0)}{\tau^2(2\omega-\tau)}\left(t^2 - t\frac{4}{(2\omega-\tau)} + \frac{8}{(2\omega-\tau)^2}\right)\]</span></p>
+<p><span class="math display">\[ba(t) = \frac{\theta_{\infty}}{\omega} + Kexp(-\omega t) + \frac{\lambda(\theta_{\infty}-\theta_0) }{1-\omega\lambda} \cdot exp(-\lambda\cdot t) + exp(1-\frac{t}{\tau})^2\frac{2\delta\theta_{\infty}}{\tau^2(2\omega-\tau)}\left(t^2 - t\frac{4}{(2\omega-\tau)} + \frac{8}{(2\omega-\tau)^2}\right)\]</span></p>
 <p>with:</p>
-<p><span class="math display">\[ K = ba_0 - \frac{\theta_{\infty}}{\omega} - \frac{\lambda(\theta_{\infty}-\theta_0) }{1-\omega\lambda} -\frac{16e^2\delta(\theta_{\infty}-\theta_0)}{\tau^2(2\omega-\tau)^3}\]</span> (see Appendix “Differential equation”)</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ba <span class="ot">&lt;-</span> <span class="cf">function</span>(x,</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">tau =</span> <span class="dv">10</span>,</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">lambda =</span> <span class="fl">0.05</span>,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">delta =</span> <span class="dv">1</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">theta0 =</span> <span class="fl">0.4</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">omega =</span> <span class="fl">0.02</span>,</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">ba0 =</span> <span class="dv">10</span>) {</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  k <span class="ot">&lt;-</span> ba0 <span class="sc">-</span> thetainf <span class="sc">/</span> omega <span class="sc">-</span> ((theta0 <span class="sc">-</span> thetainf) <span class="sc">*</span> lambda) <span class="sc">/</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    (omega <span class="sc">*</span> lambda <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">-</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">16</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">2</span>) <span class="sc">*</span> delta <span class="sc">*</span> (thetainf <span class="sc">-</span> theta0)) <span class="sc">/</span> (tau<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau)<span class="sc">^</span><span class="dv">3</span>)</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    thetainf <span class="sc">/</span> omega <span class="sc">+</span> k <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>omega <span class="sc">*</span> x) <span class="sc">+</span> ((theta0 <span class="sc">-</span> thetainf) <span class="sc">*</span> lambda) <span class="sc">/</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      (omega <span class="sc">*</span> lambda <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> x) <span class="sc">+</span> (<span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> x <span class="sc">/</span> tau))<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">2</span> <span class="sc">*</span> delta <span class="sc">*</span> (thetainf <span class="sc">-</span> theta0)) <span class="sc">/</span> (tau<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau)) <span class="sc">*</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      (x<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> x <span class="sc">*</span> <span class="dv">4</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau) <span class="sc">+</span> <span class="dv">8</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> omega <span class="sc">-</span> tau)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>prod <span class="ot">&lt;-</span> <span class="cf">function</span>(x,</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tau =</span> <span class="dv">10</span>,</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>                 <span class="at">lambda =</span> <span class="fl">0.05</span>,</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>                 <span class="at">delta =</span> <span class="dv">1</span>,</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>                 <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>                 <span class="at">theta0 =</span> <span class="fl">0.4</span>) {</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(theta0 <span class="sc">+</span> (thetainf <span class="sc">-</span> theta0) <span class="sc">*</span> ((<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> x)) <span class="sc">+</span> delta <span class="sc">*</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                                           ((x <span class="sc">/</span> tau) <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> x <span class="sc">/</span> tau))<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>mort <span class="ot">&lt;-</span> <span class="cf">function</span>(x,</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tau =</span> <span class="dv">10</span>,</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>                 <span class="at">lambda =</span> <span class="fl">0.05</span>,</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>                 <span class="at">delta =</span> <span class="dv">1</span>,</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>                 <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>                 <span class="at">theta0 =</span> <span class="fl">0.4</span>,</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>                 <span class="at">omega =</span> <span class="fl">0.02</span>,</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ba0 =</span> <span class="dv">10</span>) {</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(omega <span class="sc">*</span> <span class="fu">ba</span>(x, tau, lambda, delta, thetainf, theta0, omega, ba0))</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
+<p><span class="math display">\[ K = ba_0 - \frac{\theta_{\infty}}{\omega} - \frac{\lambda(\theta_{\infty}-\theta_0) }{1-\omega\lambda} -\frac{16e^2\delta\theta_{\infty}}{\tau^2(2\omega-\tau)^3}\]</span> (see Appendix “Differential equation”)</p>
 <p>Below is a graph of the resulting fluxes and stocks with parameter values:</p>
 <ul>
 <li><span class="math inline">\(\tau = 10\)</span></li>
 <li><span class="math inline">\(\lambda = 0.05\)</span></li>
-<li><span class="math inline">\(\delta = 1\)</span></li>
+<li><span class="math inline">\(\delta = 0.2\)</span></li>
 <li><span class="math inline">\(\theta_{\infty} = 0.5\)</span></li>
 <li><span class="math inline">\(\theta_0 = 0.4\)</span></li>
 <li><span class="math inline">\(\omega = 0.02\)</span></li>
@@ -346,9 +376,9 @@ window.Quarto = {
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">t =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">200</span>, <span class="fl">1e-2</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba =</span> <span class="fu">ba</span>(t, <span class="at">tau =</span> <span class="dv">5</span>),</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> <span class="fu">prod</span>(t, <span class="at">tau =</span> <span class="dv">5</span>),</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> <span class="fu">mort</span>(t, <span class="at">tau =</span> <span class="dv">5</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba =</span> <span class="fu">int_stocks</span>(t, <span class="at">tau =</span> <span class="dv">5</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> <span class="fu">productivity</span>(t, <span class="at">tau =</span> <span class="dv">5</span>),</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> <span class="fu">mortality</span>(t, <span class="at">tau =</span> <span class="dv">5</span>)</span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>t) <span class="sc">|&gt;</span></span>
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(t, value)) <span class="sc">+</span></span>
@@ -366,7 +396,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="24_stocks_prop_mortality_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="576"></p>
+<p><img src="24_stocks_prop_mortality_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="576"></p>
 </figure>
 </div>
 </div>
@@ -387,7 +417,7 @@ window.Quarto = {
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>get_t95 <span class="ot">&lt;-</span> <span class="cf">function</span>(tau, lambda, delta, thetainf, theta0, omega, ba0) {</span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">min</span>(<span class="fu">which</span>(</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ba</span>(<span class="dv">1</span><span class="sc">:</span><span class="fl">1e4</span>, tau, lambda, delta, thetainf, theta0, omega, ba0) <span class="sc">&gt;</span> <span class="fl">0.95</span> <span class="sc">*</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">int_stocks</span>(<span class="dv">1</span><span class="sc">:</span><span class="fl">1e4</span>, tau, lambda, delta, thetainf, theta0, omega, ba0) <span class="sc">&gt;</span> <span class="fl">0.95</span> <span class="sc">*</span></span>
 <span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>      (thetainf <span class="sc">/</span> omega <span class="sc">-</span> ba0) <span class="sc">+</span> ba0</span>
 <span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  ))</span>
 <span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>}</span>
@@ -395,7 +425,7 @@ window.Quarto = {
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(param) <span class="sc">|&gt;</span></span>
 <span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reframe</span>(<span class="at">value =</span> <span class="fu">exp</span>(<span class="fu">seq</span>(<span class="fu">log</span>(min), <span class="fu">log</span>(max), <span class="at">length.out =</span> <span class="dv">10</span>))) <span class="sc">|&gt;</span></span>
 <span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">tau =</span> <span class="dv">10</span>, <span class="at">lambda =</span> <span class="fl">0.05</span>, <span class="at">delta =</span> <span class="dv">1</span>, <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">tau =</span> <span class="dv">10</span>, <span class="at">lambda =</span> <span class="fl">0.05</span>, <span class="at">delta =</span> <span class="fl">0.2</span>, <span class="at">thetainf =</span> <span class="fl">0.5</span>,</span>
 <span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">theta0 =</span> <span class="fl">0.4</span>, <span class="at">omega =</span> <span class="fl">0.02</span>, <span class="at">ba0 =</span> <span class="dv">10</span></span>
 <span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
 <span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
@@ -427,7 +457,7 @@ window.Quarto = {
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="24_stocks_prop_mortality_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="24_stocks_prop_mortality_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>

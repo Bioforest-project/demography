@@ -8,7 +8,7 @@ library(tidyverse)
 
 Here we define productivity with the general recovery model, and we hypothesize that mortality is a constant:
 
-$$ prod(t) = \theta_0 + (\theta_{\infty} -\theta_0)\cdot\left(1 - exp(-\lambda\cdot t)+\delta \cdot \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2\right)$$
+$$ prod(t) = \theta_0 + (\theta_{\infty} -\theta_0)\cdot\left(1 - exp(-\lambda\cdot t)\right) + \theta_{\infty} \cdot \delta \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2$$
 
 $$ba'(t) = prod(t) - k$$ We need $lim_{\infty}(prod) = lim_{\infty}(mort)$ to have a stable asymptotic basal area. We therefore have:
 
@@ -18,13 +18,13 @@ We can therefore write :
 
 $$ba(t) =  ba(0) + \int_{t=0}^{\infty}prod(x) dx - \theta_{\infty}$$
 
-After integrating the productivity equation (see Appendix "Integration of STP" for the integration ), we get the following equation for basal area: $$ba(t) = ba(0) + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) $$
+After integrating the productivity equation (see Appendix "Integration of STP" for the integration ), we get the following equation for basal area: $$ba(t) = ba(0) - \frac{\theta_{\infty} - \theta_0}{\lambda}(1-e^{-\lambda\cdot t})  + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right)\right)  $$
 
 The figure below illustrates the resulting stocks and fluxes with parameters set to:
 
 -   $\tau = 10$
 -   $\lambda = 0.05$
--   $\delta = 1$
+-   $\delta = 0.2$
 -   $\theta_{\infty} = 0.5$
 -   $\theta_0 = 0.4$
 -   $ba_0 = 10$
@@ -36,10 +36,10 @@ ba0 <- 10
 lambda <- 0.05
 
 ltp <- function(x, lambda = 0.05) 1 - exp(-lambda * x)
-stp <- function(time, delta = 1, tau = 10) {
+stp <- function(time, delta = 0.2, tau = 10) {
   delta * (time / tau * exp(1 - time / tau))^2
 }
-int_stp <- function(time, delta = 1, tau = 10) {
+int_stp <- function(time, delta = 0.2, tau = 10) {
   delta * exp(2) * tau / 4 - delta * exp((1 - time / tau) * 2) *
     (time^2 / (2 * tau) + time / 2 + tau / 4)
 }
@@ -52,10 +52,10 @@ facet_labs <- c(
 
 data.frame(t = seq(0, 100, length.out = 200)) |>
   mutate(
-    prod = theta0 + (thetainf - theta0) * (stp(t) + ltp(t)),
+    prod = theta0 + (thetainf - theta0) * ltp(t) + thetainf * stp(t),
     mort = thetainf,
-    ba = ba0 + (thetainf - theta0) * (int_stp(t) - 1 / lambda *
-                                        (1 - exp(-lambda * t)))
+    ba = ba0 + thetainf * int_stp(t) - (thetainf - theta0) / lambda *
+      (1 - exp(-lambda * t))
   ) |>
   pivot_longer(-t) |>
   ggplot(aes(t, value)) +

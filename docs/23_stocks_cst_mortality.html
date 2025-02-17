@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Stocks - with constant mortality – modelling</title>
+<title>Stocks - with constant mortality – demography</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -159,7 +159,7 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">modelling</a> 
+      <a href="./">demography</a> 
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -276,17 +276,17 @@ window.Quarto = {
 </details>
 </div>
 <p>Here we define productivity with the general recovery model, and we hypothesize that mortality is a constant:</p>
-<p><span class="math display">\[ prod(t) = \theta_0 + (\theta_{\infty} -\theta_0)\cdot\left(1 - exp(-\lambda\cdot t)+\delta \cdot \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2\right)\]</span></p>
+<p><span class="math display">\[ prod(t) = \theta_0 + (\theta_{\infty} -\theta_0)\cdot\left(1 - exp(-\lambda\cdot t)\right) + \theta_{\infty} \cdot \delta \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2\]</span></p>
 <p><span class="math display">\[ba'(t) = prod(t) - k\]</span> We need <span class="math inline">\(lim_{\infty}(prod) = lim_{\infty}(mort)\)</span> to have a stable asymptotic basal area. We therefore have:</p>
 <p><span class="math inline">\(k = \theta_{\infty}\)</span></p>
 <p>We can therefore write :</p>
 <p><span class="math display">\[ba(t) =  ba(0) + \int_{t=0}^{\infty}prod(x) dx - \theta_{\infty}\]</span></p>
-<p>After integrating the productivity equation (see Appendix “Integration of STP” for the integration ), we get the following equation for basal area: <span class="math display">\[ba(t) = ba(0) + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) \]</span></p>
+<p>After integrating the productivity equation (see Appendix “Integration of STP” for the integration ), we get the following equation for basal area: <span class="math display">\[ba(t) = ba(0) - \frac{\theta_{\infty} - \theta_0}{\lambda}(1-e^{-\lambda\cdot t})  + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right)\right)  \]</span></p>
 <p>The figure below illustrates the resulting stocks and fluxes with parameters set to:</p>
 <ul>
 <li><span class="math inline">\(\tau = 10\)</span></li>
 <li><span class="math inline">\(\lambda = 0.05\)</span></li>
-<li><span class="math inline">\(\delta = 1\)</span></li>
+<li><span class="math inline">\(\delta = 0.2\)</span></li>
 <li><span class="math inline">\(\theta_{\infty} = 0.5\)</span></li>
 <li><span class="math inline">\(\theta_0 = 0.4\)</span></li>
 <li><span class="math inline">\(ba_0 = 10\)</span></li>
@@ -300,10 +300,10 @@ window.Quarto = {
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>ltp <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">lambda =</span> <span class="fl">0.05</span>) <span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> x)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>stp <span class="ot">&lt;-</span> <span class="cf">function</span>(time, <span class="at">delta =</span> <span class="dv">1</span>, <span class="at">tau =</span> <span class="dv">10</span>) {</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>stp <span class="ot">&lt;-</span> <span class="cf">function</span>(time, <span class="at">delta =</span> <span class="fl">0.2</span>, <span class="at">tau =</span> <span class="dv">10</span>) {</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  delta <span class="sc">*</span> (time <span class="sc">/</span> tau <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> time <span class="sc">/</span> tau))<span class="sc">^</span><span class="dv">2</span></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>int_stp <span class="ot">&lt;-</span> <span class="cf">function</span>(time, <span class="at">delta =</span> <span class="dv">1</span>, <span class="at">tau =</span> <span class="dv">10</span>) {</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>int_stp <span class="ot">&lt;-</span> <span class="cf">function</span>(time, <span class="at">delta =</span> <span class="fl">0.2</span>, <span class="at">tau =</span> <span class="dv">10</span>) {</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  delta <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">2</span>) <span class="sc">*</span> tau <span class="sc">/</span> <span class="dv">4</span> <span class="sc">-</span> delta <span class="sc">*</span> <span class="fu">exp</span>((<span class="dv">1</span> <span class="sc">-</span> time <span class="sc">/</span> tau) <span class="sc">*</span> <span class="dv">2</span>) <span class="sc">*</span></span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    (time<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> tau) <span class="sc">+</span> time <span class="sc">/</span> <span class="dv">2</span> <span class="sc">+</span> tau <span class="sc">/</span> <span class="dv">4</span>)</span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>}</span>
@@ -316,10 +316,10 @@ window.Quarto = {
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">t =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="at">length.out =</span> <span class="dv">200</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> theta0 <span class="sc">+</span> (thetainf <span class="sc">-</span> theta0) <span class="sc">*</span> (<span class="fu">stp</span>(t) <span class="sc">+</span> <span class="fu">ltp</span>(t)),</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> theta0 <span class="sc">+</span> (thetainf <span class="sc">-</span> theta0) <span class="sc">*</span> <span class="fu">ltp</span>(t) <span class="sc">+</span> thetainf <span class="sc">*</span> <span class="fu">stp</span>(t),</span>
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> thetainf,</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba =</span> ba0 <span class="sc">+</span> (thetainf <span class="sc">-</span> theta0) <span class="sc">*</span> (<span class="fu">int_stp</span>(t) <span class="sc">-</span> <span class="dv">1</span> <span class="sc">/</span> lambda <span class="sc">*</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                                        (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> t)))</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba =</span> ba0 <span class="sc">+</span> thetainf <span class="sc">*</span> <span class="fu">int_stp</span>(t) <span class="sc">-</span> (thetainf <span class="sc">-</span> theta0) <span class="sc">/</span> lambda <span class="sc">*</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                                        (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> t))</span>
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>t) <span class="sc">|&gt;</span></span>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(t, value)) <span class="sc">+</span></span>

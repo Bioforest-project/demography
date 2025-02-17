@@ -2,13 +2,15 @@
 #| message: false
 #| warning: false
 library(tidyverse)
+list.files("r", full.names = TRUE, pattern = ".R") %>%
+  lapply(source)
 ```
 
 ## Stocks - with proportional mortality {.unnumbered}
 
 Here we define productivity with the general recovery model, and we hypothesize that mortality is proportional to basal area:
 
-$$ prod(t) = \theta_0 + (\theta_{\infty} -\theta_0)\cdot\left(1 - exp(-\lambda\cdot t)+\delta \cdot \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2\right)$$
+$$ prod(t) = \theta_0 + (\theta_{\infty} -\theta_0)\cdot\left(1 - exp(-\lambda\cdot t) \right) + \theta_{\infty}\cdot\delta \left(\frac{t}{\tau} \cdot exp\left(1 - \frac{t}{\tau}\right)\right)^2$$
 
 $$ba'(t) = prod(t) - \omega \cdot ba(t)$$ and the initial condition:
 
@@ -16,57 +18,17 @@ $$ba(t=0) = BA_0$$
 
 The solution to this equation is:
 
-$$ba(t) = \frac{\theta_{\infty}}{\omega} + Kexp(-\omega t) + \frac{\lambda(\theta_{\infty}-\theta_0) }{1-\omega\lambda} \cdot exp(-\lambda\cdot t) + exp(1-\frac{t}{\tau})^2\frac{2\delta(\theta_{\infty}-\theta_0)}{\tau^2(2\omega-\tau)}\left(t^2 - t\frac{4}{(2\omega-\tau)} + \frac{8}{(2\omega-\tau)^2}\right)$$
+$$ba(t) = \frac{\theta_{\infty}}{\omega} + Kexp(-\omega t) + \frac{\lambda(\theta_{\infty}-\theta_0) }{1-\omega\lambda} \cdot exp(-\lambda\cdot t) + exp(1-\frac{t}{\tau})^2\frac{2\delta\theta_{\infty}}{\tau^2(2\omega-\tau)}\left(t^2 - t\frac{4}{(2\omega-\tau)} + \frac{8}{(2\omega-\tau)^2}\right)$$
 
 with:
 
-$$ K = ba_0 - \frac{\theta_{\infty}}{\omega} - \frac{\lambda(\theta_{\infty}-\theta_0) }{1-\omega\lambda} -\frac{16e^2\delta(\theta_{\infty}-\theta_0)}{\tau^2(2\omega-\tau)^3}$$ (see Appendix "Differential equation")
-
-```{r}
-ba <- function(x,
-               tau = 10,
-               lambda = 0.05,
-               delta = 1,
-               thetainf = 0.5,
-               theta0 = 0.4,
-               omega = 0.02,
-               ba0 = 10) {
-  k <- ba0 - thetainf / omega - ((theta0 - thetainf) * lambda) /
-    (omega * lambda - 1) -
-    (16 * exp(2) * delta * (thetainf - theta0)) / (tau^2 * (2 * omega - tau)^3)
-  return(
-    thetainf / omega + k * exp(-omega * x) + ((theta0 - thetainf) * lambda) /
-      (omega * lambda - 1) * exp(-lambda * x) + (exp(1 - x / tau))^2 *
-      (2 * delta * (thetainf - theta0)) / (tau^2 * (2 * omega - tau)) *
-      (x^2 - x * 4 / (2 * omega - tau) + 8 / (2 * omega - tau)^2)
-  )
-}
-prod <- function(x,
-                 tau = 10,
-                 lambda = 0.05,
-                 delta = 1,
-                 thetainf = 0.5,
-                 theta0 = 0.4) {
-  return(theta0 + (thetainf - theta0) * ((1 - exp(-lambda * x)) + delta *
-                                           ((x / tau) * exp(1 - x / tau))^2))
-}
-mort <- function(x,
-                 tau = 10,
-                 lambda = 0.05,
-                 delta = 1,
-                 thetainf = 0.5,
-                 theta0 = 0.4,
-                 omega = 0.02,
-                 ba0 = 10) {
-  return(omega * ba(x, tau, lambda, delta, thetainf, theta0, omega, ba0))
-}
-```
+$$ K = ba_0 - \frac{\theta_{\infty}}{\omega} - \frac{\lambda(\theta_{\infty}-\theta_0) }{1-\omega\lambda} -\frac{16e^2\delta\theta_{\infty}}{\tau^2(2\omega-\tau)^3}$$ (see Appendix "Differential equation")
 
 Below is a graph of the resulting fluxes and stocks with parameter values:
 
 -   $\tau = 10$
 -   $\lambda = 0.05$
--   $\delta = 1$
+-   $\delta = 0.2$
 -   $\theta_{\infty} = 0.5$
 -   $\theta_0 = 0.4$
 -   $\omega = 0.02$
@@ -81,9 +43,9 @@ facet_labs <- c(
 
 data.frame(t = seq(0, 200, 1e-2)) |>
   mutate(
-    ba = ba(t, tau = 5),
-    prod = prod(t, tau = 5),
-    mort = mort(t, tau = 5)
+    ba = int_stocks(t, tau = 5),
+    prod = productivity(t, tau = 5),
+    mort = mortality(t, tau = 5)
   ) |>
   pivot_longer(-t) |>
   ggplot(aes(t, value)) +
@@ -114,7 +76,7 @@ pars <- data.frame(
 
 get_t95 <- function(tau, lambda, delta, thetainf, theta0, omega, ba0) {
   min(which(
-    ba(1:1e4, tau, lambda, delta, thetainf, theta0, omega, ba0) > 0.95 *
+    int_stocks(1:1e4, tau, lambda, delta, thetainf, theta0, omega, ba0) > 0.95 *
       (thetainf / omega - ba0) + ba0
   ))
 }
@@ -122,7 +84,7 @@ pars |>
   group_by(param) |>
   reframe(value = exp(seq(log(min), log(max), length.out = 10))) |>
   cbind(data.frame(
-    tau = 10, lambda = 0.05, delta = 1, thetainf = 0.5,
+    tau = 10, lambda = 0.05, delta = 0.2, thetainf = 0.5,
     theta0 = 0.4, omega = 0.02, ba0 = 10
   )) |>
   mutate(

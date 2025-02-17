@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Differential equation – modelling</title>
+<title>Differential equation – demography</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -124,7 +124,7 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">modelling</a> 
+      <a href="./">demography</a> 
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -170,13 +170,13 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./23_stocks_cst_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Stocks - with constant mortality</span></span></a>
+ <span class="menu-text">Stocks - with constant mortality</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./24_stocks_prop_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Stocks - with proportional mortality</span></span></a>
+ <span class="menu-text">Stocks - with proportional mortality</span></a>
   </div>
 </li>
       </ul>
@@ -237,10 +237,10 @@ window.Quarto = {
 <p>We want to solve the following differential equation <span class="math inline">\(E\)</span>:</p>
 <p><span class="math display">\[ba'(t) = prod(t) - \omega \cdot ba(t)\]</span></p>
 <p>with:</p>
-<p><span class="math display">\[ prod(t) = \theta_0 + (\theta_{\infty} - \theta_0)\cdot\left(1 - exp(-\lambda\cdot t) + \delta\left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2\right) \]</span></p>
+<p><span class="math display">\[ prod(t) = \theta_0 + (\theta_{\infty} - \theta_0)\cdot\left(1 - exp(-\lambda\cdot t)\right)  +  \theta_{\infty}\cdot\delta\left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2 \]</span></p>
 <p>which we can write as:</p>
 <p><span class="math display">\[ prod(t) = \theta_{\infty} + \alpha\cdot exp(-\lambda\cdot t) + \beta \left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2\]</span></p>
-<p>with: <span class="math inline">\(\alpha = \theta_{0} - \theta_{\infty}\)</span> and $= ( - )$</p>
+<p>with: <span class="math inline">\(\alpha = \theta_{0} - \theta_{\infty}\)</span> and <span class="math inline">\(\beta = \theta_{\infty} \cdot \delta\)</span></p>
 <p>The general solution of differential equation <span class="math inline">\(E_0\)</span>:</p>
 <p><span class="math display">\[ba'(t) + \omega \cdot ba(t) = 0\]</span></p>
 <p>is <span class="math inline">\(y_G = Kexp(-\omega t)\)</span></p>

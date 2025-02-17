@@ -11,13 +11,13 @@ $$ba'(t) = prod(t) - \omega \cdot ba(t)$$
 
 with:
 
-$$ prod(t) = \theta_0 + (\theta_{\infty} - \theta_0)\cdot\left(1 - exp(-\lambda\cdot t) + \delta\left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2\right) $$
+$$ prod(t) = \theta_0 + (\theta_{\infty} - \theta_0)\cdot\left(1 - exp(-\lambda\cdot t)\right)  +  \theta_{\infty}\cdot\delta\left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2 $$
 
 which we can write as:
 
 $$ prod(t) = \theta_{\infty} + \alpha\cdot exp(-\lambda\cdot t) + \beta \left(\frac{x}{\tau}\cdot exp(1-\frac{x}{\tau})\right)^2$$
 
-with: $\alpha = \theta_{0} - \theta_{\infty}$ and \$\beta = (\theta*{*\infty} - \theta{0})\delta \$
+with: $\alpha = \theta_{0} - \theta_{\infty}$ and $\beta = \theta_{\infty} \cdot \delta$
 
 The general solution of differential equation $E_0$:
 

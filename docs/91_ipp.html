@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Integration of STP – modelling</title>
+<title>Integration of STP – demography</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -125,7 +125,7 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">modelling</a> 
+      <a href="./">demography</a> 
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -171,13 +171,13 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./23_stocks_cst_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Stocks - with constant mortality</span></span></a>
+ <span class="menu-text">Stocks - with constant mortality</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./24_stocks_prop_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Stocks - with proportional mortality</span></span></a>
+ <span class="menu-text">Stocks - with proportional mortality</span></a>
   </div>
 </li>
       </ul>
@@ -248,12 +248,11 @@ window.Quarto = {
 <p><span class="math display">\[\int STP = \delta \cdot e^{(1-\frac{x}{\tau})2} \left( -\frac{x^2}{2\tau}    -\frac{x}{2}  -\frac{\tau}{4}\right) + C\]</span></p>
 <p><span class="math display">\[\int_0^t STP = \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \]</span></p>
 <p><span class="math display">\[\int_0^t LTP = t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\]</span></p>
-<p><span class="math display">\[\int_0^t prod = \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) + t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) \]</span></p>
+<p><span class="math display">\[\int_0^t prod = \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \right) \]</span></p>
 <p>if <span class="math inline">\(mort = \theta_{\infty}\)</span>:</p>
 <p><span class="math display">\[\int_0^t mort = \theta_{\infty}\cdot t\]</span> then:</p>
-<p><span class="math display">\[BA(t) = BA(0) + \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) + t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right)  - \theta_{\infty}\cdot t\]</span></p>
-<p><span class="math display">\[BA(t) = BA(0) + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) + t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t}) - t\right) \]</span></p>
-<p><span class="math display">\[BA(t) = BA(0) + (\theta_{\infty} - \theta_0)\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) \]</span></p>
+<p><span class="math display">\[BA(t) = BA(0) + \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \right)  - \theta_{\infty}\cdot t\]</span></p>
+<p><span class="math display">\[BA(t) = BA(0) - \frac{\theta_{\infty} - \theta_0}{\lambda}(1-e^{-\lambda\cdot t})  + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right)\right)  \]</span></p>
 
 
 
@@ -681,7 +680,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
       <a href="./24_stocks_prop_mortality.html" class="pagination-link" aria-label="Stocks - with proportional mortality">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Stocks - with proportional mortality</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Stocks - with proportional mortality</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">

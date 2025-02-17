@@ -8,7 +8,7 @@ library(tidyverse)
 
 For productivity we can use the general recovery model as described in @Maurent2023.
 
-$$ prod = \theta_0 + (\theta_{\infty} -\theta_0)\cdot(STP+LTP)$$
+$$prod = \theta_0 + (\theta_{\infty} -\theta_0)\cdot LTP + \theta_{\infty} \cdot STP$$
 
 $$LTP = 1 - exp(-\lambda\cdot t) $$
 
