@@ -1,64 +1,19 @@
-functions {
-  vector int_stocks(
-    int n, 
-    vector x, 
-    vector tau, 
-    vector lambda, 
-    vector delta, 
-    vector thetainf, 
-    vector theta0, 
-    vector omega, 
-    vector y0
-    ) {
-      vector[n] k;
-      vector[n] mu;
-      k = y0 - thetainf ./ omega - ((theta0 - thetainf) .* lambda) ./ 
-      (omega .* lambda - 1) - (16 * exp(2) .* delta .* thetainf) ./ 
-      (tau .* tau .* (2 * omega - tau) .* (2 * omega - tau) .* 
-      (2 * omega - tau));
-      mu = thetainf ./ omega + k .* exp(-omega .* x) +
-      ((theta0 - thetainf) .* lambda) ./ (omega .* lambda - 1) .* 
-      exp(-lambda .* x) +  exp(2.0) .* exp(- x ./ tau) .* exp(- x ./ tau) .*
-      ((2 * delta .* thetainf) ./ (tau .* tau .* (2 * omega - tau))) .*
-      (x .* x - x * 4 ./ (2 * omega - tau) + 8 ./ ((2 * omega - tau) .*
-      (2 * omega - tau)));
-      return mu ;
-    }
-    
-    vector productivity(
-      vector x, 
-      vector tau, 
-      vector lambda, 
-      vector delta, 
-      vector thetainf, 
-      vector theta0
-      ) {
-        return theta0 + (thetainf - theta0) .* (1 - exp(-lambda .* x)) + 
-        thetainf .* delta .* ((x .* x) ./ (tau .* tau) .* exp(2 .* (1 - x ./ tau)));
-      }
-      
-}
 data {
-  int<lower=0> n_rec; // obs reco
-  int<lower=0> n_old; // obs old
-  int<lower=0> n_pre; // obs prelog
+  int<lower=0> n_rec; // number of logged observations
+  int<lower=0> n_old; // number of old-growth observations
   int<lower=0> n_site;
   int<lower=0> n_plot_rec;
-  vector[n_rec] y_rec;
-  vector[n_old] y_old;
-  vector[n_pre] y_pre;
-  vector[n_rec] in_rec;
-  vector[n_old] in_old;
-  vector[n_pre] in_pre;
-  vector[n_rec] out_rec;
-  vector[n_old] out_old;
-  vector[n_pre] out_pre;
-  vector[n_rec] time;
-  array[n_rec] int<lower=0, upper=n_site> site_rec;
-  array[n_old] int<lower=0, upper=n_site> site_old;
-  array[n_pre] int<lower=0, upper=n_site> site_pre;
-  array[n_rec] int<lower=0, upper=n_plot_rec> plot_rec;
-  array[n_plot_rec] int<lower=0, upper=n_site> site_plot_rec;
+  vector[n_rec] stocks_rec;
+  vector[n_rec] influx_rec;
+  vector[n_rec] outflux_rec;
+  vector[n_old] stocks_old;
+  vector[n_old] influx_old;
+  vector[n_old] outflux_old;
+  vector[n_rec] time;  // recovery time
+  array[n_old] int<lower=0, upper=n_site> site_old;   // site index
+  array[n_rec] int<lower=0, upper=n_site> site_rec;   // site index
+  array[n_rec] int<lower=0, upper=n_plot_rec> plot_rec;  // plot index 
+  array[n_plot_rec] int<lower=0, upper=n_site> site_plot;
   array[2] real mu_thetaInf_bounds;
   array[2] real thetaInf_bounds;
   array[2] real lambda_bounds;
@@ -90,48 +45,78 @@ parameters {
   real<lower=y0_bounds[1], upper=y0_bounds[2]> mu_y0; // post-logging stocks
   real<lower=0> sigma_y0;
   vector<lower=y0_bounds[1], upper=y0_bounds[2]>[n_plot_rec] y0_p;
-  real<lower=0> sigma_y_old;
-  real<lower=0> sigma_y_pre;
-  real<lower=0> sigma_y_rec;
-  real<lower=0> sigma_in_old;
-  real<lower=0> sigma_in_pre;
-  real<lower=0> sigma_in_rec;
-  real<lower=0> sigma_out_old;
-  real<lower=0> sigma_out_pre;
-  real<lower=0> sigma_out_rec;
+  real<lower=0> sigma_stocks;
+  real<lower=0> sigma_influx;
+  real<lower=0> sigma_outflux;
 }
 transformed parameters {
-  vector[n_plot_rec] theta0_p = thetaInf_s[site_plot_rec] .* dist_p;
+  vector[n_plot_rec] theta0_p = thetaInf_s[site_plot] .* dist_p;
   
-  vector[n_old] mu_y_old = thetaInf_s[site_old]./omega_s[site_old];
-  vector[n_pre] mu_y_pre = thetaInf_s[site_pre]./omega_s[site_pre];
+  vector[n_old] mu_stocks_old = thetaInf_s[site_old] ./ omega_s[site_old];
+  vector[n_old] mu_influx_old = thetaInf_s[site_old];
+  vector[n_old] mu_outflux_old = thetaInf_s[site_old];
   
-  vector[n_old] mu_in_old = thetaInf_s[site_old];
-  vector[n_pre] mu_in_pre = thetaInf_s[site_pre];
+  vector[n_rec] mu_stocks_rec = thetaInf_s[site_rec] ./ omega_s[site_rec] + 
+  (y0_p[plot_rec] - thetaInf_s[site_rec] ./ omega_s[site_rec] - 
+  ((theta0_p[plot_rec] - thetaInf_s[site_rec]) .* lambda_p[plot_rec]) ./ 
+  (omega_s[site_rec] .* lambda_p[plot_rec] - 1) - 
+  (16 * exp(2) .* delta_p[plot_rec] .* thetaInf_s[site_rec]) ./ 
+  (tau_s[site_rec] .* tau_s[site_rec] .* 
+  (2 * omega_s[site_rec] - tau_s[site_rec]) .* 
+  (2 * omega_s[site_rec] - tau_s[site_rec]) .* 
+  (2 * omega_s[site_rec] - tau_s[site_rec]))) .* 
+  exp(-omega_s[site_rec] .* time) +
+  ((theta0_p[plot_rec] - thetaInf_s[site_rec]) .* lambda_p[plot_rec]) ./ 
+  (omega_s[site_rec] .* lambda_p[plot_rec] - 1) .* 
+  exp(-lambda_p[plot_rec] .* time) +  exp(2) .* 
+  exp(- time ./ tau_s[site_rec]) .* 
+  exp(- time ./ tau_s[site_rec]) .*
+  ((2 * delta_p[plot_rec] .* thetaInf_s[site_rec]) ./
+  (tau_s[site_rec] .* tau_s[site_rec] .* 
+  (2 * omega_s[site_rec] - tau_s[site_rec]))) .*
+  (time .* time - time * 4 ./ (2 * omega_s[site_rec] - tau_s[site_rec]) + 8 ./ 
+  ((2 * omega_s[site_rec] - tau_s[site_rec]) .*
+  (2 * omega_s[site_rec] - tau_s[site_rec])));
+    
+    vector[n_rec] mu_influx_rec = thetaInf_s[site_rec] + 
+    (theta0_p[plot_rec] - thetaInf_s[site_rec]) .* 
+    exp(-lambda_p[plot_rec] .* time) + 
+    thetaInf_s[site_rec] .* delta_p[plot_rec] .* ((time .* time) ./ 
+    (tau_s[site_rec] .* tau_s[site_rec]) .*
+    exp(2 .* (1 - time ./ tau_s[site_rec])));
   
-  vector[n_old] mu_out_old = thetaInf_s[site_old];
-  vector[n_pre] mu_out_pre = thetaInf_s[site_pre];
-  
-  vector[n_rec] mu_y_rec = int_stocks(n_rec, time, tau_s[site_rec], 
-  lambda_p[plot_rec], delta_p[plot_rec], thetaInf_s[site_rec], 
-  theta0_p[plot_rec], omega_s[site_rec], y0_p[plot_rec]);
-  vector[n_rec] mu_in_rec = productivity(time, tau_s[site_rec], 
-  lambda_p[plot_rec], delta_p[plot_rec], thetaInf_s[site_rec], 
-  theta0_p[plot_rec]);
-  vector[n_rec] mu_out_rec = omega_s[site_rec] .* int_stocks(n_rec, time, 
-  tau_s[site_rec], lambda_p[plot_rec], delta_p[plot_rec], thetaInf_s[site_rec], 
-  theta0_p[plot_rec], omega_s[site_rec], y0_p[plot_rec]);
+  vector[n_rec] mu_outflux_rec = omega_s[site_rec] .* (thetaInf_s[site_rec] ./ 
+  omega_s[site_rec] + 
+  (y0_p[plot_rec] - thetaInf_s[site_rec] ./ omega_s[site_rec] - 
+  ((theta0_p[plot_rec] - thetaInf_s[site_rec]) .* lambda_p[plot_rec]) ./ 
+  (omega_s[site_rec] .* lambda_p[plot_rec] - 1) - 
+  (16 * exp(2) .* delta_p[plot_rec] .* thetaInf_s[site_rec]) ./ 
+  (tau_s[site_rec] .* tau_s[site_rec] .* 
+  (2 * omega_s[site_rec] - tau_s[site_rec]) .* 
+  (2 * omega_s[site_rec] - tau_s[site_rec]) .* 
+  (2 * omega_s[site_rec] - tau_s[site_rec]))) .* 
+  exp(-omega_s[site_rec] .* time) +
+  ((theta0_p[plot_rec] - thetaInf_s[site_rec]) .* lambda_p[plot_rec]) ./ 
+  (omega_s[site_rec] .* lambda_p[plot_rec] - 1) .* 
+  exp(-lambda_p[plot_rec] .* time) +  exp(2) .* 
+  exp(- time ./ tau_s[site_rec]) .* 
+  exp(- time ./ tau_s[site_rec]) .* 
+  ((2 * delta_p[plot_rec] .* thetaInf_s[site_rec]) ./ 
+  (tau_s[site_rec] .* tau_s[site_rec] .* 
+  (2 * omega_s[site_rec] - tau_s[site_rec]))) .*
+  (time .* time - time * 4 ./ (2 * omega_s[site_rec] - tau_s[site_rec]) + 8 ./ 
+  ((2 * omega_s[site_rec] - tau_s[site_rec]) .*
+  (2 * omega_s[site_rec] - tau_s[site_rec])))
+  );
 }
 model {
-  log(y_old) ~ normal(log(mu_y_old), sigma_y_old);
-  log(y_pre) ~ normal(log(mu_y_pre), sigma_y_pre);
-  log(y_rec) ~ normal(log(mu_y_rec), sigma_y_rec);
-  log(in_old) ~ normal(log(mu_in_old), sigma_in_old);
-  log(in_pre) ~ normal(log(mu_in_pre), sigma_in_pre);
-  log(in_rec) ~ normal(log(mu_in_rec), sigma_in_rec);
-  log(out_old) ~ normal(log(mu_out_old), sigma_out_old);
-  log(out_pre) ~ normal(log(mu_out_pre), sigma_out_pre);
-  log(out_rec) ~ normal(log(mu_out_rec), sigma_out_rec);
+  log(stocks_old) ~ normal(log(mu_stocks_old), sigma_stocks);
+  log(influx_old) ~ normal(log(mu_influx_old), sigma_influx);
+  log(outflux_old) ~ normal(log(mu_outflux_old), sigma_outflux);
+  log(stocks_rec) ~ normal(log(mu_stocks_rec), sigma_stocks);
+  log(influx_rec) ~ normal(log(mu_influx_rec), sigma_influx);
+  log(outflux_rec) ~ normal(log(mu_outflux_rec), sigma_outflux);
+  
   dist_p ~ cauchy(mu_dist, sigma_dist);
   thetaInf_s ~ cauchy(mu_thetaInf, sigma_thetaInf);
   lambda_p ~ cauchy(mu_lambda, sigma_lambda);
@@ -139,15 +124,10 @@ model {
   tau_s ~ cauchy(mu_tau, sigma_tau);
   omega_s ~ cauchy(mu_omega, sigma_omega);
   y0_p ~ cauchy(mu_y0, sigma_y0);
-  sigma_y_old ~ std_normal();
-  sigma_y_pre ~ std_normal();
-  sigma_y_rec ~ std_normal();
-  sigma_in_old ~ std_normal();
-  sigma_in_pre ~ std_normal();
-  sigma_in_rec ~ std_normal();
-  sigma_out_old ~ std_normal();
-  sigma_out_pre ~ std_normal();
-  sigma_out_rec ~ std_normal();
+  
+  sigma_stocks ~ std_normal();
+  sigma_influx ~ std_normal();
+  sigma_outflux ~ std_normal();
   sigma_dist ~ std_normal();
   sigma_thetaInf ~ std_normal();
   sigma_lambda ~ std_normal();

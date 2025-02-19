@@ -7,6 +7,7 @@ library(tidyverse)
 library(cmdstanr)
 library(bayesplot)
 library(patchwork)
+library(flextable)
 list.files("r", full.names = TRUE, pattern = ".R") %>%
   lapply(source)
 ```
@@ -49,32 +50,20 @@ data <- read.csv("data/derived_data/aggregated_data.csv") |>
   subset(!logging | !is.na(year_log))
 ```
 
-```{r}
-for (var in c("stocks", "prod", "mort")) {
-  data |>
-    subset(variable == var) |>
-    ggplot(aes(trec, value)) +
-    geom_point(aes(group = Plot, colour = Plot)) +
-    geom_line(aes(group = Plot, colour = Plot)) +
-    facet_wrap(~Site, scales = "free") +
-    guides(colour = "none") +
-    labs(y = var) +
-    theme_minimal()
-}
-```
-
 ## Model
+
+We used the following parameter bounds when calibrating the model. 
 
 ```{r}
 bounds <- data.frame(
-  "mu_thetaInf_min" = 0.01,
-  "mu_thetaInf_max" = 1,
+  "muthetaInf_min" = 0.01,
+  "muthetaInf_max" = 1,
   "thetaInf_min" = 0.01,
   "thetaInf_max" = 5,
   "lambda_min" = 1e-3,
   "lambda_max" = 1,
   "dist_min" = 1e-2,
-  "dist_max" = 1,
+  "dist_max" = 2,
   "delta_min" = 0,
   "delta_max" = 1,
   "tau_min" = 2,
@@ -84,25 +73,25 @@ bounds <- data.frame(
   "y0_min" = 1,
   "y0_max" = 30
 )
+bounds |>
+  pivot_longer(everything(), names_to = "parameter") |>
+  separate(parameter, c("parameter", "bound")) |>
+  pivot_wider(names_from = bound) |>
+  flextable()
 ```
 
 ```{r}
 data_rec <- data |>
+  mutate(sitenum = as.numeric(as.factor(Site))) |>
   subset(logging & trec > 3) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
-  mutate(sitenum = as.numeric(as.factor(Site))) |>
   mutate(plotnum = as.numeric(as.factor(paste(Site, Plot))))
 data_old <- data |>
-  subset(!logging) |>
+  mutate(sitenum = as.numeric(as.factor(Site))) |>
+  subset(!logging | trec < 0) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
-  subset(!is.na(prod) & !is.na(mort)) |>
-  mutate(sitenum = as.numeric(as.factor(Site)))
-data_pre <- data |>
-  subset(logging & trec < 0) |>
-  pivot_wider(names_from = "variable", values_from = "value") |>
-  subset(!is.na(prod) & !is.na(mort)) |>
-  mutate(sitenum = as.numeric(as.factor(Site)))
+  subset(!is.na(prod) & !is.na(mort))
 ```
 
 ```{r fit_flux_model}
@@ -115,27 +104,22 @@ ind_rec <- data_rec |>
 mdata <- list(
   n_rec = nrow(data_rec),
   n_old = nrow(data_old),
-  n_pre = nrow(data_pre),
   n_site = max(data_rec$sitenum),
   n_plot_rec = max(data_rec$plotnum),
-  y_rec = data_rec$stocks,
-  y_old = data_old$stocks,
-  y_pre = data_pre$stocks,
-  in_rec = data_rec$prod,
-  in_old = data_old$prod,
-  in_pre = data_pre$prod,
-  out_rec = data_rec$mort,
-  out_old = data_old$mort,
-  out_pre = data_pre$mort,
-  time = data_rec$trec - 3,
-  site_rec = data_rec$sitenum,
+  stocks_rec = data_rec$stocks,
+  influx_rec = data_rec$prod,
+  outflux_rec = data_rec$mort,
+  stocks_old = data_old$stocks,
+  influx_old = data_old$prod,
+  outflux_old = data_old$mort,
+  time = data_rec$trec,
   site_old = data_old$sitenum,
-  site_pre = data_pre$sitenum,
+  site_rec = data_rec$sitenum,
   plot_rec = data_rec$plotnum,
-  site_plot_rec = ind_rec$sitenum,
+  site_plot = ind_rec$sitenum,
   mu_thetaInf_bounds = c(
-    bounds$mu_thetaInf_min,
-    bounds$mu_thetaInf_max
+    bounds$muthetaInf_min,
+    bounds$muthetaInf_max
   ),
   thetaInf_bounds = c(
     bounds$thetaInf_min,
@@ -170,18 +154,24 @@ mdata <- list(
 sample_model("flux", mdata)
 ```
 
+The resulting Stan fit summary is presented below. 
+
 ```{r}
 #| message: false
 #| warning: false
 
 fit_flux <- as_cmdstan_fit(list.files("chains/flux", full.names = TRUE))
 fit_flux
+mcmc_trace(fit_flux$draws(variables = c("lp__")))
 ```
+The main parameter values are consistent with our expectations. 
 
 ```{r}
 c("mu_dist", "mu_thetaInf", "mu_delta", "mu_lambda", "mu_omega") |>
   fit_flux$summary()
 ```
+
+The goodness of fit is satisfactory.
 
 ```{r}
 #| warning: false
@@ -190,27 +180,19 @@ c("mu_dist", "mu_thetaInf", "mu_delta", "mu_lambda", "mu_omega") |>
 #| fig-height: 3
 
 pred_data <- data_rec |>
+  select(-plotnum) |>
   mutate(
-    stocks = fit_flux$summary(c("mu_y_rec"), median)$median,
-    prod = fit_flux$summary(c("mu_in_rec"), median)$median,
-    mort = fit_flux$summary(c("mu_out_rec"), median)$median,
+    stocks = fit_flux$summary(c("mu_stocks_rec"), median)$median,
+    prod = fit_flux$summary(c("mu_influx_rec"), median)$median,
+    mort = fit_flux$summary(c("mu_outflux_rec"), median)$median,
     val = "pred",
     type = "rec"
   ) |>
-  select(-plotnum) |>
-  rbind(mutate(
-    data_pre,
-    stocks = fit_flux$summary(c("mu_y_pre"), median)$median,
-    prod = fit_flux$summary(c("mu_in_pre"), median)$median,
-    mort = fit_flux$summary(c("mu_out_pre"), median)$median,
-    val = "pred",
-    type = "old"
-  )) |>
   rbind(mutate(
     data_old,
-    stocks = fit_flux$summary(c("mu_y_old"), median)$median,
-    prod = fit_flux$summary(c("mu_in_old"), median)$median,
-    mort = fit_flux$summary(c("mu_out_old"), median)$median,
+    stocks = fit_flux$summary(c("mu_stocks_old"), median)$median,
+    prod = fit_flux$summary(c("mu_influx_old"), median)$median,
+    mort = fit_flux$summary(c("mu_outflux_old"), median)$median,
     val = "pred",
     type = "old"
   ))
@@ -221,11 +203,6 @@ obs_data <- data_rec |>
     type = "rec"
   ) |>
   select(-plotnum) |>
-  rbind(mutate(
-    data_pre,
-    val = "obs",
-    type = "old"
-  )) |>
   rbind(mutate(
     data_old,
     val = "obs",
@@ -239,6 +216,8 @@ pov_data <- rbind(pred_data, obs_data) |>
 df_rmse <- pov_data |>
   group_by(variable) |>
   summarise(rmse = sqrt(mean((pred - obs)^2)))
+
+labs <- c(stocks = "BA stocks", prod = "BA productivity", mort = "BA mortality")
 
 pov_data |>
   ggplot(aes(pred, obs)) +
@@ -254,5 +233,50 @@ pov_data |>
   theme_bw() +
   xlab("Predicted") +
   ylab("Observed") +
-  facet_wrap(~variable, scales = "free")
+  facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
 ```
+
+
+However, the predicted stock trajectories don't resemble the observed trajectories because the recovery rate of basal area stocks is too low. 
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+#| fig-cap: "Predicted trajectories in Paracou and Mbaiki."
+
+labs_type <- c(old = "Old-growth and pre-logging", rec = "Logged")
+
+pov_data |>
+  subset(variable == "stocks" & Site %in% c("Paracou", "Mbaiki")) |>
+  ggplot(aes(Year, y = obs)) +
+  geom_point(aes(group = Plot, col = Plot)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred)) +
+  ylab(expression("Basal area [" ~ m^2 ~ ha^-1 ~ "]")) +
+  theme_bw() +
+  facet_grid(Site ~ type, scales = "free",
+             labeller = labeller(type = labs_type))
+
+pov_data |>
+  subset(variable == "prod" & Site %in% c("Paracou", "Mbaiki")) |>
+  ggplot(aes(Year, y = obs)) +
+  geom_point(aes(group = Plot, col = Plot)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred)) +
+  geom_smooth() +
+  ylab(expression("Basal area productivity [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  theme_bw() +
+  facet_grid(Site ~ type, scales = "free",
+             labeller = labeller(type = labs_type))
+
+pov_data |>
+  subset(variable == "mort" & Site %in% c("Paracou", "Mbaiki")) |>
+  subset(obs < 2.5) |>
+  ggplot(aes(Year, y = obs)) +
+  geom_point(aes(group = Plot, col = Plot)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred)) +
+  geom_smooth() +
+  ylab(expression("Basal area mortality [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  theme_bw() +
+  facet_grid(Site ~ type, scales = "free",
+             labeller = labeller(type = labs_type))
+```
+
