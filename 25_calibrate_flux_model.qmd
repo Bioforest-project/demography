@@ -236,6 +236,7 @@ pov_data |>
   facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
 ```
 
+### The BA trajectories are poorly predicted
 
 However, the predicted stock trajectories don't resemble the observed trajectories because the recovery rate of basal area stocks is too low. 
 
@@ -253,8 +254,10 @@ pov_data |>
   geom_line(aes(group = Plot, col = Plot, y = pred)) +
   ylab(expression("Basal area [" ~ m^2 ~ ha^-1 ~ "]")) +
   theme_bw() +
-  facet_grid(Site ~ type, scales = "free",
-             labeller = labeller(type = labs_type))
+  facet_grid(Site ~ type,
+    scales = "free",
+    labeller = labeller(type = labs_type)
+  )
 
 pov_data |>
   subset(variable == "prod" & Site %in% c("Paracou", "Mbaiki")) |>
@@ -264,8 +267,10 @@ pov_data |>
   geom_smooth() +
   ylab(expression("Basal area productivity [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
   theme_bw() +
-  facet_grid(Site ~ type, scales = "free",
-             labeller = labeller(type = labs_type))
+  facet_grid(Site ~ type,
+    scales = "free",
+    labeller = labeller(type = labs_type)
+  )
 
 pov_data |>
   subset(variable == "mort" & Site %in% c("Paracou", "Mbaiki")) |>
@@ -276,7 +281,138 @@ pov_data |>
   geom_smooth() +
   ylab(expression("Basal area mortality [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
   theme_bw() +
-  facet_grid(Site ~ type, scales = "free",
-             labeller = labeller(type = labs_type))
+  facet_grid(Site ~ type,
+    scales = "free",
+    labeller = labeller(type = labs_type)
+  )
 ```
 
+
+#### Is the problem in the data?
+
+
+```{r}
+#| warning: false
+#| fig.width: 8
+#| fig.height: 6
+
+g1 <- pov_data |>
+  subset(logging & trec > 3) |>
+  subset(variable != "stocks") |>
+  pivot_wider(names_from = variable, values_from = c("pred", "obs")) |>
+  ggplot(aes(pred_prod - pred_mort, obs_prod - obs_mort)) +
+  xlab(expression("Predicted change in BA [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  ylab(expression("Observed productivity - mortality [" ~
+                    m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  geom_abline(lty = 2) +
+  geom_point(alpha = 0.2, aes(col = Site)) +
+  theme_classic() +
+  theme(legend.position = "none")
+
+g2 <- obs_data |>
+  subset(logging & trec > 3) |>
+  arrange(Site, Plot, Year) |>
+  group_by(Site, Plot) |>
+  mutate(diff_stock = c(NA, diff(stocks) / diff(Year))) |>
+  merge(pov_data |>
+          subset(logging & trec > 3) |>
+          subset(variable != "stocks") |>
+          pivot_wider(names_from = variable, values_from = c("pred", "obs"))) |>
+  ggplot(aes(pred_prod - pred_mort, diff_stock, col = Site)) +
+  xlab(expression("Predicted change in BA [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  ylab(expression("Observed change in BA [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  geom_abline(lty = 2) +
+  geom_point(alpha = 0.2) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+g1 + g2
+```
+
+There is an inconsistency between annual changes in BA and flux values (especially in Mbaiki) that needs to be resolved in the data aggregation step.
+
+```{r}
+obs_data |>
+  subset(logging & trec > 3) |>
+  arrange(Site, Plot, Year) |>
+  group_by(Site, Plot) |>
+  mutate(
+    diff_stock = c(NA, diff(stocks) / diff(Year)),
+    diff_flux = prod - mort
+  ) |>
+  ggplot(aes(diff_stock, diff_flux)) +
+  geom_abline(lty = 2) +
+  xlab(expression("Productivity - mortality [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  ylab(expression("Changes in BA [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  geom_point(alpha = 0.2, aes(col = Site)) +
+  theme_classic()
+```
+
+
+#### Or in the model itself?
+
+We can test what parameter values could better describe the BA stocks trajectories. Below is an illustration with Paracou.
+
+```{r}
+thetainf_old <- median(subset(data_old, Site == "Paracou")$prod)
+omega_old <- thetainf_old / median(subset(data_old, Site == "Paracou")$stocks)
+omega_old2 <- median(subset(data_old, Site == "Paracou")$mort /
+                       subset(data_old, Site == "Paracou")$stocks)
+
+k <- 5
+params_test <- list(
+  tau = 30,
+  lambda = 0.05,
+  delta = 0.2,
+  thetainf = thetainf_old * k,
+  theta0 = 2 * thetainf_old,
+  omega = omega_old * k,
+  ba0 = 15
+)
+pov_data |>
+  subset(variable == "stocks" & Site == "Paracou" & type == "rec") |>
+  ggplot(aes(trec, y = obs)) +
+  geom_point(aes(group = Plot, col = Plot)) +
+  geom_function(
+    fun = int_stocks,
+    args = params_test
+  ) +
+  xlab("Recovery time [ yr ]") +
+  ylab(expression("Basal area [" ~ m^2 ~ ha^-1 ~ "]")) +
+  theme_bw()
+```
+
+
+We used the following parameter values: `r paste(paste(names(params_test), lapply(params_test, function(x) round(x, 2)), sep = " = "), collapse = "; ")`. However productivity and mortality are poorly predicted with these values, as shown below. 
+
+```{r}
+pov_data |>
+  subset(variable == "prod" & Site == "Paracou" & type == "rec") |>
+  ggplot(aes(trec, y = obs)) +
+  geom_point(aes(group = Plot, col = Plot)) +
+  geom_function(
+    fun = productivity,
+    args = list(
+      tau = params_test$tau,
+      lambda = params_test$lambda,
+      delta = params_test$delta,
+      thetainf = params_test$thetainf,
+      theta0 = params_test$theta0
+    )
+  ) +
+  xlab("Recovery time [ yr ]") +
+  ylab(expression("BA productivity [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  theme_bw()
+
+pov_data |>
+  subset(variable == "mort" & Site == "Paracou" & type == "rec") |>
+  ggplot(aes(trec, y = obs)) +
+  geom_point(aes(group = Plot, col = Plot)) +
+  geom_function(
+    fun = mortality,
+    args = params_test
+  ) +
+  xlab("Recovery time [ yr ]") +
+  ylab(expression("BA mortality [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  theme_bw()
+```
