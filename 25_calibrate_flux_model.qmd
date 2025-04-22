@@ -332,6 +332,8 @@ g1 + g2
 There is an inconsistency between annual changes in BA and flux values (especially in Mbaiki) that needs to be resolved in the data aggregation step.
 
 ```{r}
+#| warning: false
+
 obs_data |>
   subset(logging & trec > 3) |>
   arrange(Site, Plot, Year) |>
@@ -354,22 +356,30 @@ obs_data |>
 We can test what parameter values could better describe the BA stocks trajectories. Below is an illustration with Paracou.
 
 ```{r}
+#| warning: false
+#| fig.height: 4
+#| fig.width: 9
+
+
 thetainf_old <- median(subset(data_old, Site == "Paracou")$prod)
 omega_old <- thetainf_old / median(subset(data_old, Site == "Paracou")$stocks)
 omega_old2 <- median(subset(data_old, Site == "Paracou")$mort /
                        subset(data_old, Site == "Paracou")$stocks)
 
-k <- 5
+k <- 1.5
+k0 <- 0.5
+mort_adjust <- 1.5
 params_test <- list(
-  tau = 30,
+  tau = 10,
   lambda = 0.05,
-  delta = 0.2,
+  delta = 0.8,
   thetainf = thetainf_old * k,
-  theta0 = 2 * thetainf_old,
-  omega = omega_old * k,
-  ba0 = 15
+  theta0 = k0 * (thetainf_old * k),
+  omega = omega_old * k / mort_adjust,
+  ba0 = 20
 )
-pov_data |>
+
+gs <- pov_data |>
   subset(variable == "stocks" & Site == "Paracou" & type == "rec") |>
   ggplot(aes(trec, y = obs)) +
   geom_point(aes(group = Plot, col = Plot)) +
@@ -379,14 +389,9 @@ pov_data |>
   ) +
   xlab("Recovery time [ yr ]") +
   ylab(expression("Basal area [" ~ m^2 ~ ha^-1 ~ "]")) +
-  theme_bw()
-```
-
-
-We used the following parameter values: `r paste(paste(names(params_test), lapply(params_test, function(x) round(x, 2)), sep = " = "), collapse = "; ")`. However productivity and mortality are poorly predicted with these values, as shown below. 
-
-```{r}
-pov_data |>
+  theme_bw() +
+  theme(legend.position = "none")
+gp <- pov_data |>
   subset(variable == "prod" & Site == "Paracou" & type == "rec") |>
   ggplot(aes(trec, y = obs)) +
   geom_point(aes(group = Plot, col = Plot)) +
@@ -402,9 +407,9 @@ pov_data |>
   ) +
   xlab("Recovery time [ yr ]") +
   ylab(expression("BA productivity [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
-  theme_bw()
-
-pov_data |>
+  theme_bw() +
+  theme(legend.position = "bottom")
+gm <- pov_data |>
   subset(variable == "mort" & Site == "Paracou" & type == "rec") |>
   ggplot(aes(trec, y = obs)) +
   geom_point(aes(group = Plot, col = Plot)) +
@@ -414,5 +419,11 @@ pov_data |>
   ) +
   xlab("Recovery time [ yr ]") +
   ylab(expression("BA mortality [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
-  theme_bw()
+  theme_bw() +
+  theme(legend.position = "none")
+gs + gp + gm
 ```
+
+
+We used the following parameter values: `r paste(paste(names(params_test), lapply(params_test, function(x) round(x, 2)), sep = " = "), collapse = "; ")`. However, this results in an asymptotic basal area of `r params_test$thetainf/params_test$omega` m$^2$, `r mort_adjust` times higher than the value in control plots. 
+
