@@ -30,7 +30,7 @@ plot_info <-
     logging = !grepl(control_string, tolower(Treatment)),
     silv_treat = grepl(silv_string, tolower(Treatment)),
     year_log = ifelse(site == "Paracou", 1986,
-      Year_of_harvest |> substr(1, 4) |> as.numeric()
+                      Year_of_harvest |> substr(1, 4) |> as.numeric() # nolint
     )
   ) |>
   select(site, plot, logging, silv_treat, year_log)
@@ -52,7 +52,7 @@ data <- read.csv("data/derived_data/aggregated_data.csv") |>
 
 ## Model
 
-We used the following parameter bounds when calibrating the model. 
+We used the following parameter bounds when calibrating the model.
 
 ```{r}
 bounds <- data.frame(
@@ -94,33 +94,68 @@ data_old <- data |>
   subset(!is.na(prod) & !is.na(mort))
 ```
 
-```{r fit_flux_model}
+```{r fit_flux_model_control}
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
   unique() |>
   arrange(plotnum)
 
-mdata <- list(
-  n_rec = nrow(data_rec),
-  n_old = nrow(data_old),
-  n_site = max(data_rec$sitenum),
-  n_plot_rec = max(data_rec$plotnum),
-  stocks_rec = data_rec$stocks,
-  influx_rec = data_rec$prod,
-  outflux_rec = data_rec$mort,
-  stocks_old = data_old$stocks,
-  influx_old = data_old$prod,
-  outflux_old = data_old$mort,
-  time = data_rec$trec,
-  site_old = data_old$sitenum,
-  site_rec = data_rec$sitenum,
-  plot_rec = data_rec$plotnum,
-  site_plot = ind_rec$sitenum,
+mdata_control <- list(
+  n = nrow(data_old),
+  s = max(data_rec$sitenum),
+  stocks = data_old$stocks,
+  influx = data_old$prod,
+  outflux = data_old$mort,
+  site = data_old$sitenum,
   mu_thetaInf_bounds = c(
     bounds$muthetaInf_min,
     bounds$muthetaInf_max
   ),
+  thetaInf_bounds = c(
+    bounds$thetaInf_min,
+    bounds$thetaInf_max
+  ),
+  omega_bounds = c(
+    bounds$omega_min,
+    bounds$omega_max
+  )
+)
+
+sample_model("flux_control", mdata_control)
+```
+
+The resulting Stan fit summary is presented below.
+
+```{r}
+#| message: false
+#| warning: false
+
+fit_flux_control <- as_cmdstan_fit(
+  list.files("chains/flux_control/", full.names = TRUE)
+)
+fit_flux_control
+mcmc_trace(fit_flux_control$draws(variables = c("lp__")))
+```
+
+```{r fit_flux_model_logged}
+#| eval: false
+
+mdata_logged <- list(
+  n = nrow(data_rec),
+  s = max(data_rec$sitenum),
+  p = max(data_rec$plotnum),
+  stocks = data_rec$stocks,
+  influx = data_rec$prod,
+  outflux = data_rec$mort,
+  time = data_rec$trec,
+  site = data_rec$sitenum,
+  plot = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  mu_thetaInf_s = fit_flux_control$summary(c("thetaInf_s"), mean)$mean,
+  sigma_thetaInf = fit_flux_control$summary(c("sigma_thetaInf"), mean)$mean,
+  mu_omega_s = fit_flux_control$summary(c("omega_s"), mean)$mean,
+  sigma_omega = fit_flux_control$summary(c("sigma_omega"), mean)$mean,
   thetaInf_bounds = c(
     bounds$thetaInf_min,
     bounds$thetaInf_max
@@ -151,24 +186,31 @@ mdata <- list(
   )
 )
 
-sample_model("flux", mdata)
+sample_model("flux_logged", mdata_logged)
 ```
 
-The resulting Stan fit summary is presented below. 
+The resulting Stan fit summary is presented below.
 
 ```{r}
 #| message: false
 #| warning: false
 
-fit_flux <- as_cmdstan_fit(list.files("chains/flux", full.names = TRUE))
-fit_flux
-mcmc_trace(fit_flux$draws(variables = c("lp__")))
+fit_flux_logged <- as_cmdstan_fit(
+  list.files("chains/flux_logged/", full.names = TRUE)
+)
+fit_flux_logged
+mcmc_trace(fit_flux_logged$draws(variables = c("lp__")))
 ```
-The main parameter values are consistent with our expectations. 
+
+The main parameter values are consistent with our expectations.
 
 ```{r}
-c("mu_dist", "mu_thetaInf", "mu_delta", "mu_lambda", "mu_omega") |>
-  fit_flux$summary()
+c("mu_delta", "mu_lambda") |>
+  fit_flux_logged$summary()
+c("thetaInf_s") |>
+  fit_flux_logged$summary()
+c("omega_s") |>
+  fit_flux_logged$summary()
 ```
 
 The goodness of fit is satisfactory.
@@ -182,17 +224,17 @@ The goodness of fit is satisfactory.
 pred_data <- data_rec |>
   select(-plotnum) |>
   mutate(
-    stocks = fit_flux$summary(c("mu_stocks_rec"), median)$median,
-    prod = fit_flux$summary(c("mu_influx_rec"), median)$median,
-    mort = fit_flux$summary(c("mu_outflux_rec"), median)$median,
+    stocks = fit_flux_logged$summary(c("mu_stocks"), median)$median,
+    prod = fit_flux_logged$summary(c("mu_influx"), median)$median,
+    mort = fit_flux_logged$summary(c("mu_outflux"), median)$median,
     val = "pred",
     type = "rec"
   ) |>
   rbind(mutate(
     data_old,
-    stocks = fit_flux$summary(c("mu_stocks_old"), median)$median,
-    prod = fit_flux$summary(c("mu_influx_old"), median)$median,
-    mort = fit_flux$summary(c("mu_outflux_old"), median)$median,
+    stocks = fit_flux_control$summary(c("mu_stocks"), median)$median,
+    prod = fit_flux_control$summary(c("mu_influx"), median)$median,
+    mort = fit_flux_control$summary(c("mu_outflux"), median)$median,
     val = "pred",
     type = "old"
   ))
@@ -238,7 +280,7 @@ pov_data |>
 
 ### The BA trajectories are poorly predicted
 
-However, the predicted stock trajectories don't resemble the observed trajectories because the recovery rate of basal area stocks is too low. 
+However, the predicted stock trajectories don't resemble the observed trajectories because the recovery rate of basal area stocks is too low.
 
 ```{r}
 #| fig-width: 8
@@ -254,9 +296,7 @@ pov_data |>
   geom_line(aes(group = Plot, col = Plot, y = pred)) +
   ylab(expression("Basal area [" ~ m^2 ~ ha^-1 ~ "]")) +
   theme_bw() +
-  facet_grid(Site ~ type,
-    scales = "free",
-    labeller = labeller(type = labs_type)
+  facet_grid(Site ~ type, scales = "free", labeller = labeller(type = labs_type)
   )
 
 pov_data |>
@@ -267,9 +307,7 @@ pov_data |>
   geom_smooth() +
   ylab(expression("Basal area productivity [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
   theme_bw() +
-  facet_grid(Site ~ type,
-    scales = "free",
-    labeller = labeller(type = labs_type)
+  facet_grid(Site ~ type, scales = "free", labeller = labeller(type = labs_type)
   )
 
 pov_data |>
@@ -281,15 +319,11 @@ pov_data |>
   geom_smooth() +
   ylab(expression("Basal area mortality [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
   theme_bw() +
-  facet_grid(Site ~ type,
-    scales = "free",
-    labeller = labeller(type = labs_type)
+  facet_grid(Site ~ type, scales = "free", labeller = labeller(type = labs_type)
   )
 ```
 
-
 #### Is the problem in the data?
-
 
 ```{r}
 #| warning: false
@@ -349,7 +383,6 @@ obs_data |>
   geom_point(alpha = 0.2, aes(col = Site)) +
   theme_classic()
 ```
-
 
 #### Or in the model itself?
 
@@ -424,6 +457,4 @@ gm <- pov_data |>
 gs + gp + gm
 ```
 
-
-We used the following parameter values: `r paste(paste(names(params_test), lapply(params_test, function(x) round(x, 2)), sep = " = "), collapse = "; ")`. However, this results in an asymptotic basal area of `r params_test$thetainf/params_test$omega` m$^2$, `r mort_adjust` times higher than the value in control plots. 
-
+We used the following parameter values: `r paste(paste(names(params_test), lapply(params_test, function(x) round(x, 2)), sep = " = "), collapse = "; ")`. However, this results in an asymptotic basal area of `r params_test$thetainf/params_test$omega` m$^2$, `r mort_adjust` times higher than the value in control plots.
