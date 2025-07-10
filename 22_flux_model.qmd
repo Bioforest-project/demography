@@ -1,0 +1,85 @@
+```{r setup}
+#| message: false
+#| warning: false
+library(tidyverse)
+```
+
+Here we define productivity and mortality with the general recovery model.
+
+$$ flux(t) = \theta \left(\phi + (1-\phi)LTP + STP\right)$$ with: $LTP = 1-exp(-\lambda t)$ and $STP = \delta \cdot(\frac{t}{\tau}exp(1-\frac{t}{\tau}))^2$
+
+We also expect productivity and mortality to reach the same asymptotic value, $\theta$, because we anticipate that total stocks will reach an equilibrium value in the long term.
+
+Stocks can be estimated by integrating the difference of modeled productivity and mortality over time. After integrating the recovery model equation (see Appendix "Integration of STP" for the integration), we get the following equation for stocks (AGB or stem abundance):
+
+$$stocks(t) = stocks(0) + \theta \left(\frac{\phi_P}{\lambda_P} (1-e^{-\lambda_P\cdot t}) -\frac{\phi_M}{\lambda_M} (1-e^{-\lambda_M\cdot t}) + \int_0^tSTP_P - \int_0^t STP_M \right)$$ with
+
+$$\int_0^tSTP = \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right)$$ The equilibrium stocks value is then:
+
+$$lim_{\infty} (stocks) = stocks(0) + \theta \left(\frac{\phi_P}{\lambda_P} - \frac{\phi_M}{\lambda_M} + \frac{e^{2}}{4} (\delta_P \cdot\tau_P}{4} -\delta_M \cdot\tau_M}{4})\right)$$
+
+The figure below illustrates the resulting stocks and fluxes with parameters set to:
+
+-   $\tau_P = 15 yrs; \delta_P = 0.5; \phi_P = 1$
+-   $\phi_M = 1.2; \lambda_M = 0.1; \delta_M = 0$
+-   $\theta = 5; stocks0 = 100$
+
+```{r, fig.width = 6, fig.height = 6}
+theta <- 5
+agb0 <- 100
+tau_p <- 15
+delta_p <- 0.5
+phi_p <- 1
+lambda_p <- 0.05
+tau_m <- 10
+delta_m <- 0
+phi_m <- 1.2
+lambda_m <- 0.1
+
+agbinf <- agb0 + theta * (phi_p / lambda_p - phi_m / lambda_m + exp(2) / 4 *
+                            (delta_p * tau_p - delta_m * tau_m))
+
+ltp <- function(x, lambda = 0.05) 1 - exp(-lambda * x)
+stp <- function(time, delta = 0.2, tau = 10) {
+  delta * (time / tau * exp(1 - time / tau))^2
+}
+int_stp <- function(time, delta = 0.2, tau = 10) {
+  delta * exp(2) * tau / 4 - delta * exp((1 - time / tau) * 2) *
+    (time^2 / (2 * tau) + time / 2 + tau / 4)
+}
+
+facet_labs <- c(
+  "agb" = "Stocks",
+  "prod" = "Productivity",
+  "mort" = "Mortality"
+)
+ann_segment <- data.frame(
+  t = 50, tinf = 100, value = agbinf, name = "agb"
+)
+
+data.frame(t = seq(0, 100, length.out = 200)) |>
+  mutate(
+    prod = theta * (phi_p + (1 - phi_p) * ltp(t, lambda_p) +
+                      stp(t, delta_p, tau_p)),
+    mort = theta * (phi_m + (1 - phi_m) * ltp(t, lambda_m) +
+                      stp(t, delta_m, tau_m)),
+    agb = agb0 +
+      theta * (
+        phi_p / lambda_p * (1 - exp(-lambda_p * t)) - phi_m / lambda_m *
+          (1 - exp(-lambda_m * t)) +
+          int_stp(t, delta_p, tau_p) - int_stp(t, delta_m, tau_m)
+      )
+  ) |>
+  pivot_longer(-t) |>
+  ggplot(aes(t, value)) +
+  geom_segment(data = ann_segment, aes(xend = tinf), lty = 2) +
+  geom_line() +
+  facet_wrap(~name,
+    scales = "free", nrow = 3,
+    labeller = labeller(name = facet_labs),
+    strip.position = "left"
+  ) +
+  labs(x = "Recovery time [yr]", y = NULL) +
+  theme_minimal() +
+  theme(strip.placement = "outside")
+```

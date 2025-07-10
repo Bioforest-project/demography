@@ -3,14 +3,8 @@
 #| warning: false
 ```
 
-# Integrating fluxes and stocks
+# Logging effect on demographic fluxes
 
-To create a consistent framework between fluxes (influx: productivity and outflux: mortality) and stocks, we integrate fluxes to estimate stocks as follows:
+Selective logging is a widespread disturbance in tropical forests, often altering forest structure and reducing aboveground biomass (AGB). While many forests recover over time, the mechanisms driving this recovery remain incompletely understood. At the core of forest regeneration are demographic processes—namely, the growth of surviving trees, recruitment of new individuals, and mortality. These processes govern changes in stem abundance and biomass accumulation, yet few studies have explicitly quantified their individual contributions to AGB recovery following logging.
 
-$$\frac{d (stocks(t))}{dt} = prod(t) - mort(t)$$
-
-$$ stocks(t) = stocks(t_0) + \int_{t_0}^{t} \left(prod - mort \right) $$ Additionally, since we assume that stocks are asymptotically stable, influxes and outfluxes have the same asymptotic value.
-
-$$lim_{\infty}(prod) = lim_{\infty}(mort)$$
-
-The **advantages** of this approach are that we can reduce the number of parameters and create an explicit link between stocks and fluxes, which ensures better consistency in our predictions.
+Here we examine how demographic processes influence the trajectory of AGB and stem abundance recovery in post-logging tropical forests. Our aim is to identify the processes that most strongly influence recovery and how long it takes for productivity and mortality to recover to the level of unlogged forests.

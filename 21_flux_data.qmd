@@ -1,0 +1,116 @@
+```{r setup}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(knitr)
+```
+
+## Choice of variables
+
+Below we show the productivity in four sites that have been remeasured for multiple decades.
+
+```{r}
+data <- read.csv("data/derived_data/aggregated_data_v8.csv") 
+plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv")
+```
+
+```{r}
+#| message: false
+#| warning: false
+data |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  subset(variable %in% c("agb_growth", "agb_recr")) |>
+  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
+  pivot_wider(names_from = "variable") |>
+  ggplot(aes(Year, agb_recr + agb_growth, ,
+    group = Plot,
+    col = Treatment
+  )) +
+  geom_point() +
+  geom_line() +
+  labs(y = "AGB productivity [Mg/ha/yr]", col = NULL) +
+  facet_wrap(~Site, scales = "free") +
+  theme_minimal()
+```
+
+```{r}
+data |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  subset(variable == "nstem_recr") |>
+  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
+  ggplot(aes(Year, value, group = Plot, col = Treatment)) +
+  geom_point() +
+  geom_line() +
+  labs(y = "Stem recruitment [/ha/yr]", col = NULL) +
+  facet_wrap(~Site, scales = "free") +
+  theme_minimal()
+```
+
+```{r}
+#| message: false
+#| warning: false
+data |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  subset(variable == "agb_mort") |>
+  filter(Treatment == "Control" | Year >= Year_of_harvest+3) |>
+  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
+  ggplot(aes(Year, value, group = Plot, col = Treatment)) +
+  geom_point() +
+  geom_line() +
+  labs(y = "AGB mortality [Mg/ha/yr]", col = NULL) +
+  facet_wrap(~Site, scales = "free") +
+  theme_minimal()
+```
+
+```{r}
+data |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  subset(variable == "nstem_mort") |>
+  filter(Treatment == "Control" | Year >= Year_of_harvest+3) |>
+  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
+  ggplot(aes(Year, value, group = Plot, col = Treatment)) +
+  geom_point() +
+  geom_line() +
+  labs(y = "Stem mortality [/ha/yr]", col = NULL) +
+  facet_wrap(~Site, scales = "free") +
+  theme_minimal()
+```
+
+## Site selection
+
+In this analysis, we only kept sites that meet the following criteria:
+
+-   at least 4 post-logging measurements
+
+-   
+
+    > 10 years of post-logging measurements
+
+-   presence of control plots
+
+-   productivity values \< 10% (too high)?
+
+```{r}
+#| eval: false
+criteria_site <- data |>
+  inner_join(plot_info, by = join_by(Site == site, Plot == plot)) |> 
+  group_by(Site) |> 
+  summarise(controls = length(unique(Plot[Treatment=="Control"])), 
+            logged = length(unique(Plot[Treatment=="Logging"])))
+data |>
+  inner_join(plot_info, by = join_by(Site == site, Plot == plot)) |> 
+  filter(Treatment == "Logging" & !is.na(Year)) |> 
+  group_by(Site, Plot) |> 
+  summarise(ncensus = length(unique(Year[Year > Year_of_harvest])), 
+            tcensus = max(Year, na.rm = TRUE) - unique(Year_of_harvest)) |>
+  group_by(Site) |> 
+  summarise(ncensus = median(ncensus), tcensus = median(tcensus)) |> 
+  left_join(criteria_site) |> 
+  filter(ncensus>3,tcensus>9,controls>0,logged>0) |> 
+  write.csv("data/derived_data/sites_to_keep.csv", row.names = FALSE)
+```
+
+```{r}
+read.csv("data/derived_data/sites_to_keep.csv") |> kable()
+```
+
