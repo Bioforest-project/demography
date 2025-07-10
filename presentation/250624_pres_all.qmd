@@ -1,0 +1,50 @@
+---
+title: "WG3 - 24/06/2025"
+format: beamer
+---
+
+
+# New research questions
+
+* Q1: How long does logging affect demographic fluxes?
+
+* Q2: Relative contribution of demographic processes in the change of functional composition?
+
+* Q3: Growth models per species (for later...)
+
+
+# Data explo on relative changes in BA
+
+![](traj_BA_Bafog.png)
+
+* Identify 8 sites that could be kept based on 
+
+    * the presence of a control
+    
+    * the reliability of %BA changes
+    
+* Clear pattern of increased productivity    
+
+# Data exploration of changes in CWM of recruits, death and growth
+
+![](traj_CWM_Paracou.png)
+
+# Data exploration of changes in CWM of recruits, death and growth
+
+* Identify 12 sites to keep based on 
+
+    * more than 2 censuses 
+    
+    * absence of strange values
+    
+* Look at trends   
+
+
+# How to quantify the contribution of demographic fluxes to functional composition?
+
+$$ \Delta CWM = \frac{\sum _{recr, t+1} BA_i\cdot trait_i}{\sum_{all, t+1} BA_i} + $$
+$$ \frac{\sum _{alive, t+1} BA_i\cdot trait_i}{\sum_{all, t+1} BA_i} -  
+\frac{\sum _{alive, t} BA_i\cdot trait_i}{\sum_{all, t} BA_i} - $$
+
+$$\frac{\sum _{dead, t} BA_i\cdot trait_i}{\sum_{all, t} BA_i}$$
+
