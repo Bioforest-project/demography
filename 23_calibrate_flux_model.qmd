@@ -17,37 +17,20 @@ list.files("r", full.names = TRUE, pattern = ".R") %>%
 ## Data
 
 ```{r}
-control_string <- "unlogged|to be logged|old-growth|control|natural"
-silv_string <- "treatment|devital|thinning"
+data <- read.csv("data/derived_data/aggregated_data_v8.csv")
+plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  select(site, plot, Year_of_harvest, Treatment)
+sites_to_keep <- read.csv("data/derived_data/sites_to_keep.csv")
 
-plot_info <-
-  read.csv("data/raw_data/bioforest-plot-information.csv") |>
-  mutate(site = ifelse(site == "BAFOG", "Bafog", site)) |>
-  mutate(site = ifelse(site == "Montagne_tortue", "Montagne_Tortue", site)) |>
-  # harmonize treatment information as logging and silvicultural treatments
-  mutate(
-    Treatment = ifelse(Treatment != "", Treatment, NA),
-    logging = !grepl(control_string, tolower(Treatment)),
-    silv_treat = grepl(silv_string, tolower(Treatment)),
-    year_log = ifelse(site == "Paracou", 1986,
-      Year_of_harvest |> substr(1, 4) |> as.numeric() # nolint
-    )
-  ) |>
-  select(site, plot, logging, silv_treat, year_log)
-
-data <- read.csv("data/derived_data/aggregated_data.csv") |>
-  subset(Site %in% c(
-    "Lesong", "Mbaiki", "Misiones", "Moju", "Paracou",
-    "Sg Lalang", "Ulu Muda"
-  )) |>
-  subset(variable %in% c("ba_mort", "ba_growth", "ba_recr", "ba")) |>
+data <- read.csv("data/derived_data/aggregated_data_v8.csv") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(Site %in% sites_to_keep$Site) |>
+  filter(grepl("^agb", variable)) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
-  mutate(prod = ba_growth + ba_recr, mort = ba_mort, stocks = ba) |>
-  select(!contains("ba")) |>
+  mutate(prod = agb_growth + agb_recr, mort = agb_mort, stocks = agb) |>
+  select(!contains("agb")) |>
   pivot_longer(cols = c("stocks", "prod", "mort"), names_to = "variable") |>
-  merge(plot_info, by.x = c("Site", "Plot"), by.y = c("site", "plot")) |>
-  mutate(trec = Year - year_log) |>
-  subset(!logging | !is.na(year_log))
+  mutate(trec = Year - Year_of_harvest)
 ```
 
 ## Model
@@ -56,22 +39,20 @@ We used the following parameter bounds when calibrating the model.
 
 ```{r}
 bounds <- data.frame(
-  "muthetaInf_min" = 0.01,
-  "muthetaInf_max" = 1,
-  "thetaInf_min" = 0.01,
-  "thetaInf_max" = 5,
-  "lambda_min" = 1e-3,
-  "lambda_max" = 1,
-  "dist_min" = 1e-2,
-  "dist_max" = 2,
+  "theta_min" = 50,
+  "theta_max" = 1000,
+  "lambda_min" = 1e-2,
+  "lambda_max" = 5,
+  "alpha_min" = 0,
+  "alpha_max" = 200,
   "delta_min" = 0,
-  "delta_max" = 1,
+  "delta_max" = 20,
   "tau_min" = 2,
   "tau_max" = 30,
   "omega_min" = 1e-3,
   "omega_max" = 0.5,
-  "y0_min" = 1,
-  "y0_max" = 30
+  "y0_min" = 10,
+  "y0_max" = 1000
 )
 bounds |>
   pivot_longer(everything(), names_to = "parameter") |>
@@ -80,113 +61,59 @@ bounds |>
   flextable()
 ```
 
+For now, we only calibrate the model with MBaiki and Paracou.
+
+```{r}
+data <- data |>
+  filter(Site %in% c("Mbaiki", "Paracou"))
+```
+
 ```{r}
 data_rec <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
-  subset(logging & trec > 3) |>
+  subset(Treatment == "Logging" & trec > 3) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
   mutate(plotnum = as.numeric(as.factor(paste(Site, Plot))))
 data_old <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
-  subset(!logging | trec < 0) |>
+  subset(Treatment == "Control" | trec < 0) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort))
 ```
 
-```{r fit_flux_model_control}
+```{r fit_flux_model}
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
   unique() |>
   arrange(plotnum)
 
-mdata_control <- list(
-  n = nrow(data_old),
-  s = max(data_rec$sitenum),
-  stocks = data_old$stocks,
-  influx = data_old$prod,
-  outflux = data_old$mort,
-  site = data_old$sitenum,
-  mu_thetaInf_bounds = c(
-    bounds$muthetaInf_min,
-    bounds$muthetaInf_max
-  ),
-  thetaInf_bounds = c(
-    bounds$thetaInf_min,
-    bounds$thetaInf_max
-  ),
-  omega_bounds = c(
-    bounds$omega_min,
-    bounds$omega_max
-  )
-)
-
-sample_model("flux_control", mdata_control)
-```
-
-The resulting Stan fit summary is presented below.
-
-```{r}
-#| message: false
-#| warning: false
-
-fit_flux_control <- as_cmdstan_fit(
-  list.files("chains/flux_control/", full.names = TRUE)
-)
-fit_flux_control
-mcmc_trace(fit_flux_control$draws(variables = c("lp__")))
-```
-
-```{r fit_flux_model_logged}
-#| eval: false
-
-mdata_logged <- list(
-  n = nrow(data_rec),
-  s = max(data_rec$sitenum),
-  p = max(data_rec$plotnum),
-  stocks = data_rec$stocks,
-  influx = data_rec$prod,
-  outflux = data_rec$mort,
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
   time = data_rec$trec,
-  site = data_rec$sitenum,
-  plot = data_rec$plotnum,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
   site_plot = ind_rec$sitenum,
-  mu_thetaInf_s = fit_flux_control$summary(c("thetaInf_s"), mean)$mean,
-  sigma_thetaInf = fit_flux_control$summary(c("sigma_thetaInf"), mean)$mean,
-  mu_omega_s = fit_flux_control$summary(c("omega_s"), mean)$mean,
-  sigma_omega = fit_flux_control$summary(c("sigma_omega"), mean)$mean,
-  thetaInf_bounds = c(
-    bounds$thetaInf_min,
-    bounds$thetaInf_max
-  ),
-  lambda_bounds = c(
-    bounds$lambda_min,
-    bounds$lambda_max
-  ),
-  dist_bounds = c(
-    bounds$dist_min,
-    bounds$dist_max
-  ),
-  delta_bounds = c(
-    bounds$delta_min,
-    bounds$delta_max
-  ),
-  tau_bounds = c(
-    bounds$tau_min,
-    bounds$tau_max
-  ),
-  omega_bounds = c(
-    bounds$omega_min,
-    bounds$omega_max
-  ),
-  y0_bounds = c(
-    bounds$y0_min,
-    bounds$y0_max
-  )
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
 )
-
-sample_model("flux_logged", mdata_logged)
+sample_model("flux_all", mdata_all)
 ```
 
 The resulting Stan fit summary is presented below.
@@ -195,22 +122,23 @@ The resulting Stan fit summary is presented below.
 #| message: false
 #| warning: false
 
-fit_flux_logged <- as_cmdstan_fit(
-  list.files("chains/flux_logged/", full.names = TRUE)
+fit_flux_all <- as_cmdstan_fit(
+  list.files("chains/flux_all/", full.names = TRUE)
 )
-fit_flux_logged
-mcmc_trace(fit_flux_logged$draws(variables = c("lp__")))
+fit_flux_all
+mcmc_trace(fit_flux_all$draws(variables = c("lp__")))
 ```
+
 
 The main parameter values are consistent with our expectations.
 
 ```{r}
 c("mu_delta", "mu_lambda") |>
-  fit_flux_logged$summary()
-c("thetaInf_s") |>
-  fit_flux_logged$summary()
+  fit_flux_all$summary()
+c("theta_s") |>
+  fit_flux_all$summary()
 c("omega_s") |>
-  fit_flux_logged$summary()
+  fit_flux_all$summary()
 ```
 
 The goodness of fit is satisfactory.
@@ -280,7 +208,7 @@ pov_data |>
 
 ### Visualising the trajectories
 
-The predicted flux and stocks trajectories look consistent with the data. 
+The predicted flux and stocks trajectories look consistent with the data.
 
 ```{r}
 #| fig-width: 8
@@ -327,30 +255,4 @@ pov_data |>
     scales = "free",
     labeller = labeller(type = labs_type)
   )
-```
-
-
-### Notes
-
-#### Inconsistency between productivity - mortality and change in BA in the observed data  
-
-There is an inconsistency between annual changes in BA and flux values (especially in Mbaiki) that needs to be resolved in the data aggregation step.
-
-```{r}
-#| warning: false
-
-obs_data |>
-  subset(logging & trec > 3) |>
-  arrange(Site, Plot, Year) |>
-  group_by(Site, Plot) |>
-  mutate(
-    diff_stock = c(NA, diff(stocks) / diff(Year)),
-    diff_flux = prod - mort
-  ) |>
-  ggplot(aes(diff_stock, diff_flux)) +
-  geom_abline(lty = 2) +
-  xlab(expression("Productivity - mortality [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
-  ylab(expression("Changes in BA [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
-  geom_point(alpha = 0.2, aes(col = Site)) +
-  theme_classic()
 ```
