@@ -10,7 +10,7 @@ library(knitr)
 Below we show the productivity in four sites that have been remeasured for multiple decades.
 
 ```{r}
-data <- read.csv("data/derived_data/aggregated_data_v8.csv") 
+data <- read.csv("data/derived_data/aggregated_data_v8.csv")
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv")
 ```
 
@@ -52,7 +52,7 @@ data |>
 data |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   subset(variable == "agb_mort") |>
-  filter(Treatment == "Control" | Year >= Year_of_harvest+3) |>
+  filter(Treatment == "Control" | Year >= Year_of_harvest + 3) |>
   subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
   ggplot(aes(Year, value, group = Plot, col = Treatment)) +
   geom_point() +
@@ -66,7 +66,7 @@ data |>
 data |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   subset(variable == "nstem_mort") |>
-  filter(Treatment == "Control" | Year >= Year_of_harvest+3) |>
+  filter(Treatment == "Control" | Year >= Year_of_harvest + 3) |>
   subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
   ggplot(aes(Year, value, group = Plot, col = Treatment)) +
   geom_point() +
@@ -93,20 +93,24 @@ In this analysis, we only kept sites that meet the following criteria:
 ```{r}
 #| eval: false
 criteria_site <- data |>
-  inner_join(plot_info, by = join_by(Site == site, Plot == plot)) |> 
-  group_by(Site) |> 
-  summarise(controls = length(unique(Plot[Treatment=="Control"])), 
-            logged = length(unique(Plot[Treatment=="Logging"])))
+  inner_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  group_by(Site) |>
+  summarise(
+    controls = length(unique(Plot[Treatment == "Control"])),
+    logged = length(unique(Plot[Treatment == "Logging"]))
+  )
 data |>
-  inner_join(plot_info, by = join_by(Site == site, Plot == plot)) |> 
-  filter(Treatment == "Logging" & !is.na(Year)) |> 
-  group_by(Site, Plot) |> 
-  summarise(ncensus = length(unique(Year[Year > Year_of_harvest])), 
-            tcensus = max(Year, na.rm = TRUE) - unique(Year_of_harvest)) |>
-  group_by(Site) |> 
-  summarise(ncensus = median(ncensus), tcensus = median(tcensus)) |> 
-  left_join(criteria_site) |> 
-  filter(ncensus>3,tcensus>9,controls>0,logged>0) |> 
+  inner_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(Treatment == "Logging" & !is.na(Year)) |>
+  group_by(Site, Plot) |>
+  summarise(
+    ncensus = length(unique(Year[Year > Year_of_harvest])),
+    tcensus = max(Year, na.rm = TRUE) - unique(Year_of_harvest)
+  ) |>
+  group_by(Site) |>
+  summarise(ncensus = median(ncensus), tcensus = median(tcensus)) |>
+  left_join(criteria_site) |>
+  filter(ncensus > 3, tcensus > 9, controls > 0, logged > 0) |>
   write.csv("data/derived_data/sites_to_keep.csv", row.names = FALSE)
 ```
 
