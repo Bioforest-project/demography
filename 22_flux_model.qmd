@@ -4,48 +4,63 @@
 library(tidyverse)
 ```
 
-Here we define productivity and mortality with the general recovery model.
+Here we define productivity and mortality as:
+  
+$$ flux(t) = \omega \cdot stocks(t) + \nu \cdot STP(t)$$ 
+where $stocks(t)$ is the stocks value at time $t$; $\nu$ is either 0 (control plots) or 1 (logged plots). 
+  
+The short term process (STP) is an intermediary process caused by logging operations, that disappears over time. 
 
-$$ flux(t) = \theta \left(\phi + (1-\phi)LTP + STP\right)$$ with: $LTP = 1-exp(-\lambda t)$ and $STP = \delta \cdot(\frac{t}{\tau}exp(1-\frac{t}{\tau}))^2$
+For productivity, we define it as: $STP_P = \delta \cdot(\frac{t}{\tau}exp(1-\frac{t}{\tau}))^2$
 
-We also expect productivity and mortality to reach the same asymptotic value, $\theta$, because we anticipate that total stocks will reach an equilibrium value in the long term.
+For mortality, we define it as $STP_M = \alpha\cdot exp(-\lambda\cdot t)$  
+ 
+Because we expect stocks to reach an equilibrium value at $t \rightarrow +\infty$, we have: 
 
-Stocks can be estimated by integrating the difference of modeled productivity and mortality over time. After integrating the recovery model equation (see Appendix "Integration of STP" for the integration), we get the following equation for stocks (AGB or stem abundance):
+$$lim_{+\infty}(prod) = lim_{+\infty}(mort)$$
+Therefore, $\omega$ is the same for productivity and mortality. 
 
-$$stocks(t) = stocks(0) + \theta \left(\frac{\phi_P}{\lambda_P} (1-e^{-\lambda_P\cdot t}) -\frac{\phi_M}{\lambda_M} (1-e^{-\lambda_M\cdot t}) + \int_0^tSTP_P - \int_0^t STP_M \right)$$ with
+We therefore have: 
 
-$$\int_0^tSTP = \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right)$$ The equilibrium stocks value is then:
 
-$$lim_{\infty} (stocks) = stocks(0) + \theta \left(\frac{\phi_P}{\lambda_P} - \frac{\phi_M}{\lambda_M} + \frac{e^{2}}{4} (\delta_P \cdot\tau_P}{4} -\delta_M \cdot\tau_M}{4})\right)$$
+$$stocks(t) = stocks(0) + \int_0^t \left(\delta \cdot(\frac{x}{\tau}exp(1-\frac{x}{\tau}))^2 - \alpha\cdot exp(-\lambda\cdot x)\right)dx$$
+
+The integral calculation is done in the Appendix.
+
+The resulting stocks are: 
+
+$$ stocks(t) = stocks(0) + \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{\alpha}{\lambda}(1-exp(-\lambda\cdot t))$$ 
+The equilibrium value is
+
+$$stocks(\infty) = stocks(0) + \frac{e^{2}}{4} (\delta \cdot \tau) - \frac{\alpha}{\lambda}$$
 
 The figure below illustrates the resulting stocks and fluxes with parameters set to:
 
--   $\tau_P = 15 yrs; \delta_P = 0.5; \phi_P = 1$
--   $\phi_M = 1.2; \lambda_M = 0.1; \delta_M = 0$
--   $\theta = 5; stocks0 = 100$
+-   $\tau = 15 yrs$
+-   $\delta = 4$
+-   $\alpha = 3$
+-   $\lambda = 0.2$
+-   $stocks_0 = 100$
+-   $\omega = 0.02$
 
 ```{r, fig.width = 6, fig.height = 6}
-theta <- 5
 agb0 <- 100
-tau_p <- 15
-delta_p <- 0.5
-phi_p <- 1
-lambda_p <- 0.05
-tau_m <- 10
-delta_m <- 0
-phi_m <- 1.2
-lambda_m <- 0.1
+tau <- 15
+delta <- 4
+alpha <- 3
+lambda <- 0.2
+omega <- 0.02
 
-agbinf <- agb0 + theta * (phi_p / lambda_p - phi_m / lambda_m + exp(2) / 4 *
-                            (delta_p * tau_p - delta_m * tau_m))
+agbinf <- agb0 + exp(2) / 4 * delta * tau - alpha / lambda
 
-ltp <- function(x, lambda = 0.05) 1 - exp(-lambda * x)
-stp <- function(time, delta = 0.2, tau = 10) {
+stp <- function(time, delta, tau) {
   delta * (time / tau * exp(1 - time / tau))^2
 }
-int_stp <- function(time, delta = 0.2, tau = 10) {
-  delta * exp(2) * tau / 4 - delta * exp((1 - time / tau) * 2) *
-    (time^2 / (2 * tau) + time / 2 + tau / 4)
+stocks <- function(time, y0, delta, tau, lambda, alpha) {
+  y0 + delta * tau * exp(2) / 4 -
+    delta * exp((1 - time / tau) * 2) *
+      (time^2 / (2 * tau) + time / 2 + tau / 4) -
+    alpha / lambda * (1 - exp(-lambda * time))
 }
 
 facet_labs <- c(
@@ -59,16 +74,11 @@ ann_segment <- data.frame(
 
 data.frame(t = seq(0, 100, length.out = 200)) |>
   mutate(
-    prod = theta * (phi_p + (1 - phi_p) * ltp(t, lambda_p) +
-                      stp(t, delta_p, tau_p)),
-    mort = theta * (phi_m + (1 - phi_m) * ltp(t, lambda_m) +
-                      stp(t, delta_m, tau_m)),
-    agb = agb0 +
-      theta * (
-        phi_p / lambda_p * (1 - exp(-lambda_p * t)) - phi_m / lambda_m *
-          (1 - exp(-lambda_m * t)) +
-          int_stp(t, delta_p, tau_p) - int_stp(t, delta_m, tau_m)
-      )
+    prod = stp(t, delta, tau) +
+      omega * stocks(t, agb0, delta, tau, lambda, alpha),
+    mort = alpha * exp(-lambda * t) +
+      omega * stocks(t, agb0, delta, tau, lambda, alpha),
+    agb = stocks(t, agb0, delta, tau, lambda, alpha)
   ) |>
   pivot_longer(-t) |>
   ggplot(aes(t, value)) +
