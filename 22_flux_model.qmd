@@ -4,6 +4,8 @@
 library(tidyverse)
 ```
 
+# Flux model {.unnumbered}
+
 Here we define productivity and mortality as:
   
 $$ flux(t) = \omega \cdot stocks(t) + \nu \cdot STP(t)$$ 

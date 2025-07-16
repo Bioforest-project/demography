@@ -5,7 +5,9 @@ library(tidyverse)
 library(knitr)
 ```
 
-## Choice of variables
+# Flux data {.unnumbered}
+
+## Choice of variables 
 
 Below we show the productivity in four sites that have been remeasured for multiple decades.
 

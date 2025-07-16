@@ -75,3 +75,12 @@ digraph {
 }
 ")
 ```
+
+## Main analyses
+
+For the moment, we focus on two main research questions: 
+
+1. How long does logging affect demographic processes (productivity and mortality)? 
+
+2. What is the contribution of demographic processes on changes in functional composition?
+

@@ -12,7 +12,7 @@ list.files("r", full.names = TRUE, pattern = ".R") %>%
   lapply(source)
 ```
 
-# Calibrate the model with forest inventory data {.unnumbered}
+# Model calibration {.unnumbered}
 
 ## Data
 
@@ -168,9 +168,9 @@ pred_data <- data_rec |>
     stocks =
       fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum],
     prod = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] *
-      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], #nolint
+      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
     mort = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] *
-      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], #nolint
+      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
     val = "pred",
     type = "equ"
   ))
