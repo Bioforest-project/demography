@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Integration of STP – demography</title>
+<title>2&nbsp; Flux model – demography</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -30,8 +64,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./92_diff_equa.html" rel="next">
-<link href="./31_cwd_productivity.html" rel="prev">
+<link href="./23_calibrate_flux_model.html" rel="next">
+<link href="./21_flux_data.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -110,7 +144,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./91_ipp.html">Appendices</a></li><li class="breadcrumb-item"><a href="./91_ipp.html">Integration of STP</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Logging effect on demographic fluxes</a></li><li class="breadcrumb-item"><a href="./22_flux_model.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Flux model</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -159,36 +193,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./21_flux_data.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Flux data</span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Flux data</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./22_flux_model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Flux model</span></a>
+  <a href="./22_flux_model.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Flux model</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./23_calibrate_flux_model.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Model calibration</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a href="./30_cwd_flux.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Contribution of demographic rates to functional composition changes</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./31_cwd_productivity.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Composition change data</span></a>
   </div>
 </li>
       </ul>
@@ -204,7 +221,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./91_ipp.html" class="sidebar-item-text sidebar-link active">
+  <a href="./91_ipp.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Integration of STP</span></a>
   </div>
 </li>
@@ -227,9 +244,9 @@ window.Quarto = {
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./91_ipp.html">Appendices</a></li><li class="breadcrumb-item"><a href="./91_ipp.html">Integration of STP</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Logging effect on demographic fluxes</a></li><li class="breadcrumb-item"><a href="./22_flux_model.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Flux model</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">Integration of STP</h1>
+<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Flux model</span></h1>
 </div>
 
 
@@ -246,24 +263,94 @@ window.Quarto = {
 </header>
 
 
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \int \left(\left(\frac{x}{\tau}\right)^2 e^{-\frac{2}{\tau}x}\right) dx \]</span></p>
-<p>IPP: we use $u’ = $ and <span class="math inline">\(v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}\)</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( uv - \int u'v \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( \left(\frac{x}{\tau}\right)^2\cdot(-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{2x}{\tau^2} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x})dx \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \int \frac{x}{\tau} e^{-\frac{2}{\tau}x}dx \right) + C\]</span></p>
-<p>Again, we use an IPP with $u’ = $ and <span class="math inline">\(v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}\)</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( uv - \int u'v \right) \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( \frac{x}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{1}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) \right) \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}  -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} + \int  \frac{1}{2} \cdot e^{-\frac{2}{\tau}x}  \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x} -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} -\frac{\tau}{4} \cdot e^{-\frac{2}{\tau}x} \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^{(1-\frac{x}{\tau})2} \left( -\frac{x^2}{2\tau}    -\frac{x}{2}  -\frac{\tau}{4}\right) + C\]</span></p>
-<p><span class="math display">\[\int_0^t STP = \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \]</span></p>
-<p><span class="math display">\[\int_0^t LTP = t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\]</span></p>
-<p><span class="math display">\[\int_0^t prod = \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \right) \]</span></p>
-<p>if <span class="math inline">\(mort = \theta_{\infty}\)</span>:</p>
-<p><span class="math display">\[\int_0^t mort = \theta_{\infty}\cdot t\]</span> then:</p>
-<p><span class="math display">\[BA(t) = BA(0) + \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \right)  - \theta_{\infty}\cdot t\]</span></p>
-<p><span class="math display">\[BA(t) = BA(0) - \frac{\theta_{\infty} - \theta_0}{\lambda}(1-e^{-\lambda\cdot t})  + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right)\right)  \]</span></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Here we define productivity and mortality as:</p>
+<p><span class="math display">\[ flux(t) = \omega \cdot stocks(t) + \nu \cdot STP(t)\]</span> where <span class="math inline">\(stocks(t)\)</span> is the stocks value at time <span class="math inline">\(t\)</span>; <span class="math inline">\(\nu\)</span> is either 0 (control plots) or 1 (logged plots).</p>
+<p>The short term process (STP) is an intermediary process caused by logging operations, that disappears over time.</p>
+<p>For productivity, we define it as: <span class="math inline">\(STP_P = \delta \cdot(\frac{t}{\tau}exp(1-\frac{t}{\tau}))^2\)</span></p>
+<p>For mortality, we define it as <span class="math inline">\(STP_M = \alpha\cdot exp(-\lambda\cdot t)\)</span></p>
+<p>Because we expect stocks to reach an equilibrium value at <span class="math inline">\(t \rightarrow +\infty\)</span>, we have:</p>
+<p><span class="math display">\[lim_{+\infty}(prod) = lim_{+\infty}(mort)\]</span> Therefore, <span class="math inline">\(\omega\)</span> is the same for productivity and mortality.</p>
+<p>We therefore have:</p>
+<p><span class="math display">\[stocks(t) = stocks(0) + \int_0^t \left(\delta \cdot(\frac{x}{\tau}exp(1-\frac{x}{\tau}))^2 - \alpha\cdot exp(-\lambda\cdot x)\right)dx\]</span></p>
+<p>The integral calculation is done in the Appendix.</p>
+<p>The resulting stocks are:</p>
+<p><span class="math display">\[ stocks(t) = stocks(0) + \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{\alpha}{\lambda}(1-exp(-\lambda\cdot t))\]</span> The equilibrium value is</p>
+<p><span class="math display">\[stocks(\infty) = stocks(0) + \frac{e^{2}}{4} (\delta \cdot \tau) - \frac{\alpha}{\lambda}\]</span></p>
+<p>The figure below illustrates the resulting stocks and fluxes with parameters set to:</p>
+<ul>
+<li><span class="math inline">\(\tau = 15 yrs\)</span></li>
+<li><span class="math inline">\(\delta = 4\)</span></li>
+<li><span class="math inline">\(\alpha = 3\)</span></li>
+<li><span class="math inline">\(\lambda = 0.2\)</span></li>
+<li><span class="math inline">\(stocks_0 = 100\)</span></li>
+<li><span class="math inline">\(\omega = 0.02\)</span></li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>agb0 <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tau <span class="ot">&lt;-</span> <span class="dv">15</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>delta <span class="ot">&lt;-</span> <span class="dv">4</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>omega <span class="ot">&lt;-</span> <span class="fl">0.02</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>agbinf <span class="ot">&lt;-</span> agb0 <span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">2</span>) <span class="sc">/</span> <span class="dv">4</span> <span class="sc">*</span> delta <span class="sc">*</span> tau <span class="sc">-</span> alpha <span class="sc">/</span> lambda</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>stp <span class="ot">&lt;-</span> <span class="cf">function</span>(time, delta, tau) {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  delta <span class="sc">*</span> (time <span class="sc">/</span> tau <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> time <span class="sc">/</span> tau))<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>stocks <span class="ot">&lt;-</span> <span class="cf">function</span>(time, y0, delta, tau, lambda, alpha) {</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  y0 <span class="sc">+</span> delta <span class="sc">*</span> tau <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">2</span>) <span class="sc">/</span> <span class="dv">4</span> <span class="sc">-</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    delta <span class="sc">*</span> <span class="fu">exp</span>((<span class="dv">1</span> <span class="sc">-</span> time <span class="sc">/</span> tau) <span class="sc">*</span> <span class="dv">2</span>) <span class="sc">*</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      (time<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> tau) <span class="sc">+</span> time <span class="sc">/</span> <span class="dv">2</span> <span class="sc">+</span> tau <span class="sc">/</span> <span class="dv">4</span>) <span class="sc">-</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    alpha <span class="sc">/</span> lambda <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> time))</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>facet_labs <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"agb"</span> <span class="ot">=</span> <span class="st">"Stocks"</span>,</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">"prod"</span> <span class="ot">=</span> <span class="st">"Productivity"</span>,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mort"</span> <span class="ot">=</span> <span class="st">"Mortality"</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>ann_segment <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">t =</span> <span class="dv">50</span>, <span class="at">tinf =</span> <span class="dv">100</span>, <span class="at">value =</span> agbinf, <span class="at">name =</span> <span class="st">"agb"</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">t =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="at">length.out =</span> <span class="dv">200</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> <span class="fu">stp</span>(t, delta, tau) <span class="sc">+</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>      omega <span class="sc">*</span> <span class="fu">stocks</span>(t, agb0, delta, tau, lambda, alpha),</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> alpha <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> t) <span class="sc">+</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>      omega <span class="sc">*</span> <span class="fu">stocks</span>(t, agb0, delta, tau, lambda, alpha),</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">agb =</span> <span class="fu">stocks</span>(t, agb0, delta, tau, lambda, alpha)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>t) <span class="sc">|&gt;</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(t, value)) <span class="sc">+</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> ann_segment, <span class="fu">aes</span>(<span class="at">xend =</span> tinf), <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name,</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">nrow =</span> <span class="dv">3</span>,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">name =</span> facet_labs),</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.position =</span> <span class="st">"left"</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Recovery time [yr]"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.placement =</span> <span class="st">"outside"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="22_flux_model_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="576"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
 
@@ -687,13 +774,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./31_cwd_productivity.html" class="pagination-link" aria-label="Composition change data">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Composition change data</span>
+      <a href="./21_flux_data.html" class="pagination-link" aria-label="Flux data">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Flux data</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./92_diff_equa.html" class="pagination-link" aria-label="Differential equation">
-        <span class="nav-page-text">Differential equation</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./23_calibrate_flux_model.html" class="pagination-link" aria-label="Model calibration">
+        <span class="nav-page-text">Model calibration</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

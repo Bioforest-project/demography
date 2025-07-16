@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Integration of STP – demography</title>
+<title>Composition change data – demography</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -30,8 +64,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./92_diff_equa.html" rel="next">
-<link href="./31_cwd_productivity.html" rel="prev">
+<link href="./91_ipp.html" rel="next">
+<link href="./30_cwd_flux.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -110,7 +144,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./91_ipp.html">Appendices</a></li><li class="breadcrumb-item"><a href="./91_ipp.html">Integration of STP</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./30_cwd_flux.html">Contribution of demographic rates to functional composition changes</a></li><li class="breadcrumb-item"><a href="./31_cwd_productivity.html">Composition change data</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -187,7 +221,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./31_cwd_productivity.html" class="sidebar-item-text sidebar-link">
+  <a href="./31_cwd_productivity.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Composition change data</span></a>
   </div>
 </li>
@@ -204,7 +238,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./91_ipp.html" class="sidebar-item-text sidebar-link active">
+  <a href="./91_ipp.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Integration of STP</span></a>
   </div>
 </li>
@@ -221,15 +255,22 @@ window.Quarto = {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#formula-for-the-contribution-of-fluxes" id="toc-formula-for-the-contribution-of-fluxes" class="nav-link active" data-scroll-target="#formula-for-the-contribution-of-fluxes">Formula for the contribution of fluxes</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./91_ipp.html">Appendices</a></li><li class="breadcrumb-item"><a href="./91_ipp.html">Integration of STP</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./30_cwd_flux.html">Contribution of demographic rates to functional composition changes</a></li><li class="breadcrumb-item"><a href="./31_cwd_productivity.html">Composition change data</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">Integration of STP</h1>
+<h1 class="title">Composition change data</h1>
 </div>
 
 
@@ -246,26 +287,81 @@ window.Quarto = {
 </header>
 
 
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \int \left(\left(\frac{x}{\tau}\right)^2 e^{-\frac{2}{\tau}x}\right) dx \]</span></p>
-<p>IPP: we use $u’ = $ and <span class="math inline">\(v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}\)</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( uv - \int u'v \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( \left(\frac{x}{\tau}\right)^2\cdot(-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{2x}{\tau^2} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x})dx \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \int \frac{x}{\tau} e^{-\frac{2}{\tau}x}dx \right) + C\]</span></p>
-<p>Again, we use an IPP with $u’ = $ and <span class="math inline">\(v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}\)</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( uv - \int u'v \right) \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( \frac{x}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{1}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) \right) \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}  -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} + \int  \frac{1}{2} \cdot e^{-\frac{2}{\tau}x}  \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x} -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} -\frac{\tau}{4} \cdot e^{-\frac{2}{\tau}x} \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^{(1-\frac{x}{\tau})2} \left( -\frac{x^2}{2\tau}    -\frac{x}{2}  -\frac{\tau}{4}\right) + C\]</span></p>
-<p><span class="math display">\[\int_0^t STP = \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \]</span></p>
-<p><span class="math display">\[\int_0^t LTP = t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\]</span></p>
-<p><span class="math display">\[\int_0^t prod = \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \right) \]</span></p>
-<p>if <span class="math inline">\(mort = \theta_{\infty}\)</span>:</p>
-<p><span class="math display">\[\int_0^t mort = \theta_{\infty}\cdot t\]</span> then:</p>
-<p><span class="math display">\[BA(t) = BA(0) + \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \right)  - \theta_{\infty}\cdot t\]</span></p>
-<p><span class="math display">\[BA(t) = BA(0) - \frac{\theta_{\infty} - \theta_0}{\lambda}(1-e^{-\lambda\cdot t})  + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right)\right)  \]</span></p>
+<section id="formula-for-the-contribution-of-fluxes" class="level2">
+<h2 class="anchored" data-anchor-id="formula-for-the-contribution-of-fluxes">Formula for the contribution of fluxes</h2>
+<p>The contribution of a given flux (recruitment, growth or mortality) at time <span class="math inline">\(t\)</span> can be written as:</p>
+<p><span class="math display">\[CF_{F,t} = \sum_{i\in F_t}\frac{ba_{i,t}  (ft_{i} - CWM_{t-1})}{BA_{t}}-\sum_{i\in F_t}\frac{ba_{i,t-1} (ft_{i} - CWM_{t-1})}{BA_{t-1}}\]</span> where <span class="math inline">\(F_t\)</span> is the set of trees contributing to a given flux between <span class="math inline">\(t-1\)</span> and <span class="math inline">\(t\)</span> (recruitment: trees recruited at <span class="math inline">\(t\)</span>; growth: trees that were measured and alive at <span class="math inline">\(t\)</span> and <span class="math inline">\(t-1\)</span>; mortality: trees that died between <span class="math inline">\(t-1\)</span> and <span class="math inline">\(t\)</span>).</p>
+<p><span class="math inline">\(ba_{i,t}\)</span> is the basal area of a tree <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span>; <span class="math inline">\(ft_{i}\)</span> is the functional trait value of tree <span class="math inline">\(i\)</span>; <span class="math inline">\(BA_t\)</span> is the basal area of the entire community at <span class="math inline">\(t\)</span>; <span class="math inline">\(CWM_t\)</span> is the community weighted mean trait value at <span class="math inline">\(t\)</span>.</p>
+<p>We subtract <span class="math inline">\(CWM_{t-1}\)</span> to have negative contributions when the flux decreases the CWM between <span class="math inline">\(t-1\)</span> and <span class="math inline">\(t\)</span>; and positive contributions that increase the <span class="math inline">\(CWM\)</span>.</p>
+<p>As written, the contributions are additive:</p>
+<p><span class="math display">\[CWM_t= CWM_{t-1} + CF_{G,t} + CF_{R,t}+CF_{M,t}\]</span></p>
+</section>
+<section id="data" class="level2">
+<h2 class="anchored" data-anchor-id="data">Data</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>plot_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/raw_data/bioforest-plot-information.csv"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(site, plot, Year_of_harvest, Treatment)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/derived_data/aggregated_data_v8.csv"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">grepl</span>(<span class="st">"cwmdiff"</span>, variable)) <span class="sc">|&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(variable, <span class="fu">c</span>(<span class="st">"trait"</span>, <span class="cn">NA</span>, <span class="st">"flux"</span>), <span class="at">sep =</span> <span class="st">"_"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>labs_flux <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">all =</span> <span class="st">"Change in CWM"</span>, <span class="at">rba =</span> <span class="st">"Contribution of recruitment"</span>, </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">gba =</span> <span class="st">"Contribution of growth"</span>, </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">mba =</span> <span class="st">"Contribution of mortality"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span> </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Site <span class="sc">==</span> <span class="st">"Paracou"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> value, <span class="at">group =</span> Plot, <span class="at">col =</span> Treatment)) <span class="sc">+</span> </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(trait <span class="sc">~</span> flux,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">flux =</span> labs_flux)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y=</span><span class="cn">NULL</span>, <span class="at">x =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="31_cwd_productivity_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>labs_flux <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">all =</span> <span class="st">"Change in CWM"</span>, <span class="at">rba =</span> <span class="st">"Contribution of recruitment"</span>, </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">gba =</span> <span class="st">"Contribution of growth"</span>, </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">mba =</span> <span class="st">"Contribution of mortality"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span> </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Site <span class="sc">==</span> <span class="st">"Mbaiki"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> value, <span class="at">group =</span> Plot, <span class="at">col =</span> Treatment)) <span class="sc">+</span> </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(trait <span class="sc">~</span> flux,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">flux =</span> labs_flux)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y=</span><span class="cn">NULL</span>, <span class="at">x =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="31_cwd_productivity_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -687,13 +783,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./31_cwd_productivity.html" class="pagination-link" aria-label="Composition change data">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Composition change data</span>
+      <a href="./30_cwd_flux.html" class="pagination-link" aria-label="Contribution of demographic rates to functional composition changes">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Contribution of demographic rates to functional composition changes</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./92_diff_equa.html" class="pagination-link" aria-label="Differential equation">
-        <span class="nav-page-text">Differential equation</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./91_ipp.html" class="pagination-link" aria-label="Integration of STP">
+        <span class="nav-page-text">Integration of STP</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

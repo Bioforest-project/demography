@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Integration of STP – demography</title>
+<title>Contribution of demographic rates to functional composition changes – demography</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -30,8 +30,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./92_diff_equa.html" rel="next">
-<link href="./31_cwd_productivity.html" rel="prev">
+<link href="./31_cwd_productivity.html" rel="next">
+<link href="./23_calibrate_flux_model.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -69,35 +69,6 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 </head>
 
@@ -110,7 +81,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./91_ipp.html">Appendices</a></li><li class="breadcrumb-item"><a href="./91_ipp.html">Integration of STP</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./30_cwd_flux.html">Functional composition changes</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -178,8 +149,8 @@ window.Quarto = {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="./30_cwd_flux.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Contribution of demographic rates to functional composition changes</span></a>
+            <a href="./30_cwd_flux.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Functional composition changes</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -204,7 +175,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./91_ipp.html" class="sidebar-item-text sidebar-link active">
+  <a href="./91_ipp.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Integration of STP</span></a>
   </div>
 </li>
@@ -227,9 +198,9 @@ window.Quarto = {
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./91_ipp.html">Appendices</a></li><li class="breadcrumb-item"><a href="./91_ipp.html">Integration of STP</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Integration of STP</h1>
+<h1 class="title">Contribution of demographic rates to functional composition changes</h1>
 </div>
 
 
@@ -246,24 +217,7 @@ window.Quarto = {
 </header>
 
 
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \int \left(\left(\frac{x}{\tau}\right)^2 e^{-\frac{2}{\tau}x}\right) dx \]</span></p>
-<p>IPP: we use $u’ = $ and <span class="math inline">\(v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}\)</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( uv - \int u'v \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( \left(\frac{x}{\tau}\right)^2\cdot(-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{2x}{\tau^2} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x})dx \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \int \frac{x}{\tau} e^{-\frac{2}{\tau}x}dx \right) + C\]</span></p>
-<p>Again, we use an IPP with $u’ = $ and <span class="math inline">\(v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}\)</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( uv - \int u'v \right) \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}+ \left( \frac{x}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) - \int \frac{1}{\tau} (-\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}) \right) \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x}  -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} + \int  \frac{1}{2} \cdot e^{-\frac{2}{\tau}x}  \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^2 \left( -\left(\frac{x^2}{2\tau}\right)   e^{-\frac{2}{\tau}x} -\frac{x}{2} \cdot e^{-\frac{2}{\tau}x} -\frac{\tau}{4} \cdot e^{-\frac{2}{\tau}x} \right) + C\]</span></p>
-<p><span class="math display">\[\int STP = \delta \cdot e^{(1-\frac{x}{\tau})2} \left( -\frac{x^2}{2\tau}    -\frac{x}{2}  -\frac{\tau}{4}\right) + C\]</span></p>
-<p><span class="math display">\[\int_0^t STP = \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \]</span></p>
-<p><span class="math display">\[\int_0^t LTP = t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\]</span></p>
-<p><span class="math display">\[\int_0^t prod = \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \right) \]</span></p>
-<p>if <span class="math inline">\(mort = \theta_{\infty}\)</span>:</p>
-<p><span class="math display">\[\int_0^t mort = \theta_{\infty}\cdot t\]</span> then:</p>
-<p><span class="math display">\[BA(t) = BA(0) + \theta_0\cdot t + (\theta_{\infty} - \theta_0)\left(t - \frac{1}{\lambda} (1-e^{-\lambda\cdot t})\right) + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) \right)  - \theta_{\infty}\cdot t\]</span></p>
-<p><span class="math display">\[BA(t) = BA(0) - \frac{\theta_{\infty} - \theta_0}{\lambda}(1-e^{-\lambda\cdot t})  + \theta_{\infty}\left(\frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right)\right)  \]</span></p>
+<p>Selective logging is a widespread disturbance in tropical forests, with well-documented effects on biodiversity and carbon stocks that often recover within decades. However, long-lasting shifts in community functional composition have received less attention. Functional composition plays a critical role in ecosystem functioning and resilience to climate change, making it essential to understand how and why it changes following disturbance. Despite this, little is known about the spatial and temporal variability in these changes. Drawing from forest succession theory, we hypothesize that changes in functional composition are driven by the arrival of pioneer species and the demographic responses of surviving trees, such as altered growth or mortality rates. We model trajectories of functional composition (i.e.&nbsp;community-weighted mean values of wood density, N leaf content, LA and SLA, weighted by basal area) over time to assess the consistency of responses across traits and regions. We also quantify the relative contributions of demographic processes (recruitment, growth, and mortality) to these changes in functional composition.</p>
 
 
 
@@ -687,13 +641,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./31_cwd_productivity.html" class="pagination-link" aria-label="Composition change data">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Composition change data</span>
+      <a href="./23_calibrate_flux_model.html" class="pagination-link" aria-label="Model calibration">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Model calibration</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./92_diff_equa.html" class="pagination-link" aria-label="Differential equation">
-        <span class="nav-page-text">Differential equation</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./31_cwd_productivity.html" class="pagination-link" aria-label="Composition change data">
+        <span class="nav-page-text">Composition change data</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
