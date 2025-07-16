@@ -78,8 +78,8 @@ model {
   log(theta_log) ~ normal(log(theta_s[site_plot]), sigma_theta);
   
   log(y_equ) ~ normal(log(theta_s[site_equ]), sigma_y);
-  log(in_equ) ~ normal(log(theta_s[site_equ].*omega_s[site_log]), sigma_in);
-  log(out_equ) ~ normal(log(theta_s[site_equ].*omega_s[site_log]), sigma_out);
+  log(in_equ) ~ normal(log(theta_s[site_equ].*omega_s[site_equ]), sigma_in);
+  log(out_equ) ~ normal(log(theta_s[site_equ].*omega_s[site_equ]), sigma_out);
   
   lambda_s ~ normal(mu_lambda, sigma_lambda);
   alpha_p ~ normal(mu_alpha, sigma_alpha);
