@@ -30,6 +30,9 @@ data <- read.csv("data/derived_data/aggregated_data_v8.csv") |>
   mutate(prod = agb_growth + agb_recr, mort = agb_mort, stocks = agb) |>
   select(!contains("agb")) |>
   pivot_longer(cols = c("stocks", "prod", "mort"), names_to = "variable") |>
+  mutate(Year_of_harvest = ifelse(Site == "Mbaiki" & Treatment == "Logging",
+    1985, Year_of_harvest
+  )) |>
   mutate(trec = Year - Year_of_harvest)
 ```
 
@@ -133,7 +136,9 @@ mcmc_trace(fit_flux_all$draws(variables = c("lp__")))
 The main parameter values are consistent with our expectations.
 
 ```{r}
-c("mu_delta", "mu_lambda") |>
+c("lambda_s") |>
+  fit_flux_all$summary()
+c("tau_s") |>
   fit_flux_all$summary()
 c("theta_s") |>
   fit_flux_all$summary()
@@ -152,19 +157,22 @@ The goodness of fit is satisfactory.
 pred_data <- data_rec |>
   select(-plotnum) |>
   mutate(
-    stocks = fit_flux_logged$summary(c("mu_stocks"), median)$median,
-    prod = fit_flux_logged$summary(c("mu_influx"), median)$median,
-    mort = fit_flux_logged$summary(c("mu_outflux"), median)$median,
+    stocks = fit_flux_all$summary(c("mu_y_log"), median)$median,
+    prod = fit_flux_all$summary(c("mu_in_log"), median)$median,
+    mort = fit_flux_all$summary(c("mu_out_log"), median)$median,
     val = "pred",
     type = "rec"
   ) |>
   rbind(mutate(
     data_old,
-    stocks = fit_flux_control$summary(c("mu_stocks"), median)$median,
-    prod = fit_flux_control$summary(c("mu_influx"), median)$median,
-    mort = fit_flux_control$summary(c("mu_outflux"), median)$median,
+    stocks =
+      fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum],
+    prod = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], #nolint
+    mort = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], #nolint
     val = "pred",
-    type = "old"
+    type = "equ"
   ))
 
 obs_data <- data_rec |>
@@ -176,7 +184,7 @@ obs_data <- data_rec |>
   rbind(mutate(
     data_old,
     val = "obs",
-    type = "old"
+    type = "equ"
   ))
 
 pov_data <- rbind(pred_data, obs_data) |>
@@ -221,7 +229,8 @@ pov_data |>
   subset(variable == "stocks" & Site %in% c("Paracou", "Mbaiki", "Lesong")) |>
   ggplot(aes(Year, y = obs)) +
   geom_point(aes(group = Plot, col = Plot)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred)) +
+  geom_line(aes(group = Plot, col = Plot)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
   ylab(expression("Basal area [" ~ m^2 ~ ha^-1 ~ "]")) +
   theme_bw() +
   facet_grid(Site ~ type,
@@ -230,12 +239,12 @@ pov_data |>
   )
 
 pov_data |>
-  subset(variable == "prod" & Site %in% c("Paracou", "Mbaiki", "Lesong")) |>
+  subset(variable == "prod") |>
   ggplot(aes(Year, y = obs)) +
   geom_point(aes(group = Plot, col = Plot)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred)) +
-  geom_smooth() +
-  ylab(expression("Basal area productivity [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  geom_line(aes(group = Plot, col = Plot)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
+  ylab(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]")) +
   theme_bw() +
   facet_grid(Site ~ type,
     scales = "free",
@@ -243,16 +252,16 @@ pov_data |>
   )
 
 pov_data |>
-  subset(variable == "mort" & Site %in% c("Paracou", "Mbaiki", "Lesong")) |>
-  subset(obs < 2.5) |>
+  subset(variable == "mort") |>
   ggplot(aes(Year, y = obs)) +
   geom_point(aes(group = Plot, col = Plot)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred)) +
-  geom_smooth() +
-  ylab(expression("Basal area mortality [" ~ m^2 ~ ha^-1 ~ yr^-1 ~ "]")) +
+  geom_line(aes(group = Plot, col = Plot)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
+  ylab(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]")) +
   theme_bw() +
   facet_grid(Site ~ type,
     scales = "free",
     labeller = labeller(type = labs_type)
   )
 ```
+
