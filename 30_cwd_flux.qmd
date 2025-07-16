@@ -1,0 +1,9 @@
+```{r setup}
+#| message: false
+#| warning: false
+#| include: false
+```
+
+# Functional composition changes {.unnumbered}
+
+Selective logging is a widespread disturbance in tropical forests, with well-documented effects on biodiversity and carbon stocks that often recover within decades. However, long-lasting shifts in community functional composition have received less attention. Functional composition plays a critical role in ecosystem functioning and resilience to climate change, making it essential to understand how and why it changes following disturbance. Despite this, little is known about the spatial and temporal variability in these changes. Drawing from forest succession theory, we hypothesize that changes in functional composition are driven by the arrival of pioneer species and the demographic responses of surviving trees, such as altered growth or mortality rates. We model trajectories of functional composition (i.e. community-weighted mean values of wood density, N leaf content, LA and SLA, weighted by basal area) over time to assess the consistency of responses across traits and regions. We also quantify the relative contributions of demographic processes (recruitment, growth, and mortality) to these changes in functional composition.

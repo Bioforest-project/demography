@@ -10,11 +10,12 @@ book:
     - 11_general_framework.qmd
     - part: 20_flux_model.qmd
       chapters:
-        - 21_productivity.qmd
-        - 22_mortality.qmd
-        - 23_stocks_cst_mortality.qmd
-        - 24_stocks_prop_mortality.qmd
-        - 25_calibrate_flux_model.qmd
+        - 21_flux_data.qmd
+        - 22_flux_model.qmd
+        - 23_calibrate_flux_model.qmd
+    - part: 30_cwd_flux.qmd
+      chapters:
+        - 31_cwd_productivity.qmd
   appendices:
     - 91_ipp.qmd
     - 92_diff_equa.qmd
