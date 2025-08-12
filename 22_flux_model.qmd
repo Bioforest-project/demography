@@ -7,32 +7,28 @@ library(tidyverse)
 # Flux model {.unnumbered}
 
 Here we define productivity and mortality as:
-  
-$$ flux(t) = \omega \cdot stocks(t) + \nu \cdot STP(t)$$ 
-where $stocks(t)$ is the stocks value at time $t$; $\nu$ is either 0 (control plots) or 1 (logged plots). 
-  
-The short term process (STP) is an intermediary process caused by logging operations, that disappears over time. 
+
+$$ flux(t) = \omega \cdot stocks(t) + \nu \cdot STP(t)$$ where $stocks(t)$ is the stocks value at time $t$; $\nu$ is either 0 (control plots) or 1 (logged plots).
+
+The short term process (STP) is an intermediary process caused by logging operations, that disappears over time.
 
 For productivity, we define it as: $STP_P = \delta \cdot(\frac{t}{\tau}exp(1-\frac{t}{\tau}))^2$
 
-For mortality, we define it as $STP_M = \alpha\cdot exp(-\lambda\cdot t)$  
- 
-Because we expect stocks to reach an equilibrium value at $t \rightarrow +\infty$, we have: 
+For mortality, we define it as $STP_M = \alpha\cdot exp(-\lambda\cdot t)$
 
-$$lim_{+\infty}(prod) = lim_{+\infty}(mort)$$
-Therefore, $\omega$ is the same for productivity and mortality. 
+Because we expect stocks to reach an equilibrium value at $t \rightarrow +\infty$, we have:
 
-We therefore have: 
+$$lim_{+\infty}(prod) = lim_{+\infty}(mort)$$ Therefore, $\omega$ is the same for productivity and mortality.
 
+We therefore have:
 
 $$stocks(t) = stocks(0) + \int_0^t \left(\delta \cdot(\frac{x}{\tau}exp(1-\frac{x}{\tau}))^2 - \alpha\cdot exp(-\lambda\cdot x)\right)dx$$
 
 The integral calculation is done in the Appendix.
 
-The resulting stocks are: 
+The resulting stocks are:
 
-$$ stocks(t) = stocks(0) + \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{\alpha}{\lambda}(1-exp(-\lambda\cdot t))$$ 
-The equilibrium value is
+$$ stocks(t) = stocks(0) + \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{\alpha}{\lambda}(1-exp(-\lambda\cdot t))$$ The equilibrium value is
 
 $$stocks(\infty) = stocks(0) + \frac{e^{2}}{4} (\delta \cdot \tau) - \frac{\alpha}{\lambda}$$
 
@@ -46,6 +42,8 @@ The figure below illustrates the resulting stocks and fluxes with parameters set
 -   $\omega = 0.02$
 
 ```{r, fig.width = 6, fig.height = 6}
+#| message: false
+#| warning: false
 agb0 <- 100
 tau <- 15
 delta <- 4

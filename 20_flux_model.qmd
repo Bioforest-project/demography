@@ -3,7 +3,7 @@
 #| warning: false
 ```
 
-# Logging effect on demographic fluxes
+# Demographic fluxes
 
 Selective logging is a widespread disturbance in tropical forests, often altering forest structure and reducing aboveground biomass (AGB). While many forests recover over time, the mechanisms driving this recovery remain incompletely understood. At the core of forest regeneration are demographic processes—namely, the growth of surviving trees, recruitment of new individuals, and mortality. These processes govern changes in stem abundance and biomass accumulation, yet few studies have explicitly quantified their individual contributions to AGB recovery following logging.
 

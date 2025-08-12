@@ -17,6 +17,8 @@ list.files("r", full.names = TRUE, pattern = ".R") %>%
 ## Data
 
 ```{r}
+#| message: false
+#| warning: false
 data <- read.csv("data/derived_data/aggregated_data_v8.csv")
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
@@ -41,6 +43,8 @@ data <- read.csv("data/derived_data/aggregated_data_v8.csv") |>
 We used the following parameter bounds when calibrating the model.
 
 ```{r}
+#| message: false
+#| warning: false
 bounds <- data.frame(
   "theta_min" = 50,
   "theta_max" = 1000,
@@ -67,11 +71,15 @@ bounds |>
 For now, we only calibrate the model with MBaiki and Paracou.
 
 ```{r}
+#| message: false
+#| warning: false
 data <- data |>
   filter(Site %in% c("Mbaiki", "Paracou"))
 ```
 
 ```{r}
+#| message: false
+#| warning: false
 data_rec <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
   subset(Treatment == "Logging" & trec > 3) |>
@@ -86,6 +94,8 @@ data_old <- data |>
 ```
 
 ```{r fit_flux_model}
+#| message: false
+#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -132,10 +142,11 @@ fit_flux_all
 mcmc_trace(fit_flux_all$draws(variables = c("lp__")))
 ```
 
-
 The main parameter values are consistent with our expectations.
 
 ```{r}
+#| message: false
+#| warning: false
 c("lambda_s") |>
   fit_flux_all$summary()
 c("tau_s") |>
@@ -219,6 +230,8 @@ pov_data |>
 The predicted flux and stocks trajectories look consistent with the data.
 
 ```{r}
+#| message: false
+#| warning: false
 #| fig-width: 8
 #| fig-height: 8
 #| fig-cap: "Predicted trajectories in Paracou and Mbaiki."
@@ -264,4 +277,3 @@ pov_data |>
     labeller = labeller(type = labs_type)
   )
 ```
-

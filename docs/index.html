@@ -2,11 +2,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.57">
+<meta name="generator" content="quarto-1.6.42">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-04-23">
+<meta name="dcterms.date" content="2025-08-12">
 
 <title>demography</title>
 <style>
@@ -37,10 +37,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-8da5b4427184b79ecddefad3d342027e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -121,7 +121,7 @@ ul.task-list li input[type="checkbox"] {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./20_flux_model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Integrating fluxes and stocks</span></a>
+ <span class="menu-text">Demographic fluxes</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -129,45 +129,56 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./21_productivity.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Productivity</span></a>
+  <a href="./21_flux_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Flux data</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./22_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Mortality</span></a>
+  <a href="./22_flux_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Flux model</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./23_stocks_cst_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Stocks - with constant mortality</span></a>
+  <a href="./23_calibrate_flux_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Model calibration</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./24_stocks_prop_mortality.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Stocks - with proportional mortality</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./25_calibrate_flux_model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Calibrate the model with forest inventory data</span></a>
+  <a href="./24_expl_variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Explanatory variables</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Appendices</span></a>
+            <a href="./30_cwd_flux.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Functional composition</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./31_cwd_productivity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Composition change data</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./91_ipp.html" class="sidebar-item-text sidebar-link">
@@ -219,7 +230,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 23, 2025</p>
+      <p class="date">August 12, 2025</p>
     </div>
   </div>
   
@@ -371,8 +382,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   });
   clipboard.on('success', onCopySuccess);
   if (window.document.getElementById('quarto-embedded-source-code-modal')) {
-    // For code content inside modals, clipBoardJS needs to be initialized with a container option
-    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
     const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
       text: getTextToCopy,
       container: window.document.getElementById('quarto-embedded-source-code-modal')
@@ -483,7 +492,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       if (window.Quarto?.typesetMath) {
         window.Quarto.typesetMath(note);
       }
-      // TODO in 1.5, we should make sure this works without a callout special case
       if (note.classList.contains("callout")) {
         return note.outerHTML;
       } else {

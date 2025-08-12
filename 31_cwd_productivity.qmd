@@ -30,6 +30,8 @@ $$CWM_t= CWM_{t-1} + CF_{G,t} + CF_{R,t}+CF_{M,t}$$
 ## Data 
 
 ```{r}
+#| message: false
+#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
 data <- read.csv("data/derived_data/aggregated_data_v8.csv") |>
@@ -39,6 +41,8 @@ data <- read.csv("data/derived_data/aggregated_data_v8.csv") |>
 ```
 
 ```{r}
+#| message: false
+#| warning: false
 #| fig.height:  8
 #| fig.width: 12
 labs_flux <- c(
@@ -61,6 +65,8 @@ data |>
 
 
 ```{r}
+#| message: false
+#| warning: false
 #| fig.height:  8
 #| fig.width: 12
 labs_flux <- c(

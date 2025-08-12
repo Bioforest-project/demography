@@ -13,6 +13,7 @@ book:
         - 21_flux_data.qmd
         - 22_flux_model.qmd
         - 23_calibrate_flux_model.qmd
+        - 24_expl_variables.qmd
     - part: 30_cwd_flux.qmd
       chapters:
         - 31_cwd_productivity.qmd

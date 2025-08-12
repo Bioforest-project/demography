@@ -9,7 +9,7 @@ We want to solve the following differential equation $E$:
 
 $$y'(t) = STP(t) - \alpha\cdot exp(-\lambda \cdot t) + (\omega_P-\omega_M) \cdot y(t)$$
 
-with: 
+with:
 
 $$STP(t) = \delta\left(\frac{t}{\tau}\cdot exp(1-\frac{t}{\tau})\right)^2$$
 

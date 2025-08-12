@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Logging effect on demographic fluxes</a></li><li class="breadcrumb-item"><a href="./21_flux_data.html">Flux data</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Demographic fluxes</a></li><li class="breadcrumb-item"><a href="./21_flux_data.html">Flux data</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -155,7 +155,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./20_flux_model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Logging effect on demographic fluxes</span></a>
+ <span class="menu-text">Demographic fluxes</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -179,12 +179,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Model calibration</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./24_expl_variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Explanatory variables</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./30_cwd_flux.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Contribution of demographic rates to functional composition changes</span></a>
+ <span class="menu-text">Functional composition</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -239,7 +245,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Logging effect on demographic fluxes</a></li><li class="breadcrumb-item"><a href="./21_flux_data.html">Flux data</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Demographic fluxes</a></li><li class="breadcrumb-item"><a href="./21_flux_data.html">Flux data</a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title">Flux data</h1>
 </div>
@@ -315,14 +321,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Site, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 46 rows containing missing values or values outside the scale range
-(`geom_point()`).</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 26 rows containing missing values or values outside the scale range
-(`geom_line()`).</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -334,17 +332,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"agb_mort"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Treatment <span class="sc">==</span> <span class="st">"Control"</span> <span class="sc">|</span> Year <span class="sc">&gt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">3</span>) <span class="sc">|&gt;</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(Site <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Mbaiki"</span>, <span class="st">"Paracou"</span>, <span class="st">"Ulu Muda"</span>, <span class="st">"Lesong"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Year, value, <span class="at">group =</span> Plot, <span class="at">col =</span> Treatment)) <span class="sc">+</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"AGB mortality [Mg/ha/yr]"</span>, <span class="at">col =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Site, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"agb_mort"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Treatment <span class="sc">==</span> <span class="st">"Control"</span> <span class="sc">|</span> Year <span class="sc">&gt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(Site <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Mbaiki"</span>, <span class="st">"Paracou"</span>, <span class="st">"Ulu Muda"</span>, <span class="st">"Lesong"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Year, value, <span class="at">group =</span> Plot, <span class="at">col =</span> Treatment)) <span class="sc">+</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"AGB mortality [Mg/ha/yr]"</span>, <span class="at">col =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Site, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -357,17 +355,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"nstem_mort"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Treatment <span class="sc">==</span> <span class="st">"Control"</span> <span class="sc">|</span> Year <span class="sc">&gt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">3</span>) <span class="sc">|&gt;</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(Site <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Mbaiki"</span>, <span class="st">"Paracou"</span>, <span class="st">"Ulu Muda"</span>, <span class="st">"Lesong"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Year, value, <span class="at">group =</span> Plot, <span class="at">col =</span> Treatment)) <span class="sc">+</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Stem mortality [/ha/yr]"</span>, <span class="at">col =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Site, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"nstem_mort"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Treatment <span class="sc">==</span> <span class="st">"Control"</span> <span class="sc">|</span> Year <span class="sc">&gt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(Site <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Mbaiki"</span>, <span class="st">"Paracou"</span>, <span class="st">"Ulu Muda"</span>, <span class="st">"Lesong"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Year, value, <span class="at">group =</span> Plot, <span class="at">col =</span> Treatment)) <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Stem mortality [/ha/yr]"</span>, <span class="at">col =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Site, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -383,41 +381,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>In this analysis, we only kept sites that meet the following criteria:</p>
 <ul>
 <li><p>at least 4 post-logging measurements</p></li>
-<li><blockquote class="blockquote">
-<p>10 years of post-logging measurements</p>
-</blockquote></li>
+<li><p>at least 10 years of post-logging measurements</p></li>
 <li><p>presence of control plots</p></li>
 <li><p>productivity values &lt; 10% (too high)?</p></li>
 </ul>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>criteria_site <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site) <span class="sc">|&gt;</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">controls =</span> <span class="fu">length</span>(<span class="fu">unique</span>(Plot[Treatment <span class="sc">==</span> <span class="st">"Control"</span>])),</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">logged =</span> <span class="fu">length</span>(<span class="fu">unique</span>(Plot[Treatment <span class="sc">==</span> <span class="st">"Logging"</span>]))</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Treatment <span class="sc">==</span> <span class="st">"Logging"</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(Year)) <span class="sc">|&gt;</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Plot) <span class="sc">|&gt;</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">ncensus =</span> <span class="fu">length</span>(<span class="fu">unique</span>(Year[Year <span class="sc">&gt;</span> Year_of_harvest])),</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">tcensus =</span> <span class="fu">max</span>(Year, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">-</span> <span class="fu">unique</span>(Year_of_harvest)</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site) <span class="sc">|&gt;</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">ncensus =</span> <span class="fu">median</span>(ncensus), <span class="at">tcensus =</span> <span class="fu">median</span>(tcensus)) <span class="sc">|&gt;</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(criteria_site) <span class="sc">|&gt;</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ncensus <span class="sc">&gt;</span> <span class="dv">3</span>, tcensus <span class="sc">&gt;</span> <span class="dv">9</span>, controls <span class="sc">&gt;</span> <span class="dv">0</span>, logged <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write.csv</span>(<span class="st">"data/derived_data/sites_to_keep.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>criteria_site <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">controls =</span> <span class="fu">length</span>(<span class="fu">unique</span>(Plot[Treatment <span class="sc">==</span> <span class="st">"Control"</span>])),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">logged =</span> <span class="fu">length</span>(<span class="fu">unique</span>(Plot[Treatment <span class="sc">==</span> <span class="st">"Logging"</span>]))</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Treatment <span class="sc">==</span> <span class="st">"Logging"</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(Year)) <span class="sc">|&gt;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Plot) <span class="sc">|&gt;</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">ncensus =</span> <span class="fu">length</span>(<span class="fu">unique</span>(Year[Year <span class="sc">&gt;</span> Year_of_harvest])),</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">tcensus =</span> <span class="fu">max</span>(Year, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">-</span> <span class="fu">unique</span>(Year_of_harvest)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site) <span class="sc">|&gt;</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">ncensus =</span> <span class="fu">median</span>(ncensus), <span class="at">tcensus =</span> <span class="fu">median</span>(tcensus)) <span class="sc">|&gt;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(criteria_site) <span class="sc">|&gt;</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ncensus <span class="sc">&gt;</span> <span class="dv">3</span>, tcensus <span class="sc">&gt;</span> <span class="dv">9</span>, controls <span class="sc">&gt;</span> <span class="dv">0</span>, logged <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write.csv</span>(<span class="st">"data/derived_data/sites_to_keep.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read.csv</span>(<span class="st">"data/derived_data/sites_to_keep.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read.csv</span>(<span class="st">"data/derived_data/sites_to_keep.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -971,8 +967,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./20_flux_model.html" class="pagination-link" aria-label="Logging effect on demographic fluxes">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Logging effect on demographic fluxes</span>
+      <a href="./20_flux_model.html" class="pagination-link" aria-label="Demographic fluxes">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Demographic fluxes</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">

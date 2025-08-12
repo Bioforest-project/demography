@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Conceptual framework – demography</title>
+<title>Explanatory variables – demography</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,40 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -64,8 +30,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./20_flux_model.html" rel="next">
-<link href="./index.html" rel="prev">
+<link href="./30_cwd_flux.html" rel="next">
+<link href="./23_calibrate_flux_model.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -102,46 +68,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
-<link href="site_libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
 
-<script src="site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
-
-<script src="site_libs/viz-1.8.2/viz.js"></script>
-
-<link href="site_libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet">
-
-<script src="site_libs/grViz-binding-1.0.11/grViz.js"></script>
-
-
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 </head>
 
@@ -154,7 +81,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./11_general_framework.html">Conceptual framework</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Demographic fluxes</a></li><li class="breadcrumb-item"><a href="./24_expl_variables.html">Explanatory variables</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -187,7 +114,7 @@ window.Quarto = {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./11_general_framework.html" class="sidebar-item-text sidebar-link active">
+  <a href="./11_general_framework.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Conceptual framework</span></a>
   </div>
 </li>
@@ -220,7 +147,7 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./24_expl_variables.html" class="sidebar-item-text sidebar-link">
+  <a href="./24_expl_variables.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Explanatory variables</span></a>
   </div>
 </li>
@@ -229,7 +156,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./30_cwd_flux.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Functional composition</span></a>
+ <span class="menu-text">Functional composition changes</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -271,24 +198,15 @@ window.Quarto = {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Table of contents</h2>
-   
-  <ul>
-  <li><a href="#context-and-motivation" id="toc-context-and-motivation" class="nav-link active" data-scroll-target="#context-and-motivation">Context and motivation</a></li>
-  <li><a href="#research-questions" id="toc-research-questions" class="nav-link" data-scroll-target="#research-questions">Research questions</a></li>
-  <li><a href="#general-diagram" id="toc-general-diagram" class="nav-link" data-scroll-target="#general-diagram">General diagram</a></li>
-  <li><a href="#main-analyses" id="toc-main-analyses" class="nav-link" data-scroll-target="#main-analyses">Main analyses</a></li>
-  </ul>
-</nav>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Demographic fluxes</a></li><li class="breadcrumb-item"><a href="./24_expl_variables.html">Explanatory variables</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">Conceptual framework</h1>
+<h1 class="title">Explanatory variables</h1>
 </div>
 
 
@@ -305,95 +223,8 @@ window.Quarto = {
 </header>
 
 
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DiagrammeR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<section id="context-and-motivation" class="level2">
-<h2 class="anchored" data-anchor-id="context-and-motivation">Context and motivation</h2>
-<ul>
-<li><p>Selectively logged forests are becoming the majority of tropical forests <span class="math inline">\(\rightarrow\)</span> Importance of understanding their recovery process;</p></li>
-<li><p>Disturbances such as logging have different effects on the demographic rates of species and can therefore change the species composition and biodiversity in the long term;</p></li>
-<li><p>Demographic processes can therefore provide insights into forest resilience.</p></li>
-</ul>
-</section>
-<section id="research-questions" class="level2">
-<h2 class="anchored" data-anchor-id="research-questions">Research questions</h2>
-<ol type="i">
-<li><p>What is the contribution of demographic processes (growth, recruitment, mortality) to post-logging changes in biomass, biodiversity and composition?</p></li>
-<li><p>What is the link between biomass and biodiversity recovery processes?</p></li>
-<li><p>How do abiotic factors shape demographic processes of recovery?</p></li>
-</ol>
-</section>
-<section id="general-diagram" class="level2">
-<h2 class="anchored" data-anchor-id="general-diagram">General diagram</h2>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grViz</span>(<span class="st">"</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">digraph {</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">  rankdir=LR</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">  graph [overlap = true, fontsize = 10]</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="st">  subgraph cluster_ba{</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="st">    label='Basal area'; fontsize = 14;</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="st">    node [shape = box, fillcolor='coral', style=filled, fontsize=12]</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="st">    ba_stock [label='Stock']</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="st">    ba_in [label='Gain']</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="st">    ba_out [label='Loss']</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="st">  node [shape = box, fillcolor='coral', style=filled]</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="st">  {rank=same</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="st">  cwm [label='Functional</span><span class="sc">\n</span><span class="st">composition']</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="st">  div [label='Functional</span><span class="sc">\n</span><span class="st">diversity']</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="st">  node [fillcolor='powderblue']</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="st">  env [label='Environmental</span><span class="sc">\n</span><span class="st">variables']</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="st">  intensity [label='Logging</span><span class="sc">\n</span><span class="st">intensity']</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="st">  node [shape = ellipse, fillcolor='whitesmoke']</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="st">  {rank=same</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="st">  closure[label='Canopy</span><span class="sc">\n</span><span class="st">closure']</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="st">  vmax[label='Equilibrium</span><span class="sc">\n</span><span class="st">turnover</span><span class="sc">\n</span><span class="st">rate']</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="st">  intensity -&gt; closure</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="st">  closure -&gt; {ba_in cwm}</span></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="st">  vmax -&gt; {ba_out ba_in}</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="st">  env -&gt; {cwm div vmax}</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="st">  cwm -&gt; {ba_in ba_out div}</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="st">  ba_stock -&gt; closure</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="st">  edge [style = bold]</span></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="st">  div -&gt; ba_in</span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="st">  edge [style = dashed]</span></span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="st">  ba_in -&gt; ba_stock</span></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="st">  ba_out -&gt; ba_stock</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output-display">
-<div class="grViz html-widget html-fill-item" id="htmlwidget-8713dc8a8e093b1bec74" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-8713dc8a8e093b1bec74">{"x":{"diagram":"\ndigraph {\n\n  rankdir=LR\n\n  graph [overlap = true, fontsize = 10]\n\n  subgraph cluster_ba{\n    label=\"Basal area\"; fontsize = 14;\n    node [shape = box, fillcolor=\"coral\", style=filled, fontsize=12]\n    ba_stock [label=\"Stock\"]\n    ba_in [label=\"Gain\"]\n    ba_out [label=\"Loss\"]\n  }\n\n  node [shape = box, fillcolor=\"coral\", style=filled]\n  {rank=same\n  cwm [label=\"Functional\ncomposition\"]\n  div [label=\"Functional\ndiversity\"]\n  }\n  node [fillcolor=\"powderblue\"]\n  env [label=\"Environmental\nvariables\"]\n  intensity [label=\"Logging\nintensity\"]\n\n  node [shape = ellipse, fillcolor=\"whitesmoke\"]\n  {rank=same\n  closure[label=\"Canopy\nclosure\"]\n  vmax[label=\"Equilibrium\nturnover\nrate\"]\n  }\n\n  intensity -> closure\n  closure -> {ba_in cwm}\n  vmax -> {ba_out ba_in}\n  env -> {cwm div vmax}\n  cwm -> {ba_in ba_out div}\n  ba_stock -> closure\n\n  edge [style = bold]\n  div -> ba_in\n\n  edge [style = dashed]\n  ba_in -> ba_stock\n  ba_out -> ba_stock\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
-</div>
-</div>
-</section>
-<section id="main-analyses" class="level2">
-<h2 class="anchored" data-anchor-id="main-analyses">Main analyses</h2>
-<p>For the moment, we focus on two main research questions:</p>
-<ol type="1">
-<li><p>How long does logging affect demographic processes (productivity and mortality)?</p></li>
-<li><p>What is the contribution of demographic processes on changes in functional composition?</p></li>
-</ol>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -815,13 +646,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./index.html" class="pagination-link" aria-label="Introduction">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Introduction</span>
+      <a href="./23_calibrate_flux_model.html" class="pagination-link" aria-label="Model calibration">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Model calibration</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./20_flux_model.html" class="pagination-link" aria-label="Demographic fluxes">
-        <span class="nav-page-text">Demographic fluxes</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./30_cwd_flux.html" class="pagination-link" aria-label="Functional composition changes">
+        <span class="nav-page-text">Functional composition changes</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

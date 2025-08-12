@@ -7,11 +7,13 @@ library(knitr)
 
 # Flux data {.unnumbered}
 
-## Choice of variables 
+## Choice of variables
 
 Below we show the productivity in four sites that have been remeasured for multiple decades.
 
 ```{r}
+#| message: false
+#| warning: false
 data <- read.csv("data/derived_data/aggregated_data_v8.csv")
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv")
 ```
@@ -36,6 +38,8 @@ data |>
 ```
 
 ```{r}
+#| message: false
+#| warning: false
 data |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   subset(variable == "nstem_recr") |>
@@ -65,6 +69,8 @@ data |>
 ```
 
 ```{r}
+#| message: false
+#| warning: false
 data |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   subset(variable == "nstem_mort") |>
@@ -84,15 +90,15 @@ In this analysis, we only kept sites that meet the following criteria:
 
 -   at least 4 post-logging measurements
 
--   
-
-    > 10 years of post-logging measurements
+-   at least 10 years of post-logging measurements
 
 -   presence of control plots
 
 -   productivity values \< 10% (too high)?
 
 ```{r}
+#| message: false
+#| warning: false
 #| eval: false
 criteria_site <- data |>
   inner_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
@@ -117,6 +123,7 @@ data |>
 ```
 
 ```{r}
+#| message: false
+#| warning: false
 read.csv("data/derived_data/sites_to_keep.csv") |> kable()
 ```
-

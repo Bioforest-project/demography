@@ -64,7 +64,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./30_cwd_flux.html" rel="next">
+<link href="./24_expl_variables.html" rel="next">
 <link href="./22_flux_model.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -119,7 +119,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Logging effect on demographic fluxes</a></li><li class="breadcrumb-item"><a href="./23_calibrate_flux_model.html">Model calibration</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Demographic fluxes</a></li><li class="breadcrumb-item"><a href="./23_calibrate_flux_model.html">Model calibration</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -159,7 +159,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./20_flux_model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Logging effect on demographic fluxes</span></a>
+ <span class="menu-text">Demographic fluxes</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -183,12 +183,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Model calibration</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./24_expl_variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Explanatory variables</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./30_cwd_flux.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Functional composition changes</span></a>
+ <span class="menu-text">Functional composition</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -246,7 +252,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Logging effect on demographic fluxes</a></li><li class="breadcrumb-item"><a href="./23_calibrate_flux_model.html">Model calibration</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./20_flux_model.html">Demographic fluxes</a></li><li class="breadcrumb-item"><a href="./23_calibrate_flux_model.html">Model calibration</a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title">Model calibration</h1>
 </div>
@@ -319,7 +325,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">flextable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div class="tabwid"><style>.cl-ee43b8aa{}.cl-ee3b0b6a{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-ee3eadce{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-ee3eadd8{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-ee3ecfc0{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-ee3ecfca{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-ee3ecfcb{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-ee3ecfcc{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-ee3ecfd4{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-ee3ecfd5{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-ee43b8aa"><thead><tr style="overflow-wrap:break-word;"><th class="cl-ee3ecfc0"><p class="cl-ee3eadce"><span class="cl-ee3b0b6a">parameter</span></p></th><th class="cl-ee3ecfca"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">min</span></p></th><th class="cl-ee3ecfca"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">max</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-ee3ecfcb"><p class="cl-ee3eadce"><span class="cl-ee3b0b6a">theta</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">50.000</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">1,000.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-ee3ecfcb"><p class="cl-ee3eadce"><span class="cl-ee3b0b6a">lambda</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">0.010</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-ee3ecfcb"><p class="cl-ee3eadce"><span class="cl-ee3b0b6a">alpha</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">0.000</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">200.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-ee3ecfcb"><p class="cl-ee3eadce"><span class="cl-ee3b0b6a">delta</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">0.000</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">20.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-ee3ecfcb"><p class="cl-ee3eadce"><span class="cl-ee3b0b6a">tau</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">2.000</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">30.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-ee3ecfcb"><p class="cl-ee3eadce"><span class="cl-ee3b0b6a">omega</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">0.001</span></p></td><td class="cl-ee3ecfcc"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">0.5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-ee3ecfd4"><p class="cl-ee3eadce"><span class="cl-ee3b0b6a">y0</span></p></td><td class="cl-ee3ecfd5"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">10.000</span></p></td><td class="cl-ee3ecfd5"><p class="cl-ee3eadd8"><span class="cl-ee3b0b6a">1,000.0</span></p></td></tr></tbody></table></div>
+<div class="tabwid"><style>.cl-0fd6e8a2{}.cl-0fb7177a{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-0fd145aa{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-0fd145be{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-0fd170a2{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-0fd170ac{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-0fd170ad{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-0fd170ae{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-0fd170b6{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-0fd170b7{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-0fd6e8a2"><thead><tr style="overflow-wrap:break-word;"><th class="cl-0fd170a2"><p class="cl-0fd145aa"><span class="cl-0fb7177a">parameter</span></p></th><th class="cl-0fd170ac"><p class="cl-0fd145be"><span class="cl-0fb7177a">min</span></p></th><th class="cl-0fd170ac"><p class="cl-0fd145be"><span class="cl-0fb7177a">max</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-0fd170ad"><p class="cl-0fd145aa"><span class="cl-0fb7177a">theta</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">50.000</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">1,000.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-0fd170ad"><p class="cl-0fd145aa"><span class="cl-0fb7177a">lambda</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">0.010</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-0fd170ad"><p class="cl-0fd145aa"><span class="cl-0fb7177a">alpha</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">0.000</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">200.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-0fd170ad"><p class="cl-0fd145aa"><span class="cl-0fb7177a">delta</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">0.000</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">20.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-0fd170ad"><p class="cl-0fd145aa"><span class="cl-0fb7177a">tau</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">2.000</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">30.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-0fd170ad"><p class="cl-0fd145aa"><span class="cl-0fb7177a">omega</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">0.001</span></p></td><td class="cl-0fd170ae"><p class="cl-0fd145be"><span class="cl-0fb7177a">0.5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-0fd170b6"><p class="cl-0fd145aa"><span class="cl-0fb7177a">y0</span></p></td><td class="cl-0fd170b7"><p class="cl-0fd145be"><span class="cl-0fb7177a">10.000</span></p></td><td class="cl-0fd170b7"><p class="cl-0fd145be"><span class="cl-0fb7177a">1,000.0</span></p></td></tr></tbody></table></div>
 </div>
 </div>
 <p>For now, we only calibrate the model with MBaiki and Paracou.</p>
@@ -561,10 +567,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">type =</span> labs_type)</span>
 <span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-ℹ Please use `linewidth` instead.</code></pre>
-</div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -575,18 +577,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"prod"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Year, <span class="at">y =</span> obs)) <span class="sc">+</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot)) <span class="sc">+</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot)) <span class="sc">+</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot, <span class="at">y =</span> pred), <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="fu">expression</span>(<span class="st">"AGB productivity ["</span> <span class="sc">~</span> Mg <span class="sc">~</span> ha<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> yr<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> <span class="st">"]"</span>)) <span class="sc">+</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(Site <span class="sc">~</span> type,</span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>,</span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">type =</span> labs_type)</span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"prod"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Year, <span class="at">y =</span> obs)) <span class="sc">+</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot)) <span class="sc">+</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot)) <span class="sc">+</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot, <span class="at">y =</span> pred), <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="fu">expression</span>(<span class="st">"AGB productivity ["</span> <span class="sc">~</span> Mg <span class="sc">~</span> ha<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> yr<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> <span class="st">"]"</span>)) <span class="sc">+</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(Site <span class="sc">~</span> type,</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>,</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">type =</span> labs_type)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -598,18 +600,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"mort"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Year, <span class="at">y =</span> obs)) <span class="sc">+</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot)) <span class="sc">+</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot)) <span class="sc">+</span></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot, <span class="at">y =</span> pred), <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="fu">expression</span>(<span class="st">"AGB mortality ["</span> <span class="sc">~</span> Mg <span class="sc">~</span> ha<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> yr<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> <span class="st">"]"</span>)) <span class="sc">+</span></span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(Site <span class="sc">~</span> type,</span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>,</span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">type =</span> labs_type)</span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"mort"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Year, <span class="at">y =</span> obs)) <span class="sc">+</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot)) <span class="sc">+</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot)) <span class="sc">+</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> Plot, <span class="at">col =</span> Plot, <span class="at">y =</span> pred), <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="fu">expression</span>(<span class="st">"AGB mortality ["</span> <span class="sc">~</span> Mg <span class="sc">~</span> ha<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> yr<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> <span class="st">"]"</span>)) <span class="sc">+</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(Site <span class="sc">~</span> type,</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>,</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">type =</span> labs_type)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -1050,8 +1052,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./30_cwd_flux.html" class="pagination-link" aria-label="Functional composition changes">
-        <span class="nav-page-text">Functional composition changes</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./24_expl_variables.html" class="pagination-link" aria-label="Explanatory variables">
+        <span class="nav-page-text">Explanatory variables</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
