@@ -9,3 +9,173 @@ list.files("r", full.names = TRUE, pattern = ".R") %>%
 ```
 
 # Explanatory variables {.unnumbered}
+
+We chose the following summary statistics:
+
+-   the turnover rate $\omega$;
+
+-   the total over-productivity and over-mortality are estimated as the area under the curve of the short-term process:
+
+    -   $\frac{\delta e^2 \tau}{4}$ for productivity;
+
+    -   $\frac{\alpha}{\lambda}$ for mortality;
+
+-   the time taken to reach 95% of the total over-productivity and mortality (i.e. the duration of the change in fluxes):
+
+    -   the numerical solution to the equation: $e^{-\frac{2}{\tau} t_{95}}(\frac{t_{95}^2}{2\tau}+\frac{t_{95}}{2}+\frac{\tau}{4})=\frac{\tau}{80}$ for productivity;
+
+    -   $t_{95} = \frac{ln(20)}{\lambda}$ for mortality.
+
+```{r}
+#| message: false
+#| warning: false
+plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  select(site, plot, Year_of_harvest, Treatment)
+sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
+  filter(ncensus >= 10)
+data <- read.csv("data/derived_data/aggregated_data_v8.csv") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(Site %in% sites$Site) |>
+  filter(grepl("^agb", variable)) |>
+  pivot_wider(names_from = "variable", values_from = "value") |>
+  mutate(prod = agb_growth + agb_recr, mort = agb_mort, stocks = agb) |>
+  select(!contains("agb")) |>
+  pivot_longer(cols = c("stocks", "prod", "mort"), names_to = "variable") |>
+  mutate(Year_of_harvest = ifelse(Site == "Mbaiki" & Treatment == "Logging",
+    1985, Year_of_harvest
+  )) |>
+  mutate(trec = Year - Year_of_harvest)
+```
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+fit_flux_all <-
+  as_cmdstan_fit(list.files("chains/flux_all/", full.names = TRUE))
+site_plot_num <- data |>
+  filter(Treatment == "Logging" & trec > 3) |>
+  select(Site, Plot) |>
+  mutate(sitenum = as.numeric(as.factor(Site))) |>
+  mutate(plotnum = as.numeric(as.factor(paste(Site, Plot)))) |>
+  unique()
+
+alpha <- extract_draws(fit_flux_all, "alpha_p") |>
+  separate(variable, into = c(NA, NA, "plotnum", NA), remove = FALSE) |>
+  mutate(plotnum = as.numeric(plotnum)) |>
+  rename(alpha = value) |>
+  left_join(site_plot_num)
+lambda <- extract_draws(fit_flux_all, "lambda_s") |>
+  separate(variable, into = c(NA, NA, "sitenum", NA)) |>
+  mutate(sitenum = as.numeric(sitenum)) |>
+  rename(lambda = value) |>
+  left_join(unique(select(site_plot_num, contains("ite"))))
+tau <- extract_draws(fit_flux_all, "tau_s") |>
+  separate(variable, into = c(NA, NA, "sitenum", NA)) |>
+  mutate(sitenum = as.numeric(sitenum)) |>
+  rename(tau = value) |>
+  left_join(unique(select(site_plot_num, contains("ite"))))
+delta <- extract_draws(fit_flux_all, "delta_p") |>
+  separate(variable, into = c(NA, NA, "plotnum", NA), remove = FALSE) |>
+  mutate(plotnum = as.numeric(plotnum)) |>
+  rename(delta = value) |>
+  left_join(site_plot_num)
+
+int_p <- delta |>
+  inner_join(tau, by = join_by(Site, sitenum, iter)) |>
+  mutate(value = delta * exp(2) * tau / 4, variable = "int_p") |>
+  group_by(Site, Plot, variable) |>
+  summarise(
+    mean = mean(value),
+    median = median(value),
+    q5 = quantile(value, 0.05),
+    q95 = quantile(value, 0.95)
+  ) |>
+  select(Site, Plot, variable, mean, median, q5, q95)
+int_m <- alpha |>
+  inner_join(lambda, by = join_by(Site, sitenum, iter)) |>
+  mutate(value = alpha / lambda, variable = "int_m") |>
+  group_by(Site, Plot, variable) |>
+  summarise(
+    mean = mean(value),
+    median = median(value),
+    q5 = quantile(value, 0.05),
+    q95 = quantile(value, 0.95)
+  ) |>
+  select(Site, Plot, variable, mean, median, q5, q95)
+
+eq_t95_p <- function(x, tau) {
+  abs(exp(-2 / tau * x) * (x^2 / (2 * tau) + x / 2 + tau / 4) - tau / 80)
+}
+t95_p <- tau |>
+  group_by(Site, iter) |>
+  mutate(value = optimize(function(x) eq_t95_p(x, tau), c(0, 100))$minimum) |>
+  group_by(Site) |>
+  summarise(
+    mean = mean(value),
+    median = median(value),
+    q5 = quantile(value, 0.05),
+    q95 = quantile(value, 0.95)
+  ) |>
+  mutate(variable = "t95_p") |>
+  select(Site, variable, mean, median, q5, q95)
+t95_m <- lambda |>
+  mutate(value = log(20) / lambda) |>
+  group_by(Site) |>
+  summarise(
+    mean = mean(value),
+    median = median(value),
+    q5 = quantile(value, 0.05),
+    q95 = quantile(value, 0.95)
+  ) |>
+  mutate(variable = "t95_m") |>
+  select(Site, variable, mean, median, q5, q95)
+
+fit_flux_all$summary(variables = "omega_s") |>
+  separate(variable, into = c("variable", NA, "sitenum", NA)) |>
+  mutate(sitenum = as.numeric(sitenum)) |>
+  left_join(unique(select(site_plot_num, contains("ite")))) |>
+  select(Site, variable, mean, median, q5, q95) |>
+  bind_rows(int_p) |>
+  bind_rows(int_m) |>
+  bind_rows(t95_p) |>
+  bind_rows(t95_m) |>
+  write.csv("data/derived_data/params_flux_all.csv", row.names = FALSE)
+```
+
+```{r}
+#| message: false
+#| warning: false
+environ <- readr::read_tsv("data/raw_data/environment.tsv") |>
+  mutate(site = gsub("Tapajós km 67", "Tapajos Km67", site))
+params <- read.csv("data/derived_data/params_flux_all.csv")
+```
+
+```{r}
+#| message: false
+#| warning: false
+environ |>
+  group_by(site) |>
+  summarise(pr = mean(pr)) |>
+  inner_join(filter(params, variable == "omega"), by = join_by(site == Site)) |>
+  ggplot(aes(pr, median, col = site)) +
+  geom_pointrange(aes(ymin = q5, ymax = q95)) +
+  labs(x = "Mean annual precipitation [ mm ]", y = "AGB turnover rate") +
+  theme_minimal()
+```
+
+```{r}
+#| message: false
+#| warning: false
+environ |>
+  group_by(site) |>
+  summarise(pr = mean(pr)) |>
+  inner_join(filter(params, variable == "t95_p"), by = join_by(site == Site)) |>
+  ggplot(aes(pr, median, col = site)) +
+  geom_pointrange(aes(ymin = q5, ymax = q95)) +
+  labs(
+    x = "Mean annual precipitation [ mm ]",
+    y = "AGB overproductivity duration [ yr ]"
+  ) +
+  theme_minimal()
+```
