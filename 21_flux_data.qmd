@@ -125,5 +125,7 @@ data |>
 ```{r}
 #| message: false
 #| warning: false
-read.csv("data/derived_data/sites_to_keep.csv") |> kable()
+read.csv("data/derived_data/sites_to_keep.csv") |>
+  arrange(-ncensus) |>
+  kable()
 ```

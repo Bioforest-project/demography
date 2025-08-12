@@ -190,7 +190,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./30_cwd_flux.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Functional composition</span></a>
+ <span class="menu-text">Functional composition changes</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -413,7 +413,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read.csv</span>(<span class="st">"data/derived_data/sites_to_keep.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read.csv</span>(<span class="st">"data/derived_data/sites_to_keep.csv"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>ncensus) <span class="sc">|&gt;</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -428,46 +430,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">BAFOG</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">74.0</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;">Mbaiki</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">36.0</td>
 <td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Corinto</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">29.0</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">6</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Jari</td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">26.0</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">36</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Jenaro Herrera</td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">28.0</td>
-<td style="text-align: right;">2</td>
 <td style="text-align: right;">7</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;">Kabo</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">33.0</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">9</td>
-</tr>
 <tr class="even">
-<td style="text-align: left;">Kibale</td>
+<td style="text-align: left;">Paracou</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">35.0</td>
 <td style="text-align: right;">6</td>
-<td style="text-align: right;">52.0</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">15</td>
+<td style="text-align: right;">9</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Lesong</td>
@@ -477,39 +451,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Mbaiki</td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">36.0</td>
+<td style="text-align: left;">Ulu Muda</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">25.0</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: right;">7</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Misiones</td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">19.5</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">14</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Montagne Tortue</td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">18.0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Paracou</td>
-<td style="text-align: right;">22</td>
-<td style="text-align: right;">35.0</td>
 <td style="text-align: right;">6</td>
-<td style="text-align: right;">9</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">STREK</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">33.0</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">9</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Sungai Lalang</td>
@@ -519,25 +465,81 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: right;">6</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Tapajos Km114</td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">30.0</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">48</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;">Tapajos Km67</td>
 <td style="text-align: right;">11</td>
 <td style="text-align: right;">36.0</td>
 <td style="text-align: right;">18</td>
 <td style="text-align: right;">48</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;">Ulu Muda</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">25.0</td>
+<tr class="odd">
+<td style="text-align: left;">Corinto</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">29.0</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">BAFOG</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">74.0</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Jenaro Herrera</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">28.0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Montagne Tortue</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Jari</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">26.0</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">36</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Misiones</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">19.5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tapajos Km114</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">30.0</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">48</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Kibale</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">52.0</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">STREK</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">33.0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Kabo</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">33.0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">9</td>
 </tr>
 </tbody>
 </table>

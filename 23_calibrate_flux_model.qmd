@@ -68,13 +68,15 @@ bounds |>
   flextable()
 ```
 
-For now, we only calibrate the model with MBaiki and Paracou.
+For now, we only calibrate the model with sites that meet all the criteria listed [here](https://bioforest-project.github.io/demography/21_flux_data.html), and that have at least 10 censuses.
 
 ```{r}
 #| message: false
 #| warning: false
+sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
+  filter(ncensus >= 10)
 data <- data |>
-  filter(Site %in% c("Mbaiki", "Paracou"))
+  filter(Site %in% sites$Site)
 ```
 
 ```{r}
@@ -232,20 +234,21 @@ The predicted flux and stocks trajectories look consistent with the data.
 ```{r}
 #| message: false
 #| warning: false
-#| fig-width: 8
-#| fig-height: 8
+#| fig-width: 7
+#| fig-height: 10
 #| fig-cap: "Predicted trajectories in Paracou and Mbaiki."
 
-labs_type <- c(old = "Old-growth and pre-logging", rec = "Logged")
+labs_type <- c(equ = "Old-growth and pre-logging", rec = "Logged")
 
 pov_data |>
-  subset(variable == "stocks" & Site %in% c("Paracou", "Mbaiki", "Lesong")) |>
+  subset(variable == "stocks") |>
   ggplot(aes(Year, y = obs)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
   geom_point(aes(group = Plot, col = Plot)) +
   geom_line(aes(group = Plot, col = Plot)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
-  ylab(expression("Basal area [" ~ m^2 ~ ha^-1 ~ "]")) +
+  ylab(expression("AGB [" ~ Mg ~ ha^-1 ~ "]")) +
   theme_bw() +
+  theme(legend.position = "none") +
   facet_grid(Site ~ type,
     scales = "free",
     labeller = labeller(type = labs_type)
@@ -254,11 +257,12 @@ pov_data |>
 pov_data |>
   subset(variable == "prod") |>
   ggplot(aes(Year, y = obs)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
   geom_point(aes(group = Plot, col = Plot)) +
   geom_line(aes(group = Plot, col = Plot)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
   ylab(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]")) +
   theme_bw() +
+  theme(legend.position = "none") +
   facet_grid(Site ~ type,
     scales = "free",
     labeller = labeller(type = labs_type)
@@ -267,11 +271,12 @@ pov_data |>
 pov_data |>
   subset(variable == "mort") |>
   ggplot(aes(Year, y = obs)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
   geom_point(aes(group = Plot, col = Plot)) +
   geom_line(aes(group = Plot, col = Plot)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
   ylab(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]")) +
   theme_bw() +
+  theme(legend.position = "none") +
   facet_grid(Site ~ type,
     scales = "free",
     labeller = labeller(type = labs_type)
