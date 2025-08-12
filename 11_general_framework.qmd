@@ -52,13 +52,13 @@ digraph {
   node [shape = ellipse, fillcolor='whitesmoke']
   {rank=same
   closure[label='Canopy\nclosure']
-  vmax[label='Asymptotic\nparameters*']
+  vmax[label='Equilibrium\nturnover\nrate']
   }
 
   intensity -> closure
   closure -> {ba_in cwm}
-  vmax -> {ba_out ba_in cwm div}
-  env -> {closure vmax}
+  vmax -> {ba_out ba_in}
+  env -> {cwm div vmax}
   cwm -> {ba_in ba_out div}
   ba_stock -> closure
 
@@ -68,10 +68,6 @@ digraph {
   edge [style = dashed]
   ba_in -> ba_stock
   ba_out -> ba_stock
-
-  node [shape = plaintext, fillcolor='white']
-  legend[label='*Asymptotic stocks: carrying capacity
-  or fluxes: equilibrium turnover rate']
 }
 ")
 ```
