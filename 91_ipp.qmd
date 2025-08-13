@@ -7,7 +7,7 @@
 
 $$\int STP = \delta \cdot e^2 \int \left(\left(\frac{x}{\tau}\right)^2 e^{-\frac{2}{\tau}x}\right) dx $$
 
-IPP: we use \$u' = \frac{2x}{\tau^2}\$ and $v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}$
+IPP: we use $u' = \frac{2x}{\tau^2}$ and $v = -\frac{\tau}{2} \cdot e^{-\frac{2}{\tau}x}$
 
 $$\int STP = \delta \cdot e^2 \left( uv - \int u'v \right) + C$$
 

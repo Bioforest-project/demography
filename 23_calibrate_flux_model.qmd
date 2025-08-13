@@ -227,6 +227,30 @@ pov_data |>
   facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
 ```
 
+
+The equilibrium AGB estimated in the logged plots is consistent overall with the control plots, except in the Malaysian sites (Lesong, Sungai Lalang and Ulu Muda), where it is significantly lower. 
+
+```{r}
+#| message: false
+#| warning: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+data.frame(
+  site = levels(as.factor(data_old$Site))[ind_rec$sitenum],
+  theta_rec = fit_flux_all$summary(c("theta_log"), median)$median,
+  theta_equ =
+    fit_flux_all$summary(c("theta_s"), median)$median[ind_rec$sitenum]
+) |>
+  ggplot(aes(theta_equ, theta_rec, col = site)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, lty = 2) +
+  labs(x = "Equilibrium AGB - controls", y = "Equilibrium AGB - logged") +
+  theme_minimal()
+```
+
+
 ### Visualising the trajectories
 
 The predicted flux and stocks trajectories look consistent with the data.
@@ -234,51 +258,16 @@ The predicted flux and stocks trajectories look consistent with the data.
 ```{r}
 #| message: false
 #| warning: false
-#| fig-width: 7
-#| fig-height: 10
-#| fig-cap: "Predicted trajectories in Paracou and Mbaiki."
-
-labs_type <- c(equ = "Old-growth and pre-logging", rec = "Logged")
-
+#| fig-width: 10
+#| fig-height: 8
+#| fig-cap: "Predicted trajectories."
 pov_data |>
   subset(variable == "stocks") |>
-  ggplot(aes(Year, y = obs)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
-  geom_point(aes(group = Plot, col = Plot)) +
-  geom_line(aes(group = Plot, col = Plot)) +
-  ylab(expression("AGB [" ~ Mg ~ ha^-1 ~ "]")) +
-  theme_bw() +
-  theme(legend.position = "none") +
-  facet_grid(Site ~ type,
-    scales = "free",
-    labeller = labeller(type = labs_type)
-  )
-
+  graph_traj(expression("AGB [" ~ Mg ~ ha^-1 ~ "]"))
 pov_data |>
   subset(variable == "prod") |>
-  ggplot(aes(Year, y = obs)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
-  geom_point(aes(group = Plot, col = Plot)) +
-  geom_line(aes(group = Plot, col = Plot)) +
-  ylab(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]")) +
-  theme_bw() +
-  theme(legend.position = "none") +
-  facet_grid(Site ~ type,
-    scales = "free",
-    labeller = labeller(type = labs_type)
-  )
-
+  graph_traj(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 pov_data |>
   subset(variable == "mort") |>
-  ggplot(aes(Year, y = obs)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
-  geom_point(aes(group = Plot, col = Plot)) +
-  geom_line(aes(group = Plot, col = Plot)) +
-  ylab(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]")) +
-  theme_bw() +
-  theme(legend.position = "none") +
-  facet_grid(Site ~ type,
-    scales = "free",
-    labeller = labeller(type = labs_type)
-  )
+  graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 ```

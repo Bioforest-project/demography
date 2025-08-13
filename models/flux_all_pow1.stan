@@ -58,18 +58,16 @@ parameters {
   real<lower=0> sigma_out;
 }
 transformed parameters {
-  vector[p_log] theta_log = y0_p + exp(2) ./ 4 .* delta_p .* tau_s[site_plot] + 
-    alpha_p ./ lambda_s[site_plot];
+  vector[p_log] theta_log = y0_p + alpha_p ./ lambda_s[site_plot] + 
+    delta_p .* tau_s[site_plot].* exp(1);
   vector[n_log] mu_y_log = y0_p[plot_log] + 
-    alpha_p[plot_log]./lambda_s[site_log].*(1-exp(-lambda_s[site_log].* time)) +
-    delta_p[plot_log] .* tau_s[site_log] .* exp(2) ./ 4 - 
-    delta_p[plot_log] .* exp((1 - time ./ tau_s[site_log]) .* 2) .*
-    (time.*time ./ (2 .* tau_s[site_log]) + time ./ 2 + tau_s[site_log] ./ 4) ;
-  vector[n_log] mu_in_log = omega_s[site_log] .* mu_y_log + 
-    delta_p[plot_log] .*((time .* time) ./ (tau_s[site_log].*tau_s[site_log]) .*
-    exp(2 .* (1 - time ./ tau_s[site_log])));
-  vector[n_log] mu_out_log = omega_s[site_log] .* mu_y_log + alpha_p[plot_log] .* 
-    exp(-lambda_s[site_log].*time);
+    delta_p[plot_log].* exp(1) .* (tau_s[site_log] - (time + tau_s[site_log]) .* 
+    exp(- time ./ tau_s[site_log])) +
+    alpha_p[plot_log]./lambda_s[site_log].*(1-exp(-lambda_s[site_log].*time));
+  vector[n_log] mu_in_log = omega_s[site_log] .* mu_y_log + delta_p[plot_log] .*
+    (time ./ tau_s[site_log]) .* exp(1 - time ./ tau_s[site_log]);
+  vector[n_log] mu_out_log = omega_s[site_log] .* mu_y_log + 
+    alpha_p[plot_log] .* exp(-lambda_s[site_log].*time);
 }
 model {
   log(y_log) ~ normal(log(mu_y_log), sigma_y);
