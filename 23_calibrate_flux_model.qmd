@@ -19,14 +19,13 @@ list.files("r", full.names = TRUE, pattern = ".R") %>%
 ```{r}
 #| message: false
 #| warning: false
-data <- read.csv("data/derived_data/aggregated_data_v8.csv")
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
-sites_to_keep <- read.csv("data/derived_data/sites_to_keep.csv")
 
-data <- read.csv("data/derived_data/aggregated_data_v8.csv") |>
+data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
-  filter(Site %in% sites_to_keep$Site) |>
   filter(grepl("^agb", variable)) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   mutate(prod = agb_growth + agb_recr, mort = agb_mort, stocks = agb) |>
@@ -36,6 +35,17 @@ data <- read.csv("data/derived_data/aggregated_data_v8.csv") |>
     1985, Year_of_harvest
   )) |>
   mutate(trec = Year - Year_of_harvest)
+```
+
+For now, we only calibrate the model with sites that meet all the criteria listed [here](https://bioforest-project.github.io/demography/21_flux_data.html), and that have at least 10 censuses.
+
+```{r}
+#| message: false
+#| warning: false
+sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
+  filter(ncensus >= 10)
+data <- data |>
+  filter(Site %in% sites$Site)
 ```
 
 ## Model
@@ -68,16 +78,6 @@ bounds |>
   flextable()
 ```
 
-For now, we only calibrate the model with sites that meet all the criteria listed [here](https://bioforest-project.github.io/demography/21_flux_data.html), and that have at least 10 censuses.
-
-```{r}
-#| message: false
-#| warning: false
-sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
-  filter(ncensus >= 10)
-data <- data |>
-  filter(Site %in% sites$Site)
-```
 
 ```{r}
 #| message: false
@@ -87,7 +87,7 @@ data_rec <- data |>
   subset(Treatment == "Logging" & trec > 3) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
-  mutate(plotnum = as.numeric(as.factor(paste(Site, Plot))))
+  mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))
 data_old <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
   subset(Treatment == "Control" | trec < 0) |>
@@ -136,7 +136,6 @@ The resulting Stan fit summary is presented below.
 ```{r}
 #| message: false
 #| warning: false
-
 fit_flux_all <- as_cmdstan_fit(
   list.files("chains/flux_all/", full.names = TRUE)
 )
@@ -149,14 +148,12 @@ The main parameter values are consistent with our expectations.
 ```{r}
 #| message: false
 #| warning: false
-c("lambda_s") |>
-  fit_flux_all$summary()
-c("tau_s") |>
-  fit_flux_all$summary()
-c("theta_s") |>
-  fit_flux_all$summary()
-c("omega_s") |>
-  fit_flux_all$summary()
+c("lambda_s", "tau_s", "theta_s", "omega_s") |>
+  fit_flux_all$summary() |>
+  separate(variable, c("variable", NA, "sitenum")) |>
+  mutate(sitenum = as.numeric(sitenum)) |>
+  left_join(unique(data_old[, c("sitenum", "Site")])) |>
+  select(variable, Site, mean, median, q5, q95, rhat)
 ```
 
 The goodness of fit is satisfactory.
@@ -263,11 +260,14 @@ The predicted flux and stocks trajectories look consistent with the data.
 #| fig-cap: "Predicted trajectories."
 pov_data |>
   subset(variable == "stocks") |>
+  mutate(Plot = plot_new) |>
   graph_traj(expression("AGB [" ~ Mg ~ ha^-1 ~ "]"))
 pov_data |>
   subset(variable == "prod") |>
+  mutate(Plot = plot_new) |>
   graph_traj(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 pov_data |>
   subset(variable == "mort") |>
+  mutate(Plot = plot_new) |>
   graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 ```

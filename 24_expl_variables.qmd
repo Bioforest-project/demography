@@ -16,15 +16,15 @@ We chose the following summary statistics:
 
 -   the total over-productivity and over-mortality are estimated as the area under the curve of the short-term process:
 
-    -   $\frac{\delta e^2 \tau}{4}$ for productivity;
+-   $\frac{\delta e^2 \tau}{4}$ for productivity;
 
-    -   $\frac{\alpha}{\lambda}$ for mortality;
+-   $\frac{\alpha}{\lambda}$ for mortality;
 
 -   the time taken to reach 95% of the total over-productivity and mortality (i.e. the duration of the change in fluxes):
 
-    -   the numerical solution to the equation: $e^{-\frac{2}{\tau} t_{95}}(\frac{t_{95}^2}{2\tau}+\frac{t_{95}}{2}+\frac{\tau}{4})=\frac{\tau}{80}$ for productivity;
+-   the numerical solution to the equation: $e^{-\frac{2}{\tau} t_{95}}(\frac{t_{95}^2}{2\tau}+\frac{t_{95}}{2}+\frac{\tau}{4})=\frac{\tau}{80}$ for productivity;
 
-    -   $t_{95} = \frac{ln(20)}{\lambda}$ for mortality.
+-   $t_{95} = \frac{ln(20)}{\lambda}$ for mortality.
 
 ```{r}
 #| message: false
@@ -33,7 +33,9 @@ plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
 sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
   filter(ncensus >= 10)
-data <- read.csv("data/derived_data/aggregated_data_v8.csv") |>
+data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   filter(Site %in% sites$Site) |>
   filter(grepl("^agb", variable)) |>
@@ -55,9 +57,9 @@ fit_flux_all <-
   as_cmdstan_fit(list.files("chains/flux_all/", full.names = TRUE))
 site_plot_num <- data |>
   filter(Treatment == "Logging" & trec > 3) |>
-  select(Site, Plot) |>
+  select(Site, plot_new) |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
-  mutate(plotnum = as.numeric(as.factor(paste(Site, Plot)))) |>
+  mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new)))) |>
   unique()
 
 alpha <- extract_draws(fit_flux_all, "alpha_p") |>
@@ -84,25 +86,25 @@ delta <- extract_draws(fit_flux_all, "delta_p") |>
 int_p <- delta |>
   inner_join(tau, by = join_by(Site, sitenum, iter)) |>
   mutate(value = delta * exp(2) * tau / 4, variable = "int_p") |>
-  group_by(Site, Plot, variable) |>
+  group_by(Site, plot_new, variable) |>
   summarise(
     mean = mean(value),
     median = median(value),
     q5 = quantile(value, 0.05),
     q95 = quantile(value, 0.95)
   ) |>
-  select(Site, Plot, variable, mean, median, q5, q95)
+  select(Site, plot_new, variable, mean, median, q5, q95)
 int_m <- alpha |>
   inner_join(lambda, by = join_by(Site, sitenum, iter)) |>
   mutate(value = alpha / lambda, variable = "int_m") |>
-  group_by(Site, Plot, variable) |>
+  group_by(Site, plot_new, variable) |>
   summarise(
     mean = mean(value),
     median = median(value),
     q5 = quantile(value, 0.05),
     q95 = quantile(value, 0.95)
   ) |>
-  select(Site, Plot, variable, mean, median, q5, q95)
+  select(Site, plot_new, variable, mean, median, q5, q95)
 
 eq_t95_p <- function(x, tau) {
   abs(exp(-2 / tau * x) * (x^2 / (2 * tau) + x / 2 + tau / 4) - tau / 80)
@@ -143,6 +145,8 @@ fit_flux_all$summary(variables = "omega_s") |>
   write.csv("data/derived_data/params_flux_all.csv", row.names = FALSE)
 ```
 
+## Effect of environmental variables 
+
 ```{r}
 #| message: false
 #| warning: false
@@ -179,3 +183,30 @@ environ |>
   ) +
   theme_minimal()
 ```
+
+## Effect of logging intensity
+
+```{r}
+#| message: false
+#| warning: false
+read.csv("data/derived_data/aggregated_data_v9.csv") |>
+  filter(Site %in% sites$Site & variable == "ba") |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  group_by(Site, plot_new, Treatment) |>
+  summarise(
+    ba_0 = value[Year == min(Year)],
+    ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
+  ) |>
+  mutate(intensity = (ba_0 - ba_min) / ba_0) |>
+  inner_join(filter(params, variable == "int_p")) |>
+  ggplot(aes(intensity * 100, median, col = Site)) +
+  geom_pointrange(aes(ymin = q5, ymax = q95)) +
+  labs(
+    x = "Logging intensity [% BA loss]",
+    y = "AGB total overproductivity [Mg/ha]"
+  ) +
+  theme_minimal()
+```
+
