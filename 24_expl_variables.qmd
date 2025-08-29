@@ -150,8 +150,7 @@ fit_flux_all$summary(variables = "omega_s") |>
 ```{r}
 #| message: false
 #| warning: false
-environ <- readr::read_tsv("data/raw_data/environment.tsv") |>
-  mutate(site = gsub("Tapajós km 67", "Tapajos Km67", site))
+environ <- readr::read_tsv("data/raw_data/environment.tsv")
 params <- read.csv("data/derived_data/params_flux_all.csv")
 ```
 

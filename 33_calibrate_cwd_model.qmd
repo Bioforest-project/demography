@@ -1,0 +1,89 @@
+```{r setup}
+#| message: false
+#| warning: false
+#| include: false
+
+library(tidyverse)
+library(cmdstanr)
+library(bayesplot)
+library(patchwork)
+library(flextable)
+list.files("r", full.names = TRUE, pattern = ".R") %>%
+  lapply(source)
+```
+
+# Model calibration {.unnumbered}
+
+## Data
+
+```{r}
+#| message: false
+#| warning: false
+plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  select(site, plot, Year_of_harvest, Treatment)
+data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(grepl("cwmdiff", variable)) |>
+  separate(variable, c("trait", NA, "flux"), sep = "_")
+```
+
+For now, we only calibrate the model with sites that have censuses every one to two years (Paracou, Mbaiki and SUAS).
+
+```{r}
+#| message: false
+#| warning: false
+data <- data |>
+  filter(Site %in% c("Paracou", "Mbaiki", "SUAS"))
+```
+
+## Model
+
+```{r fit_flux_model}
+#| message: false
+#| warning: false
+#| eval: false
+data_rec <- data |>
+  mutate(trec = Year - Year_of_harvest) |>
+  filter(Treatment == "Logging" & trec > 3) |>
+  filter(Site == "Paracou" & trait == "WD" & flux == "all") |>
+  mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))
+mdata_cwd <- list(
+  N = nrow(data_rec),
+  K = 2,
+  P = max(data_rec$plotnum),
+  y = data_rec$value,
+  plot = data_rec$plotnum,
+  time = data_rec$trec
+)
+sample_model("exp_spline", mdata_cwd)
+```
+
+The resulting Stan fit summary is presented below.
+
+```{r}
+#| message: false
+#| warning: false
+fit_flux_cwd <- as_cmdstan_fit(
+  list.files("chains/exp_spline/", full.names = TRUE)
+)
+fit_flux_cwd
+mcmc_trace(fit_flux_cwd$draws(variables = c("lp__")))
+c("tau", "delta", "nu") |>
+  fit_flux_cwd$summary()
+```
+
+```{r}
+data |>
+  mutate(trec = Year - Year_of_harvest) |>
+  filter(Treatment == "Logging" & trec > 3) |>
+  filter(Site == "Paracou" & trait == "WD" & flux == "all") |>
+  mutate(med = fit_flux_cwd$summary("mu")$median) |>
+  mutate(q5 = fit_flux_cwd$summary("mu")$q5) |>
+  mutate(q95 = fit_flux_cwd$summary("mu")$q95) |>
+  ggplot(aes(trec, value, col = plot_new)) +
+  geom_point() +
+  geom_line(aes(y = med))
+```
+

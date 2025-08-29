@@ -17,6 +17,7 @@ book:
     - part: 30_cwd_flux.qmd
       chapters:
         - 31_cwd_productivity.qmd
+        - 33_calibrate_cwd_model.qmd
   appendices:
     - 91_ipp.qmd
     - 92_diff_equa.qmd
