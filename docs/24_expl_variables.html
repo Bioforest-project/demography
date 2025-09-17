@@ -231,6 +231,12 @@ window.Quarto = {
  <span class="menu-text">Composition change data</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./33_calibrate_cwd_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Model calibration</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -489,7 +495,7 @@ window.Quarto = {
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_0 =</span> value[Year <span class="sc">==</span> <span class="fu">min</span>(Year)],</span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_min =</span> <span class="fu">min</span>(value[Year <span class="sc">&gt;</span> Year_of_harvest <span class="sc">&amp;</span> Year <span class="sc">&lt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">5</span>])</span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">intensity =</span> (ba_0 <span class="sc">-</span> ba_min) <span class="sc">/</span> ba_0) <span class="sc">|&gt;</span> </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">intensity =</span> (ba_0 <span class="sc">-</span> ba_min) <span class="sc">/</span> ba_0) <span class="sc">|&gt;</span></span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(<span class="fu">filter</span>(params, variable <span class="sc">==</span> <span class="st">"int_p"</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(intensity <span class="sc">*</span> <span class="dv">100</span>, median, <span class="at">col =</span> Site)) <span class="sc">+</span></span>
 <span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> q5, <span class="at">ymax =</span> q95)) <span class="sc">+</span></span>

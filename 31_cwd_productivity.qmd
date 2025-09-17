@@ -42,153 +42,89 @@ data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
 
 ### Annual changes
 
+::: panel-tabset
+
 ```{r}
+#| results: asis
 #| message: false
 #| warning: false
-#| fig.height:  8
-#| fig.width: 12
+#| fig.height: 7
+#| fig.width: 10
+
+sites <- c("Paracou", "Mbaiki", "SUAS")
 labs_flux <- c(
   all = "Change in CWM",
   rba = "Contribution of recruitment",
   gba = "Contribution of growth",
   mba = "Contribution of mortality"
 )
-data |>
-  filter(Site == "Paracou") |>
-  ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
-  geom_line() +
-  geom_point() +
-  facet_grid(trait ~ flux,
-    scales = "free",
-    labeller = labeller(flux = labs_flux)
-  ) +
-  labs(y = NULL, x = NULL) +
-  theme_minimal()
-```
-
-```{r}
-#| message: false
-#| warning: false
-#| fig.height:  8
-#| fig.width: 12
-labs_flux <- c(
-  all = "Change in CWM", rba = "Contribution of recruitment",
-  gba = "Contribution of growth",
-  mba = "Contribution of mortality"
+purrr::walk(
+  sites,
+  \(s) {
+    cat("#### ", s, "\n\n")
+    print(
+      data |>
+        filter(Site == s) |>
+        ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
+        geom_line() +
+        geom_point() +
+        facet_grid(trait ~ flux,
+          scales = "free",
+          labeller = labeller(flux = labs_flux)
+        ) +
+        labs(y = NULL, x = NULL) +
+        theme_minimal()
+    )
+    cat("\n\n")
+  }
 )
-data |>
-  filter(Site == "Mbaiki") |>
-  ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
-  geom_line() +
-  geom_point() +
-  facet_grid(trait ~ flux,
-    scales = "free",
-    labeller = labeller(flux = labs_flux)
-  ) +
-  labs(y = NULL, x = NULL) +
-  theme_minimal()
 ```
 
-```{r}
-#| message: false
-#| warning: false
-#| fig.height:  8
-#| fig.width: 12
-labs_flux <- c(
-  all = "Change in CWM", rba = "Contribution of recruitment",
-  gba = "Contribution of growth",
-  mba = "Contribution of mortality"
-)
-data |>
-  filter(Site == "SUAS") |>
-  ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
-  geom_line() +
-  geom_point() +
-  facet_grid(trait ~ flux,
-    scales = "free",
-    labeller = labeller(flux = labs_flux)
-  ) +
-  labs(y = NULL, x = NULL) +
-  theme_minimal()
-```
+:::
 
-## Cumulative changes
+
+### Cumulative changes
+
+
+::: panel-tabset
 
 ```{r}
+#| results: asis
 #| message: false
 #| warning: false
-#| fig.height:  8
-#| fig.width: 12
+#| fig.height: 7
+#| fig.width: 10
+
+sites <- c("Paracou", "Mbaiki", "SUAS")
 labs_flux <- c(
   all = "Change in CWM",
   rba = "Contribution of recruitment",
   gba = "Contribution of growth",
   mba = "Contribution of mortality"
 )
-data |>
-  filter(Site == "Paracou") |>
-  arrange(Site, plot_new, Year) |>
-  group_by(Site, plot_new, trait, flux) |>
-  mutate(value_cum = cumsum(value)) |>
-  ggplot(aes(x = Year, y = value_cum, group = plot_new, col = Treatment)) +
-  geom_line() +
-  geom_point() +
-  facet_grid(trait ~ flux,
-    scales = "free",
-    labeller = labeller(flux = labs_flux)
-  ) +
-  labs(y = NULL, x = NULL) +
-  theme_minimal()
+purrr::walk(
+  sites,
+  \(s) {
+    cat("#### ", s, "\n\n")
+    print(
+      data |>
+        filter(Site == s) |>
+        arrange(Site, plot_new, Year) |>
+        group_by(Site, plot_new, trait, flux) |>
+        mutate(value = cumsum(value)) |>
+        ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
+        geom_line() +
+        geom_point() +
+        facet_grid(trait ~ flux,
+          scales = "free",
+          labeller = labeller(flux = labs_flux)
+        ) +
+        labs(y = NULL, x = NULL) +
+        theme_minimal()
+    )
+    cat("\n\n")
+  }
+)
 ```
 
-```{r}
-#| message: false
-#| warning: false
-#| fig.height:  8
-#| fig.width: 12
-labs_flux <- c(
-  all = "Change in CWM", rba = "Contribution of recruitment",
-  gba = "Contribution of growth",
-  mba = "Contribution of mortality"
-)
-data |>
-  filter(Site == "Mbaiki") |>
-  arrange(Site, plot_new, Year) |>
-  group_by(Site, plot_new, trait, flux) |>
-  mutate(value_cum = cumsum(value)) |>
-  ggplot(aes(x = Year, y = value_cum, group = plot_new, col = Treatment)) +
-  geom_line() +
-  geom_point() +
-  facet_grid(trait ~ flux,
-    scales = "free",
-    labeller = labeller(flux = labs_flux)
-  ) +
-  labs(y = NULL, x = NULL) +
-  theme_minimal()
-```
-
-```{r}
-#| message: false
-#| warning: false
-#| fig.height:  8
-#| fig.width: 12
-labs_flux <- c(
-  all = "Change in CWM", rba = "Contribution of recruitment",
-  gba = "Contribution of growth",
-  mba = "Contribution of mortality"
-)
-data |>
-  filter(Site == "SUAS") |>
-  arrange(Site, plot_new, Year) |>
-  group_by(Site, plot_new, trait, flux) |>
-  mutate(value_cum = cumsum(value)) |>
-  ggplot(aes(x = Year, y = value_cum, group = plot_new, col = Treatment)) +
-  geom_line() +
-  geom_point() +
-  facet_grid(trait ~ flux,
-    scales = "free",
-    labeller = labeller(flux = labs_flux)
-  ) +
-  labs(y = NULL, x = NULL) +
-  theme_minimal()
-```
+:::
