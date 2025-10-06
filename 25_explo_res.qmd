@@ -15,38 +15,41 @@ library(tidyverse)
 environ <- readr::read_tsv("data/raw_data/environment.tsv")
 params <- read_csv("data/derived_data/params_flux_all.csv")
 
-site_info <- read.csv("data/derived_data/sites_to_keep.csv")  %>% 
-  filter(ncensus >= 10) %>% 
-  mutate(continent = 
-           case_when(Site %in% c("Corinto", "Paracou", "Tapajos Km67") 
-                     ~ "America",
-                     Site %in% c("Lesong", "SUAS", "Sungai Lalang", "Ulu Muda") 
-                     ~ "Asia",
-                     Site %in% c("Mbaiki") 
-                     ~ "Africa")) %>% 
+site_info <- read.csv("data/derived_data/sites_to_keep.csv") %>%
+  filter(ncensus >= 10) %>%
+  mutate(
+    continent =
+      case_when(
+        Site %in% c("Corinto", "Paracou", "Tapajos Km67")
+        ~ "America",
+        Site %in% c("Lesong", "SUAS", "Sungai Lalang", "Ulu Muda")
+        ~ "Asia",
+        Site %in% c("Mbaiki")
+        ~ "Africa"
+      )
+  ) %>%
   left_join(environ, by = c("Site" = "site"))
 
-plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv")  %>% 
+plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") %>%
   select(site, plot, Year_of_harvest, Treatment)
 
-plot_info <- read_csv("data/derived_data/aggregated_data_v9.csv")  %>% 
-  filter(Site %in% site_info$Site & variable == "ba")  %>% 
-  mutate(plot_new = Plot)  %>% 
-  separate(Plot, "Plot", "_")  %>% 
-  left_join(plot_info, by = join_by(Site == site, Plot == plot))  %>% 
-  # mutate(trec = Year - Year_of_harvest) %>% 
-  group_by(Site, plot_new, Treatment, Year_of_harvest)  %>% 
+plot_info <- read_csv("data/derived_data/aggregated_data_v9.csv") %>%
+  filter(Site %in% site_info$Site & variable == "ba") %>%
+  mutate(plot_new = Plot) %>%
+  separate(Plot, "Plot", "_") %>%
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) %>%
+  # mutate(trec = Year - Year_of_harvest) %>%
+  group_by(Site, plot_new, Treatment, Year_of_harvest) %>%
   summarise(
     ba_0 = value[Year == min(Year)],
-    ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5]) #,
-   # first_post = min(trec[trec >0])
-  )  %>% 
+    ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5]) # ,
+    # first_post = min(trec[trec >0])
+  ) %>%
   mutate(intensity = (ba_0 - ba_min) / ba_0)
 
-data_explo <- params %>% 
-  left_join(site_info) %>% 
+data_explo <- params %>%
+  left_join(site_info) %>%
   left_join(plot_info)
-
 ```
 
 ## Variability of duration of over-mortality
@@ -54,8 +57,9 @@ data_explo <- params %>%
 We expect over-mortality to be due to the delayed mortality of damaged trees and to gap contagion (due to increased mortality at the edge of the gaps).
 
 ```{r}
-data_explo %>% filter(variable == "t95_m") %>% 
-  arrange(median) %>% 
+data_explo %>%
+  filter(variable == "t95_m") %>%
+  arrange(median) %>%
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
@@ -71,14 +75,14 @@ We expect it to be quite consistent between sites => not confirmed, the sites ha
 This is not due to the timing of the censuses after logging: 
 
 ```{r}
-read_csv("data/derived_data/aggregated_data_v9.csv") %>% 
-  filter(Site %in% site_info$Site & variable == "ba")  %>% 
-  mutate(plot_new = Plot)  %>% 
-  separate(Plot, "Plot", "_")  %>% 
-  left_join(plot_info)  %>% 
-  mutate(trec = Year - Year_of_harvest) %>% 
-  filter(trec > 0 & trec < 6) %>% 
-  group_by(Site) %>% 
+read_csv("data/derived_data/aggregated_data_v9.csv") %>%
+  filter(Site %in% site_info$Site & variable == "ba") %>%
+  mutate(plot_new = Plot) %>%
+  separate(Plot, "Plot", "_") %>%
+  left_join(plot_info) %>%
+  mutate(trec = Year - Year_of_harvest) %>%
+  filter(trec > 0 & trec < 6) %>%
+  group_by(Site) %>%
   summarise(trec = paste(unique(trec), collapse = ", "))
 ```
 
@@ -92,8 +96,8 @@ Over-productivity is due to the opening of the canopy cover that increases the g
 
 ```{r}
 data_explo %>%
-  filter(variable == "t95_p") %>% 
-  arrange(median) %>% 
+  filter(variable == "t95_p") %>%
+  arrange(median) %>%
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
@@ -116,21 +120,25 @@ We expect the variability of the duration of over-productivity to depends on
 
 ```{r}
 data_explo %>%
-  filter(variable == "t95_p") %>% 
-  select(Site, median, q5, q95, plot_new,
-  continent, 
-  et, cwd, pr, tmax, vpd, soil, dsl, dsi) %>% 
-  pivot_longer(et : dsi, names_to = "var_clim", values_to = "value") %>% 
-  ggplot(aes(x = value, y = median)) + 
-  geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) + 
-  geom_smooth(method = "lm", se = FALSE, 
-  size = 0.5 , col = "grey", linetype = "dashed") + 
+  filter(variable == "t95_p") %>%
+  select(
+    Site, median, q5, q95, plot_new,
+    continent,
+    et, cwd, pr, tmax, vpd, soil, dsl, dsi
+  ) %>%
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
+  ggplot(aes(x = value, y = median)) +
+  geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+  ) +
   labs(
     x = "",
     y = "Duration of over-productivity (t95, in years)"
-  ) + 
-  facet_wrap(~ var_clim, scales = "free_x") + 
-  theme_bw() + 
+  ) +
+  facet_wrap(~var_clim, scales = "free_x") +
+  theme_bw() +
   theme(legend_position = "bottom")
 ```
 

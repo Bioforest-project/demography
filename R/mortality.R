@@ -13,6 +13,6 @@ mortality <- function(x,
     ((theta0 - thetainf) * lambda) / (omega * lambda - 1) * exp(-lambda * x) +
     (exp(1 - x / tau))^2 * (2 * delta * thetainf) /
       (tau^2 * (2 * omega - tau)) * (x^2 - x * 4 / (2 * omega - tau) +
-                                       8 / (2 * omega - tau)^2)
+        8 / (2 * omega - tau)^2)
   return(omega * stocks)
 }
