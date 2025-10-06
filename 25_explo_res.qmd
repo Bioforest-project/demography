@@ -8,6 +8,7 @@ library(tidyverse)
 
 # Exploration of summary statistics {.unnumbered}
 
+
 ```{r}
 #| message: false
 #| warning: false
