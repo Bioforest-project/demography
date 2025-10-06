@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.6.42">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -71,10 +71,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-8da5b4427184b79ecddefad3d342027e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -189,6 +189,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Explanatory variables</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./25_explo_res.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exploration of summary statistics</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -204,6 +210,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="./31_cwd_productivity.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Composition change data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./33_calibrate_cwd_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Model calibration</span></a>
   </div>
 </li>
       </ul>
@@ -334,7 +346,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">flextable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div class="tabwid"><style>.cl-6e3c20e8{}.cl-6e3279c6{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-6e36862e{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-6e368638{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-6e36ad0c{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-6e36ad16{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-6e36ad17{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-6e36ad18{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-6e36ad19{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-6e36ad20{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-6e3c20e8"><thead><tr style="overflow-wrap:break-word;"><th class="cl-6e36ad0c"><p class="cl-6e36862e"><span class="cl-6e3279c6">parameter</span></p></th><th class="cl-6e36ad16"><p class="cl-6e368638"><span class="cl-6e3279c6">min</span></p></th><th class="cl-6e36ad16"><p class="cl-6e368638"><span class="cl-6e3279c6">max</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-6e36ad17"><p class="cl-6e36862e"><span class="cl-6e3279c6">theta</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">50.000</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">1,000.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-6e36ad17"><p class="cl-6e36862e"><span class="cl-6e3279c6">lambda</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">0.010</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-6e36ad17"><p class="cl-6e36862e"><span class="cl-6e3279c6">alpha</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">0.000</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">200.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-6e36ad17"><p class="cl-6e36862e"><span class="cl-6e3279c6">delta</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">0.000</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">20.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-6e36ad17"><p class="cl-6e36862e"><span class="cl-6e3279c6">tau</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">2.000</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">30.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-6e36ad17"><p class="cl-6e36862e"><span class="cl-6e3279c6">omega</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">0.001</span></p></td><td class="cl-6e36ad18"><p class="cl-6e368638"><span class="cl-6e3279c6">0.5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-6e36ad19"><p class="cl-6e36862e"><span class="cl-6e3279c6">y0</span></p></td><td class="cl-6e36ad20"><p class="cl-6e368638"><span class="cl-6e3279c6">10.000</span></p></td><td class="cl-6e36ad20"><p class="cl-6e368638"><span class="cl-6e3279c6">1,000.0</span></p></td></tr></tbody></table></div>
+<div class="tabwid"><style>.cl-b3083836{}.cl-b300af26{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-b3040b62{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-b3040b76{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-b30433f8{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-b3043402{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-b3043403{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-b3043404{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-b304340c{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-b304340d{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-b3083836"><thead><tr style="overflow-wrap:break-word;"><th class="cl-b30433f8"><p class="cl-b3040b62"><span class="cl-b300af26">parameter</span></p></th><th class="cl-b3043402"><p class="cl-b3040b76"><span class="cl-b300af26">min</span></p></th><th class="cl-b3043402"><p class="cl-b3040b76"><span class="cl-b300af26">max</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-b3043403"><p class="cl-b3040b62"><span class="cl-b300af26">theta</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">50.000</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">1,000.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-b3043403"><p class="cl-b3040b62"><span class="cl-b300af26">lambda</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">0.010</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-b3043403"><p class="cl-b3040b62"><span class="cl-b300af26">alpha</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">0.000</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">200.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-b3043403"><p class="cl-b3040b62"><span class="cl-b300af26">delta</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">0.000</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">20.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-b3043403"><p class="cl-b3040b62"><span class="cl-b300af26">tau</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">2.000</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">30.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-b3043403"><p class="cl-b3040b62"><span class="cl-b300af26">omega</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">0.001</span></p></td><td class="cl-b3043404"><p class="cl-b3040b76"><span class="cl-b300af26">0.5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-b304340c"><p class="cl-b3040b62"><span class="cl-b300af26">y0</span></p></td><td class="cl-b304340d"><p class="cl-b3040b76"><span class="cl-b300af26">10.000</span></p></td><td class="cl-b304340d"><p class="cl-b3040b76"><span class="cl-b300af26">1,000.0</span></p></td></tr></tbody></table></div>
 </div>
 </div>
 <div class="cell">
@@ -690,6 +702,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   });
   clipboard.on('success', onCopySuccess);
   if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
     const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
       text: getTextToCopy,
       container: window.document.getElementById('quarto-embedded-source-code-modal')
@@ -800,6 +814,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       if (window.Quarto?.typesetMath) {
         window.Quarto.typesetMath(note);
       }
+      // TODO in 1.5, we should make sure this works without a callout special case
       if (note.classList.contains("callout")) {
         return note.outerHTML;
       } else {
