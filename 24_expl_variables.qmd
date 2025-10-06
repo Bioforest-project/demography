@@ -145,7 +145,7 @@ fit_flux_all$summary(variables = "omega_s") |>
   write.csv("data/derived_data/params_flux_all.csv", row.names = FALSE)
 ```
 
-## Effect of environmental variables 
+## Effect of environmental variables
 
 ```{r}
 #| message: false
@@ -208,4 +208,3 @@ read.csv("data/derived_data/aggregated_data_v9.csv") |>
   ) +
   theme_minimal()
 ```
-

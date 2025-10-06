@@ -78,7 +78,6 @@ bounds |>
   flextable()
 ```
 
-
 ```{r}
 #| message: false
 #| warning: false
@@ -224,8 +223,7 @@ pov_data |>
   facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
 ```
 
-
-The equilibrium AGB estimated in the logged plots is consistent overall with the control plots, except in the Malaysian sites (Lesong, Sungai Lalang and Ulu Muda), where it is significantly lower. 
+The equilibrium AGB estimated in the logged plots is consistent overall with the control plots, except in the Malaysian sites (Lesong, Sungai Lalang and Ulu Muda), where it is significantly lower.
 
 ```{r}
 #| message: false
@@ -246,7 +244,6 @@ data.frame(
   labs(x = "Equilibrium AGB - controls", y = "Equilibrium AGB - logged") +
   theme_minimal()
 ```
-
 
 ### Visualising the trajectories
 
