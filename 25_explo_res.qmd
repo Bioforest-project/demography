@@ -38,13 +38,11 @@ plot_info <- read_csv("data/derived_data/aggregated_data_v9.csv") %>%
   mutate(plot_new = Plot) %>%
   separate(Plot, "Plot", "_") %>%
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) %>%
-  # mutate(trec = Year - Year_of_harvest) %>%
   group_by(Site, plot_new, Treatment, Year_of_harvest) %>%
   summarise(
     ba_0 = value[Year == min(Year)],
-    ba_min = min(value[Year > Year_of_harvest & 
-                         Year <= Year_of_harvest + 5]) # ,
-    # first_post = min(trec[trec >0])
+    ba_min = min(value[Year > Year_of_harvest &
+      Year <= Year_of_harvest + 5])
   ) %>%
   mutate(intensity = (ba_0 - ba_min) / ba_0)
 
@@ -124,6 +122,8 @@ We expect the variability of the duration of over-productivity to depends on
 * environmental variables related to productivity:
 
 ```{r}
+#| message: false
+#| warning: false
 data_explo %>%
   filter(variable == "t95_p") %>%
   select(
