@@ -58,6 +58,8 @@ data_explo <- params %>%
 We expect over-mortality to be due to the delayed mortality of damaged trees and to gap contagion (due to increased mortality at the edge of the gaps).
 
 ```{r}
+#| message: false
+#| warning: false
 data_explo %>%
   filter(variable == "t95_m") %>%
   arrange(median) %>%
@@ -76,6 +78,8 @@ We expect it to be quite consistent between sites => not confirmed, the sites ha
 This is not due to the timing of the censuses after logging: 
 
 ```{r}
+#| message: false
+#| warning: false
 read_csv("data/derived_data/aggregated_data_v9.csv") %>%
   filter(Site %in% site_info$Site & variable == "ba") %>%
   mutate(plot_new = Plot) %>%
