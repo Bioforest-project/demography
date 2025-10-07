@@ -42,8 +42,7 @@ plot_info <- read_csv("data/derived_data/aggregated_data_v9.csv") %>%
   summarise(
     ba_0 = value[Year == min(Year)],
     ba_min = min(value[Year > Year_of_harvest &
-      Year <= Year_of_harvest + 5])
-  ) %>%
+                         Year <= Year_of_harvest + 5])) %>%
   mutate(intensity = (ba_0 - ba_min) / ba_0)
 
 data_explo <- params %>%
