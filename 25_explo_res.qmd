@@ -4,9 +4,12 @@
 #| include: false
 
 library(tidyverse)
+library(kableExtra)
 ```
 
 # Exploration of summary statistics {.unnumbered}
+
+> TO DO: don't calculate logging intensity for Lesong, Sungai Lalang and Ulu Muda , as the first year of census is after logging
 
 
 ```{r}
@@ -50,9 +53,11 @@ data_explo <- params %>%
   left_join(plot_info)
 ```
 
-## Variability of duration of over-mortality
+## Duration of over-mortality
 
 We expect over-mortality to be due to the delayed mortality of damaged trees and to gap contagion (due to increased mortality at the edge of the gaps).
+
+We expect it to occur within the first few years after logging => confirmed, over-mortality ends after less than 5 years.
 
 ```{r}
 #| message: false
@@ -69,10 +74,8 @@ data_explo %>%
   theme_minimal()
 ```
 
-We expect it to occur within the first few years after logging => confirmed, over-mortality ends after less than 5 years.
-
 We expect it to be quite consistent between sites => not confirmed, the sites have quite different duration of over-mortality.
-This is not due to the timing of the censuses after logging: 
+This is not due to the timing of the censuses after logging (trec): 
 
 ```{r}
 #| message: false
@@ -85,16 +88,18 @@ read_csv("data/derived_data/aggregated_data_v9.csv") %>%
   mutate(trec = Year - Year_of_harvest) %>%
   filter(trec > 0 & trec < 6) %>%
   group_by(Site) %>%
-  summarise(trec = paste(unique(trec), collapse = ", "))
+  summarise(trec = paste(unique(trec), collapse = ", ")) %>% 
+  kable()
 ```
 
 The variability of timing is probably due to post-logging silvicultural treatment, but we cannot test this as the duration of over-mortality is estimated at the site level.
 
 
-## Variability of duration of over-productivity
+## Duration of over-productivity
 
 Over-productivity is due to the opening of the canopy cover that increases the growth of trees that are remnants from the logging, and allows the arrival and growth of new early successional individuals.
 
+We expect it to last several decades as post-logging canopy closure takes several decades => confirmed.
 
 ```{r}
 data_explo %>%
@@ -110,15 +115,14 @@ data_explo %>%
 ```
 
 
-We expect it to last several decades as post-logging canopy closure takes several decades => confirmed.
-
 We expect the variability of the duration of over-productivity to depends on 
 
 * the logging intensity => cannot be tested as this duration is fitted at the site scale
 
-* the ecology of the pionneer species (life span) => could that explain the effect of continent that seems to be quite clear, except for Corinto?
+* the ecology of the pioneer species (life span) => could that explain the effect of continent that seems to be quite clear, except for Corinto?
 
-* environmental variables related to productivity:
+* environmental variables related to productivity => we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit and lower evapotranspiration and precipitation). 
+The pattern with soil humidity is however counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
 
 ```{r}
 #| message: false
@@ -126,11 +130,21 @@ We expect the variability of the duration of over-productivity to depends on
 data_explo %>%
   filter(variable == "t95_p") %>%
   select(
-    Site, median, q5, q95, plot_new,
+    Site, median, q5, q95,
     continent,
     et, cwd, pr, tmax, vpd, soil, dsl, dsi
   ) %>%
   pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
+  mutate(var_clim = fct_recode(var_clim, 
+    "Evapotranspiration, mm" = "et",
+    "Climate water deficit, mm" = "cwd",
+    "Precipitation, mm" = "pr",
+    "Maximum temperature, °C" = "tmax",
+     "Vapour Pressure Deficit, kPa" = "vpd",
+     "Soil humidity, mm" = "soil",
+     "Dry season length, days" = "dsl",
+     "Dry season intensity, mm" = "dsi")
+     ) %>% 
   ggplot(aes(x = value, y = median)) +
   geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
   geom_smooth(
@@ -143,10 +157,109 @@ data_explo %>%
   ) +
   facet_wrap(~var_clim, scales = "free_x") +
   theme_bw() +
-  theme(legend_position = "bottom")
+  theme(legend.position = "bottom")
 ```
 
-> TO DO: change the names of the facet and try to interpret...
+* soil variables related to productivity => we see below that higher bulk density and lower SOC soils are related to longer duration of over-productivity, which would support the hypotheses that over-productivity lasts longer in less fertile soils.
+But the pattern obtained for clay content shows the opposite.
 
-> TO DO: test soil factors
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "t95_p") %>%
+  select(
+    Site, median, q5, q95,
+    continent,
+    bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
+  ) %>%
+  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
+  mutate(var_soil = fct_recode(var_soil, 
+    " Bulk density, , kg dm³" = "bdod", 
+    "CEC, cmolC kg-1" = "cec",
+    "Fraction of coarse fragments, cm3 100cm-3" = "cfvo",
+    "Proportion of clay particles, %" = "clay",
+    "Proportion of sand particles, %" = "sand", 
+    "Proportion of silt particles, %"= "silt", 
+    "Total nitrogen, g kg-1" = "nitrogen", 
+    "Soil pH" = "phh2o", 
+    "Soil organic carbon, g kg-1"= "soc", 
+    "Organic carbon density, kg dm³" = "ocd"
+    )
+     ) %>% 
+  ggplot(aes(x = value, y = median)) +
+  geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+  ) +
+  labs(
+    x = "",
+    y = "Duration of over-productivity (t95, in years)"
+  ) +
+  facet_wrap(~var_soil, scales = "free_x") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
 
+* forest dynamism (turnover rate) => we see below that more dynamic sites (higher turnover rate $\omega$) have a lower duration of over-productivity.
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>% 
+  filter(variable %in% c("omega", "t95_p")) %>% 
+  select(Site, variable, median, q5, q95, continent) %>% 
+  pivot_wider(names_from = variable,
+              values_from = c(median, q5, q95)) %>% 
+  ggplot(aes(x = median_omega, y = median_t95_p)) + 
+  geom_errorbar(aes(ymin = q5_t95_p, ymax = q95_t95_p, 
+                    col = continent,
+                    width = 0)) +
+  geom_errorbarh(aes(xmin = q5_omega, xmax = q95_omega, 
+                     col = continent,
+                     height = 0)) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+    ) +
+  labs(
+    x = "Turnover rate (omega)",
+    y = "Duration of over-productivity (t95, in years)"
+    ) +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
+
+> The trends observed seems to generally support the hypothesis that over-productivity would lask longuer is less productive (drier and less fertile) 
+and less dynamic sites (lower turnover rate), which would make sense.
+Let's be careful not to over interpret it though, as there are just 8 sites and possible confunding effects due to the correlation among environmental factors in the data set.
+
+
+## Relative over-mortality
+
+relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang and Ulu Muda, as the first year of census is after logging => remove them for the time being
+but we could either consider using the stock estimated at infinite (but check before how well it compare to prelogging when we have both), or consider the stock of control (but see how variable it is within sites when we have both control and pre-logging inventories)
+
+Variability 
+
+We expect:
+
+* higher when higher logging intensity
+
+* no expectation on effect of enviro, but make a graph nonetheless
+
+
+
+## Relative over-productivity
+
+relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang and Ulu Muda, as the first year of census is after logging => remove them for the time being
+but we could either consider using the stock estimated at infinite (but check before how well it compare to prelogging when we have both), or consider the stock of control (but see how variable it is within sites when we have both control and pre-logging inventories)
+
+Variability 
+
+We expect:
+
+* higher when higher logging intensity
+
+* no expectation on effect of enviro ? make a graph nonetheless

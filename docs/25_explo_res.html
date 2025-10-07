@@ -103,6 +103,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -249,8 +278,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#variability-of-duration-of-over-mortality" id="toc-variability-of-duration-of-over-mortality" class="nav-link active" data-scroll-target="#variability-of-duration-of-over-mortality">Variability of duration of over-mortality</a></li>
-  <li><a href="#variability-of-duration-of-over-productivity" id="toc-variability-of-duration-of-over-productivity" class="nav-link" data-scroll-target="#variability-of-duration-of-over-productivity">Variability of duration of over-productivity</a></li>
+  <li><a href="#duration-of-over-mortality" id="toc-duration-of-over-mortality" class="nav-link active" data-scroll-target="#duration-of-over-mortality">Duration of over-mortality</a></li>
+  <li><a href="#duration-of-over-productivity" id="toc-duration-of-over-productivity" class="nav-link" data-scroll-target="#duration-of-over-productivity">Duration of over-productivity</a></li>
+  <li><a href="#relative-over-mortality" id="toc-relative-over-mortality" class="nav-link" data-scroll-target="#relative-over-mortality">Relative over-mortality</a></li>
+  <li><a href="#relative-over-productivity" id="toc-relative-over-productivity" class="nav-link" data-scroll-target="#relative-over-productivity">Relative over-productivity</a></li>
   </ul>
 </nav>
     </div>
@@ -276,6 +307,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<blockquote class="blockquote">
+<p>TO DO: don’t calculate logging intensity for Lesong, Sungai Lalang and Ulu Muda , as the first year of census is after logging</p>
+</blockquote>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -317,9 +351,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<section id="variability-of-duration-of-over-mortality" class="level2">
-<h2 class="anchored" data-anchor-id="variability-of-duration-of-over-mortality">Variability of duration of over-mortality</h2>
+<section id="duration-of-over-mortality" class="level2">
+<h2 class="anchored" data-anchor-id="duration-of-over-mortality">Duration of over-mortality</h2>
 <p>We expect over-mortality to be due to the delayed mortality of damaged trees and to gap contagion (due to increased mortality at the edge of the gaps).</p>
+<p>We expect it to occur within the first few years after logging =&gt; confirmed, over-mortality ends after less than 5 years.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -342,8 +377,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>We expect it to occur within the first few years after logging =&gt; confirmed, over-mortality ends after less than 5 years.</p>
-<p>We expect it to be quite consistent between sites =&gt; not confirmed, the sites have quite different duration of over-mortality. This is not due to the timing of the censuses after logging:</p>
+<p>We expect it to be quite consistent between sites =&gt; not confirmed, the sites have quite different duration of over-mortality. This is not due to the timing of the censuses after logging (trec):</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -355,40 +389,73 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trec =</span> Year <span class="sc">-</span> Year_of_harvest) <span class="sc">%&gt;%</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(trec <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> trec <span class="sc">&lt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site) <span class="sc">%&gt;%</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">trec =</span> <span class="fu">paste</span>(<span class="fu">unique</span>(trec), <span class="at">collapse =</span> <span class="st">", "</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">trec =</span> <span class="fu">paste</span>(<span class="fu">unique</span>(trec), <span class="at">collapse =</span> <span class="st">", "</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 8 × 2
-  Site          trec         
-  &lt;chr&gt;         &lt;chr&gt;        
-1 Corinto       1, 2, 3, 4, 5
-2 Lesong        1, 2, 3, 4, 5
-3 Mbaiki        1, 2, 3, 4, 5
-4 Paracou       1, 2, 3, 4, 5
-5 SUAS          2, 4         
-6 Sungai Lalang 1, 2, 3, 4, 5
-7 Tapajos Km67  1, 2, 3, 4   
-8 Ulu Muda      1, 2, 3, 4, 5</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Site</th>
+<th style="text-align: left;">trec</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Corinto</td>
+<td style="text-align: left;">1, 2, 3, 4, 5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Lesong</td>
+<td style="text-align: left;">1, 2, 3, 4, 5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Mbaiki</td>
+<td style="text-align: left;">1, 2, 3, 4, 5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Paracou</td>
+<td style="text-align: left;">1, 2, 3, 4, 5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SUAS</td>
+<td style="text-align: left;">2, 4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Sungai Lalang</td>
+<td style="text-align: left;">1, 2, 3, 4, 5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tapajos Km67</td>
+<td style="text-align: left;">1, 2, 3, 4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ulu Muda</td>
+<td style="text-align: left;">1, 2, 3, 4, 5</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>The variability of timing is probably due to post-logging silvicultural treatment, but we cannot test this as the duration of over-mortality is estimated at the site level.</p>
 </section>
-<section id="variability-of-duration-of-over-productivity" class="level2">
-<h2 class="anchored" data-anchor-id="variability-of-duration-of-over-productivity">Variability of duration of over-productivity</h2>
+<section id="duration-of-over-productivity" class="level2">
+<h2 class="anchored" data-anchor-id="duration-of-over-productivity">Duration of over-productivity</h2>
 <p>Over-productivity is due to the opening of the canopy cover that increases the growth of trees that are remnants from the logging, and allows the arrival and growth of new early successional individuals.</p>
+<p>We expect it to last several decades as post-logging canopy closure takes several decades =&gt; confirmed.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data_explo <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable <span class="sc">==</span> <span class="st">"t95_p"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(median) <span class="sc">%&gt;%</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(median, <span class="fu">reorder</span>(Site, median), <span class="at">col =</span> continent)) <span class="sc">+</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">xmin =</span> q5, <span class="at">xmax =</span> q95)) <span class="sc">+</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Duration of over-productivity (t95, in years)"</span>,</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">""</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data_explo <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable <span class="sc">==</span> <span class="st">"t95_p"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(median) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(median, <span class="fu">reorder</span>(Site, median), <span class="at">col =</span> continent)) <span class="sc">+</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">xmin =</span> q5, <span class="at">xmax =</span> q95)) <span class="sc">+</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Duration of over-productivity (t95, in years)"</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">""</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -398,37 +465,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>We expect it to last several decades as post-logging canopy closure takes several decades =&gt; confirmed.</p>
 <p>We expect the variability of the duration of over-productivity to depends on</p>
 <ul>
 <li><p>the logging intensity =&gt; cannot be tested as this duration is fitted at the site scale</p></li>
-<li><p>the ecology of the pionneer species (life span) =&gt; could that explain the effect of continent that seems to be quite clear, except for Corinto?</p></li>
-<li><p>environmental variables related to productivity:</p></li>
+<li><p>the ecology of the pioneer species (life span) =&gt; could that explain the effect of continent that seems to be quite clear, except for Corinto?</p></li>
+<li><p>environmental variables related to productivity =&gt; we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit and lower evapotranspiration and precipitation). The pattern with soil humidity is however counter-intuitive (but soil humidity is very positively correlated with maximum temperature).</p></li>
 </ul>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data_explo <span class="sc">%&gt;%</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable <span class="sc">==</span> <span class="st">"t95_p"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    Site, median, q5, q95, plot_new,</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    continent,</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    et, cwd, pr, tmax, vpd, soil, dsl, dsi</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(et<span class="sc">:</span>dsi, <span class="at">names_to =</span> <span class="st">"var_clim"</span>, <span class="at">values_to =</span> <span class="st">"value"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">y =</span> median)) <span class="sc">+</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> q5, <span class="at">ymax =</span> q95, <span class="at">col =</span> continent)) <span class="sc">+</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">0.5</span>, <span class="at">col =</span> <span class="st">"grey"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">""</span>,</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Duration of over-productivity (t95, in years)"</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>var_clim, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend_position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data_explo <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable <span class="sc">==</span> <span class="st">"t95_p"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    Site, median, q5, q95,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    continent,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    et, cwd, pr, tmax, vpd, soil, dsl, dsi</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(et<span class="sc">:</span>dsi, <span class="at">names_to =</span> <span class="st">"var_clim"</span>, <span class="at">values_to =</span> <span class="st">"value"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">var_clim =</span> <span class="fu">fct_recode</span>(var_clim, </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Evapotranspiration, mm"</span> <span class="ot">=</span> <span class="st">"et"</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Climate water deficit, mm"</span> <span class="ot">=</span> <span class="st">"cwd"</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Precipitation, mm"</span> <span class="ot">=</span> <span class="st">"pr"</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Maximum temperature, °C"</span> <span class="ot">=</span> <span class="st">"tmax"</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>     <span class="st">"Vapour Pressure Deficit, kPa"</span> <span class="ot">=</span> <span class="st">"vpd"</span>,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>     <span class="st">"Soil humidity, mm"</span> <span class="ot">=</span> <span class="st">"soil"</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>     <span class="st">"Dry season length, days"</span> <span class="ot">=</span> <span class="st">"dsl"</span>,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>     <span class="st">"Dry season intensity, mm"</span> <span class="ot">=</span> <span class="st">"dsi"</span>)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>     ) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">y =</span> median)) <span class="sc">+</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> q5, <span class="at">ymax =</span> q95, <span class="at">col =</span> continent)) <span class="sc">+</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">0.5</span>, <span class="at">col =</span> <span class="st">"grey"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">""</span>,</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Duration of over-productivity (t95, in years)"</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>var_clim, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -438,12 +514,115 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
+<ul>
+<li>soil variables related to productivity =&gt; we see below that higher bulk density and lower SOC soils are related to longer duration of over-productivity, which would support the hypotheses that over-productivity lasts longer in less fertile soils. But the pattern obtained for clay content shows the opposite.</li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data_explo <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable <span class="sc">==</span> <span class="st">"t95_p"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    Site, median, q5, q95,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    continent,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(bdod<span class="sc">:</span>ocd, <span class="at">names_to =</span> <span class="st">"var_soil"</span>, <span class="at">values_to =</span> <span class="st">"value"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">var_soil =</span> <span class="fu">fct_recode</span>(var_soil, </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">" Bulk density, , kg dm³"</span> <span class="ot">=</span> <span class="st">"bdod"</span>, </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"CEC, cmolC kg-1"</span> <span class="ot">=</span> <span class="st">"cec"</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Fraction of coarse fragments, cm3 100cm-3"</span> <span class="ot">=</span> <span class="st">"cfvo"</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Proportion of clay particles, %"</span> <span class="ot">=</span> <span class="st">"clay"</span>,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Proportion of sand particles, %"</span> <span class="ot">=</span> <span class="st">"sand"</span>, </span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Proportion of silt particles, %"</span><span class="ot">=</span> <span class="st">"silt"</span>, </span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Total nitrogen, g kg-1"</span> <span class="ot">=</span> <span class="st">"nitrogen"</span>, </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Soil pH"</span> <span class="ot">=</span> <span class="st">"phh2o"</span>, </span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Soil organic carbon, g kg-1"</span><span class="ot">=</span> <span class="st">"soc"</span>, </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Organic carbon density, kg dm³"</span> <span class="ot">=</span> <span class="st">"ocd"</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>     ) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">y =</span> median)) <span class="sc">+</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> q5, <span class="at">ymax =</span> q95, <span class="at">col =</span> continent)) <span class="sc">+</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">0.5</span>, <span class="at">col =</span> <span class="st">"grey"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">""</span>,</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Duration of over-productivity (t95, in years)"</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>var_soil, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="25_explo_res_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li>forest dynamism (turnover rate) =&gt; we see below that more dynamic sites (higher turnover rate <span class="math inline">\(\omega\)</span>) have a lower duration of over-productivity.</li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data_explo <span class="sc">%&gt;%</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"omega"</span>, <span class="st">"t95_p"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Site, variable, median, q5, q95, continent) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> variable,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> <span class="fu">c</span>(median, q5, q95)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> median_omega, <span class="at">y =</span> median_t95_p)) <span class="sc">+</span> </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> q5_t95_p, <span class="at">ymax =</span> q95_t95_p, </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                    <span class="at">col =</span> continent,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">width =</span> <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbarh</span>(<span class="fu">aes</span>(<span class="at">xmin =</span> q5_omega, <span class="at">xmax =</span> q95_omega, </span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>                     <span class="at">col =</span> continent,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                     <span class="at">height =</span> <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">0.5</span>, <span class="at">col =</span> <span class="st">"grey"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Turnover rate (omega)"</span>,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Duration of over-productivity (t95, in years)"</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="25_explo_res_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
 <blockquote class="blockquote">
-<p>TO DO: change the names of the facet and try to interpret…</p>
+<p>The trends observed seems to generally support the hypothesis that over-productivity would lask longuer is less productive (drier and less fertile) and less dynamic sites (lower turnover rate), which would make sense. Let’s be careful not to over interpret it though, as there are just 8 sites and possible confunding effects due to the correlation among environmental factors in the data set.</p>
 </blockquote>
-<blockquote class="blockquote">
-<p>TO DO: test soil factors</p>
-</blockquote>
+</section>
+<section id="relative-over-mortality" class="level2">
+<h2 class="anchored" data-anchor-id="relative-over-mortality">Relative over-mortality</h2>
+<p>relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang and Ulu Muda, as the first year of census is after logging =&gt; remove them for the time being but we could either consider using the stock estimated at infinite (but check before how well it compare to prelogging when we have both), or consider the stock of control (but see how variable it is within sites when we have both control and pre-logging inventories)</p>
+<p>Variability</p>
+<p>We expect:</p>
+<ul>
+<li><p>higher when higher logging intensity</p></li>
+<li><p>no expectation on effect of enviro, but make a graph nonetheless</p></li>
+</ul>
+</section>
+<section id="relative-over-productivity" class="level2">
+<h2 class="anchored" data-anchor-id="relative-over-productivity">Relative over-productivity</h2>
+<p>relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang and Ulu Muda, as the first year of census is after logging =&gt; remove them for the time being but we could either consider using the stock estimated at infinite (but check before how well it compare to prelogging when we have both), or consider the stock of control (but see how variable it is within sites when we have both control and pre-logging inventories)</p>
+<p>Variability</p>
+<p>We expect:</p>
+<ul>
+<li><p>higher when higher logging intensity</p></li>
+<li><p>no expectation on effect of enviro ? make a graph nonetheless</p></li>
+</ul>
 
 
 </section>
