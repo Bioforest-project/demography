@@ -69,7 +69,6 @@ We expect it to occur within the first few years after logging => confirmed, ove
 #| warning: false
 data_explo %>%
   filter(variable == "t95_m") %>%
-  arrange(median) %>%
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
@@ -109,7 +108,6 @@ We expect it to last several decades as post-logging canopy closure takes severa
 ```{r}
 data_explo %>%
   filter(variable == "t95_p") %>%
-  arrange(median) %>%
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
@@ -243,14 +241,62 @@ Let's be careful not to over interpret it though, as there are just 8 sites and 
 
 ## Relative over-mortality
 
-relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang and Ulu Muda, as the first year of census is after logging => remove them for the time being
-but we could either consider using the stock estimated at infinite (but check before how well it compare to prelogging when we have both), or consider the stock of control (but see how variable it is within sites when we have both control and pre-logging inventories)
+We consider relative over-mortality, being the AGB of total over-mortality expressed as a percentage of pre-logging AGB. 
+For this, we need pre-logging censuses, which are not available for the site of Lesong, Sungai Lalang, Tapajos and Ulu Muda.
+This analyis is therefore limited to 4 sites for the time being.
 
-Variability 
+> We could consider another way to standardise over-mortality, for exemple by using the stock estimated at infinite time by the model (but we first need to check how well it matches pre-logging AGB), or by considering the AGB of control plots (but we first need to check how much intrasite variability the is).
 
-We expect:
 
-* higher when higher logging intensity
+The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 30% to almost 80%.
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "int_m" & !(is.na(agb_0))) %>% 
+  mutate(site_plot = paste(Site, plot_new)) %>% 
+  ggplot(aes(median * 100/agb_0, 
+             reorder(site_plot, median * 100/agb_0), 
+             col = Site,
+             shape = continent)) +
+  geom_pointrange(aes(xmin = q5 * 100/agb_0, 
+                      xmax = q95 * 100/agb_0)) +
+  labs(
+    x = "AGB over-mortality [% prelogging AGB]",
+    y = ""
+  ) +
+  theme_minimal()
+```
+
+We expect that this variability would be partly explained by logging intensity, with a higher over-mortality when logging intensity is higher => this is not confirmed, as the graph below shows the opposite. 
+There seems to be a strong site effect, but the within site trends seems to show that reltive-overmortality decreases with logging intensity as well.
+
+> Check if the graph is correct
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "int_m"& !(is.na(agb_0))) %>% 
+  mutate(Site = fct_drop(as.factor(Site))) %>% 
+  ggplot(aes(x = intensity * 100, 
+             y = median *100/agb_0)) +
+  geom_pointrange(aes(ymin = q5*100/agb_0, 
+                      ymax = q95*100/agb_0,
+                      col = Site, 
+                      shape = continent)) +
+   geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+    ) + 
+  labs(
+    x = "Logging intensity [% BA loss]",
+    y = "AGB over-mortality [% prelogging AGB]"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
 
 * no expectation on effect of enviro, but make a graph nonetheless
 
@@ -258,8 +304,12 @@ We expect:
 
 ## Relative over-productivity
 
-relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang, Tapajos and and Ulu Muda, as the first year of census is after logging => remove them for the time being
-but we could either consider using the stock estimated at infinite (but check before how well it compare to prelogging when we have both), or consider the stock of control (but see how variable it is within sites when we have both control and pre-logging inventories)
+We consider relative over-productivity, being the AGB of total over-productivity expressed as a percentage of pre-logging AGB. 
+For this, we need pre-logging censuses, which are not available for the site of Lesong, Sungai Lalang, Tapajos and Ulu Muda.
+This analyis is therefore limited to 4 sites for the time being.
+
+> We could consider another way to standardise over-productivity, for exemple by using the stock estimated at infinite time by the model (but we first need to check how well it matches pre-logging AGB), or by considering the AGB of control plots (but we first need to check how much intrasite variability the is).
+
 
 Variability 
 
@@ -271,20 +321,21 @@ We expect:
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "int_p"& !(is.na(ba_0))) %>% 
+  filter(variable == "int_p"& !(is.na(agb_0))) %>% 
   mutate(Site = fct_drop(as.factor(Site))) %>% 
   ggplot(aes(x = intensity * 100, 
              y = median *100/agb_0)) +
   geom_pointrange(aes(ymin = q5*100/agb_0, 
                       ymax = q95*100/agb_0,
-                      col = Site)) +
+                      col = Site, 
+                      shape = continent)) +
    geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
     ) + 
   labs(
     x = "Logging intensity [% BA loss]",
-    y = "AGB overproductivity [% prelogging AGB]"
+    y = "AGB over-productivity [% prelogging AGB]"
   ) +
   theme_minimal() +
   theme(legend.position = "bottom")
