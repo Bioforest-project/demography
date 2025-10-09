@@ -9,9 +9,6 @@ library(kableExtra)
 
 # Exploration of summary statistics {.unnumbered}
 
-> TO DO: don't calculate logging intensity for Lesong, Sungai Lalang and Ulu Muda , as the first year of census is after logging
-
-
 ```{r}
 #| message: false
 #| warning: false
@@ -33,20 +30,28 @@ site_info <- read.csv("data/derived_data/sites_to_keep.csv") %>%
   ) %>%
   left_join(environ, by = c("Site" = "site"))
 
-plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") %>%
+plot_info_raw <- read.csv("data/raw_data/bioforest-plot-information.csv") %>%
   select(site, plot, Year_of_harvest, Treatment)
 
 plot_info <- read_csv("data/derived_data/aggregated_data_v9.csv") %>%
-  filter(Site %in% site_info$Site & variable == "ba") %>%
+  filter(Site %in% site_info$Site & variable %in% c("ba", "agb")) %>%
   mutate(plot_new = Plot) %>%
-  separate(Plot, "Plot", "_") %>%
-  left_join(plot_info, by = join_by(Site == site, Plot == plot)) %>%
+  separate(Plot, "Plot", "_") %>% 
+  pivot_wider(names_from = "variable", 
+              values_from = "value") %>% 
+  left_join(plot_info_raw, by = join_by(Site == site, Plot == plot)) %>% 
   group_by(Site, plot_new, Treatment, Year_of_harvest) %>%
   summarise(
-    ba_0 = value[Year == min(Year)],
-    ba_min = min(value[Year > Year_of_harvest &
-                         Year <= Year_of_harvest + 5])) %>%
-  mutate(intensity = (ba_0 - ba_min) / ba_0)
+   census1 = min(Year),
+   ba_0 = ba[Year == min(Year)],
+   ba_min = min(ba[Year > Year_of_harvest &
+                         Year <= Year_of_harvest + 5]),
+   agb_0 = agb[Year == min(Year)]) %>% 
+  mutate(ba_0 = if_else(census1 < Year_of_harvest, ba_0, NA),
+         agb_0 = if_else(census1 < Year_of_harvest, agb_0, NA),
+         intensity = (ba_0 - ba_min) / ba_0
+         )
+
 
 data_explo <- params %>%
   left_join(site_info) %>%
@@ -121,7 +126,7 @@ We expect the variability of the duration of over-productivity to depends on
 
 * the ecology of the pioneer species (life span) => could that explain the effect of continent that seems to be quite clear, except for Corinto?
 
-* environmental variables related to productivity => we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit and lower evapotranspiration and precipitation). 
+* environmental variables related to productivity => we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) and lower evapotranspiration and precipitation). 
 The pattern with soil humidity is however counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
 
 ```{r}
@@ -253,7 +258,7 @@ We expect:
 
 ## Relative over-productivity
 
-relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang and Ulu Muda, as the first year of census is after logging => remove them for the time being
+relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang, Tapajos and and Ulu Muda, as the first year of census is after logging => remove them for the time being
 but we could either consider using the stock estimated at infinite (but check before how well it compare to prelogging when we have both), or consider the stock of control (but see how variable it is within sites when we have both control and pre-logging inventories)
 
 Variability 
@@ -261,5 +266,29 @@ Variability
 We expect:
 
 * higher when higher logging intensity
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "int_p"& !(is.na(ba_0))) %>% 
+  mutate(Site = fct_drop(as.factor(Site))) %>% 
+  ggplot(aes(x = intensity * 100, 
+             y = median *100/agb_0)) +
+  geom_pointrange(aes(ymin = q5*100/agb_0, 
+                      ymax = q95*100/agb_0,
+                      col = Site)) +
+   geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+    ) + 
+  labs(
+    x = "Logging intensity [% BA loss]",
+    y = "AGB overproductivity [% prelogging AGB]"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
 
 * no expectation on effect of enviro ? make a graph nonetheless

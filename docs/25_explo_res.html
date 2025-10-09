@@ -307,9 +307,6 @@ window.Quarto = {
 </header>
 
 
-<blockquote class="blockquote">
-<p>TO DO: don’t calculate logging intensity for Lesong, Sungai Lalang and Ulu Muda , as the first year of census is after logging</p>
-</blockquote>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -331,24 +328,32 @@ window.Quarto = {
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(environ, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Site"</span> <span class="ot">=</span> <span class="st">"site"</span>))</span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>plot_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/raw_data/bioforest-plot-information.csv"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>plot_info_raw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/raw_data/bioforest-plot-information.csv"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(site, plot, Year_of_harvest, Treatment)</span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>plot_info <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/derived_data/aggregated_data_v9.csv"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Site <span class="sc">%in%</span> site_info<span class="sc">$</span>Site <span class="sc">&amp;</span> variable <span class="sc">==</span> <span class="st">"ba"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Site <span class="sc">%in%</span> site_info<span class="sc">$</span>Site <span class="sc">&amp;</span> variable <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ba"</span>, <span class="st">"agb"</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">plot_new =</span> Plot) <span class="sc">%&gt;%</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(Plot, <span class="st">"Plot"</span>, <span class="st">"_"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, plot_new, Treatment, Year_of_harvest) <span class="sc">%&gt;%</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_0 =</span> value[Year <span class="sc">==</span> <span class="fu">min</span>(Year)],</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_min =</span> <span class="fu">min</span>(value[Year <span class="sc">&gt;</span> Year_of_harvest <span class="sc">&amp;</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>                         Year <span class="sc">&lt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">5</span>])) <span class="sc">%&gt;%</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">intensity =</span> (ba_0 <span class="sc">-</span> ba_min) <span class="sc">/</span> ba_0)</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>data_explo <span class="ot">&lt;-</span> params <span class="sc">%&gt;%</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(site_info) <span class="sc">%&gt;%</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(Plot, <span class="st">"Plot"</span>, <span class="st">"_"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">"variable"</span>, </span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> <span class="st">"value"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info_raw, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, plot_new, Treatment, Year_of_harvest) <span class="sc">%&gt;%</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>   <span class="at">census1 =</span> <span class="fu">min</span>(Year),</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>   <span class="at">ba_0 =</span> ba[Year <span class="sc">==</span> <span class="fu">min</span>(Year)],</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>   <span class="at">ba_min =</span> <span class="fu">min</span>(ba[Year <span class="sc">&gt;</span> Year_of_harvest <span class="sc">&amp;</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>                         Year <span class="sc">&lt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">5</span>]),</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>   <span class="at">agb_0 =</span> agb[Year <span class="sc">==</span> <span class="fu">min</span>(Year)]) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ba_0 =</span> <span class="fu">if_else</span>(census1 <span class="sc">&lt;</span> Year_of_harvest, ba_0, <span class="cn">NA</span>),</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>         <span class="at">agb_0 =</span> <span class="fu">if_else</span>(census1 <span class="sc">&lt;</span> Year_of_harvest, agb_0, <span class="cn">NA</span>),</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>         <span class="at">intensity =</span> (ba_0 <span class="sc">-</span> ba_min) <span class="sc">/</span> ba_0</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>         )</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>data_explo <span class="ot">&lt;-</span> params <span class="sc">%&gt;%</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(site_info) <span class="sc">%&gt;%</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <section id="duration-of-over-mortality" class="level2">
@@ -469,7 +474,7 @@ window.Quarto = {
 <ul>
 <li><p>the logging intensity =&gt; cannot be tested as this duration is fitted at the site scale</p></li>
 <li><p>the ecology of the pioneer species (life span) =&gt; could that explain the effect of continent that seems to be quite clear, except for Corinto?</p></li>
-<li><p>environmental variables related to productivity =&gt; we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit and lower evapotranspiration and precipitation). The pattern with soil humidity is however counter-intuitive (but soil humidity is very positively correlated with maximum temperature).</p></li>
+<li><p>environmental variables related to productivity =&gt; we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) and lower evapotranspiration and precipitation). The pattern with soil humidity is however counter-intuitive (but soil humidity is very positively correlated with maximum temperature).</p></li>
 </ul>
 <div class="cell">
 <details class="code-fold">
@@ -616,12 +621,44 @@ window.Quarto = {
 </section>
 <section id="relative-over-productivity" class="level2">
 <h2 class="anchored" data-anchor-id="relative-over-productivity">Relative over-productivity</h2>
-<p>relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang and Ulu Muda, as the first year of census is after logging =&gt; remove them for the time being but we could either consider using the stock estimated at infinite (but check before how well it compare to prelogging when we have both), or consider the stock of control (but see how variable it is within sites when we have both control and pre-logging inventories)</p>
+<p>relative to the pre-logging stock, ! not avalaible for Lesong, Sungai Lalang, Tapajos and and Ulu Muda, as the first year of census is after logging =&gt; remove them for the time being but we could either consider using the stock estimated at infinite (but check before how well it compare to prelogging when we have both), or consider the stock of control (but see how variable it is within sites when we have both control and pre-logging inventories)</p>
 <p>Variability</p>
 <p>We expect:</p>
 <ul>
-<li><p>higher when higher logging intensity</p></li>
-<li><p>no expectation on effect of enviro ? make a graph nonetheless</p></li>
+<li>higher when higher logging intensity</li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data_explo <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable <span class="sc">==</span> <span class="st">"int_p"</span><span class="sc">&amp;</span> <span class="sc">!</span>(<span class="fu">is.na</span>(ba_0))) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Site =</span> <span class="fu">fct_drop</span>(<span class="fu">as.factor</span>(Site))) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> intensity <span class="sc">*</span> <span class="dv">100</span>, </span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> median <span class="sc">*</span><span class="dv">100</span><span class="sc">/</span>agb_0)) <span class="sc">+</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> q5<span class="sc">*</span><span class="dv">100</span><span class="sc">/</span>agb_0, </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>                      <span class="at">ymax =</span> q95<span class="sc">*</span><span class="dv">100</span><span class="sc">/</span>agb_0,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                      <span class="at">col =</span> Site)) <span class="sc">+</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>   <span class="fu">geom_smooth</span>(</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">0.5</span>, <span class="at">col =</span> <span class="st">"grey"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span> </span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Logging intensity [% BA loss]"</span>,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"AGB overproductivity [% prelogging AGB]"</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="25_explo_res_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li>no expectation on effect of enviro ? make a graph nonetheless</li>
 </ul>
 
 
