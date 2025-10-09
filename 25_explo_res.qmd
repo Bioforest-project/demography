@@ -118,13 +118,13 @@ data_explo %>%
 ```
 
 
-We expect the variability of the duration of over-productivity to depends on 
+We expect the variability of the duration of over-productivity to depends on: 
 
 * the logging intensity => cannot be tested as this duration is fitted at the site scale
 
 * the ecology of the pioneer species (life span) => could that explain the effect of continent that seems to be quite clear, except for Corinto?
 
-* environmental variables related to productivity => we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) and lower evapotranspiration and precipitation). 
+* cimatic variables related to productivity => we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) and lower evapotranspiration and precipitation). 
 The pattern with soil humidity is however counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
 
 ```{r}
@@ -178,7 +178,7 @@ data_explo %>%
   ) %>%
   pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
   mutate(var_soil = fct_recode(var_soil, 
-    " Bulk density, , kg dm³" = "bdod", 
+    "Bulk density, kg dm³" = "bdod", 
     "CEC, cmolC kg-1" = "cec",
     "Fraction of coarse fragments, cm3 100cm-3" = "cfvo",
     "Proportion of clay particles, %" = "clay",
@@ -270,9 +270,7 @@ data_explo %>%
 ```
 
 We expect that this variability would be partly explained by logging intensity, with a higher over-mortality when logging intensity is higher => this is not confirmed, as the graph below shows the opposite. 
-There seems to be a strong site effect, but the within site trends seems to show that reltive-overmortality decreases with logging intensity as well.
-
-> Check if the graph is correct
+There seems to be a strong site effect, but the within site trends seems to show that relative-overmortality decreases with logging intensity as well.
 
 ```{r}
 #| message: false
@@ -298,9 +296,133 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
-* no expectation on effect of enviro, but make a graph nonetheless
+I have no real hypothesis on the effect of environmental variables on the relative over-mortality, but I make some graph anyway, in case some people have.
+NB: the environmental variables are available at the site level, so with 4 sites, I don't think we will be able to say much.
+
+* Climate variables: the graphs below suggest that relative over-mortality is lower in drier sites.
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "int_m"& !(is.na(agb_0))) %>%
+  select(
+    Site,plot_new, median, q5, q95, agb_0,
+    continent,
+    et, cwd, pr, tmax, vpd, soil, dsl, dsi
+  ) %>%
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
+  mutate(var_clim = fct_recode(var_clim, 
+    "Evapotranspiration, mm" = "et",
+    "Climate water deficit, mm" = "cwd",
+    "Precipitation, mm" = "pr",
+    "Maximum temperature, °C" = "tmax",
+     "Vapour Pressure Deficit, kPa" = "vpd",
+     "Soil humidity, mm" = "soil",
+     "Dry season length, days" = "dsl",
+     "Dry season intensity, mm" = "dsi")
+     ) %>% 
+  ggplot(aes(x = value, y = median * 100/agb_0)) +
+  geom_pointrange(aes(ymin = q5 * 100/agb_0, 
+                      ymax = q95 * 100/agb_0, 
+                      col = Site,
+                      shape = continent)) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+  ) +
+  labs(
+    x = "",
+    y = "AGB over-mortality [% prelogging AGB]"
+  ) +
+  facet_wrap(~var_clim, scales = "free_x") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
 
 
+* Soil variables: the graphs below suggest that relative over-mortality is lower in less fertile soils.
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "int_m" & !(is.na(agb_0))) %>%
+  select(
+    Site, median, q5, q95, agb_0,
+    continent,
+    bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
+  ) %>%
+  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
+  mutate(var_soil = fct_recode(var_soil, 
+    "Bulk density, kg dm³" = "bdod", 
+    "CEC, cmolC kg-1" = "cec",
+    "Fraction of coarse fragments, cm3 100cm-3" = "cfvo",
+    "Proportion of clay particles, %" = "clay",
+    "Proportion of sand particles, %" = "sand", 
+    "Proportion of silt particles, %"= "silt", 
+    "Total nitrogen, g kg-1" = "nitrogen", 
+    "Soil pH" = "phh2o", 
+    "Soil organic carbon, g kg-1"= "soc", 
+    "Organic carbon density, kg dm³" = "ocd"
+    )
+     ) %>% 
+  ggplot(aes(x = value, y = median * 100/agb_0)) +
+  geom_pointrange(aes(ymin = q5 * 100/agb_0,
+                      ymax = q95 * 100/agb_0, 
+                      col = Site,
+                      shape = continent)) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+  ) +
+  labs(
+    x = "",
+    y = "AGB over-mortality [% prelogging AGB]"
+  ) +
+  facet_wrap(~var_soil, scales = "free_x") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
+
+* Forest dynamism (turnover rate $\omega$): the graph below shows that over-mortality increases with turnover rate.
+
+```{r}
+#| message: false
+#| warning: false
+dt_omega <- data_explo %>% 
+  filter(variable == "omega") %>% 
+  select(Site, median, q5, q95) %>% 
+  rename(median_omega = median,
+         q5_omega = q5,
+         q95_omega = q95)
+
+data_explo %>% 
+  filter(variable == "int_m"& !(is.na(agb_0))) %>% 
+  select(Site, variable, median, q5, q95, agb_0, continent) %>% 
+  left_join(dt_omega) %>% 
+  ggplot(aes(x = median_omega, y = median * 100/agb_0)) + 
+  geom_errorbar(aes(ymin = q5 * 100/agb_0, 
+                    ymax = q95 * 100/agb_0, 
+                    col = Site,
+                    shape = continent),
+                    width = 0) +
+  geom_errorbarh(aes(xmin = q5_omega, 
+                     xmax = q95_omega, 
+                     col = Site,
+                     shape = continent), 
+                     height = 0) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+    ) +
+  labs(
+    x = "Turnover rate (omega)",
+    y = "AGB over-mortality [% prelogging AGB]"
+    ) +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
 
 ## Relative over-productivity
 
@@ -310,12 +432,28 @@ This analyis is therefore limited to 4 sites for the time being.
 
 > We could consider another way to standardise over-productivity, for exemple by using the stock estimated at infinite time by the model (but we first need to check how well it matches pre-logging AGB), or by considering the AGB of control plots (but we first need to check how much intrasite variability the is).
 
+The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 10% to almost 80%*.
 
-Variability 
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "int_p" & !(is.na(agb_0))) %>% 
+  mutate(site_plot = paste(Site, plot_new)) %>% 
+  ggplot(aes(median * 100/agb_0, 
+             reorder(site_plot, median * 100/agb_0), 
+             col = Site,
+             shape = continent)) +
+  geom_pointrange(aes(xmin = q5 * 100/agb_0, 
+                      xmax = q95 * 100/agb_0)) +
+  labs(
+    x = "AGB over-productivity [% prelogging AGB]",
+    y = ""
+  ) +
+  theme_minimal()
+``` 
 
-We expect:
-
-* higher when higher logging intensity
+We expect that this variability would be partly explained by logging intensity, with a higher over-productivity when logging intensity is higher => this is confirmed by the graph below (but see the Mbaiki plots). 
 
 ```{r}
 #| message: false
@@ -341,5 +479,123 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
+I have no real hypothesis on the effect of environmental variables on the relative over-productivity, but I make some graphs anyway, in case some people have.
+NB: the environmental variables are available at the site level, so with 4 sites, I don't think we will be able to say much.
 
-* no expectation on effect of enviro ? make a graph nonetheless
+* Climate variables: *the graphs below suggest that relative over-productivity is higher in drier sites.*
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "int_p"& !(is.na(agb_0))) %>%
+  select(
+    Site,plot_new, median, q5, q95, agb_0,
+    continent,
+    et, cwd, pr, tmax, vpd, soil, dsl, dsi
+  ) %>%
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
+  mutate(var_clim = fct_recode(var_clim, 
+    "Evapotranspiration, mm" = "et",
+    "Climate water deficit, mm" = "cwd",
+    "Precipitation, mm" = "pr",
+    "Maximum temperature, °C" = "tmax",
+     "Vapour Pressure Deficit, kPa" = "vpd",
+     "Soil humidity, mm" = "soil",
+     "Dry season length, days" = "dsl",
+     "Dry season intensity, mm" = "dsi")
+     ) %>% 
+  ggplot(aes(x = value, y = median * 100/agb_0)) +
+  geom_pointrange(aes(ymin = q5 * 100/agb_0, 
+                      ymax = q95 * 100/agb_0, 
+                      col = Site,
+                      shape = continent)) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+  ) +
+  labs(
+    x = "",
+    y = "AGB over-productivity [% prelogging AGB]"
+  ) +
+  facet_wrap(~var_clim, scales = "free_x") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
+
+
+* Soil variables: *the graphs below suggest that relative over-productivity is higher in less fertile soils.*
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "int_p" & !(is.na(agb_0))) %>%
+  select(
+    Site, median, q5, q95, agb_0,
+    continent,
+    bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
+  ) %>%
+  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
+  mutate(var_soil = fct_recode(var_soil, 
+    "Bulk density, kg dm³" = "bdod", 
+    "CEC, cmolC kg-1" = "cec",
+    "Fraction of coarse fragments, cm3 100cm-3" = "cfvo",
+    "Proportion of clay particles, %" = "clay",
+    "Proportion of sand particles, %" = "sand", 
+    "Proportion of silt particles, %"= "silt", 
+    "Total nitrogen, g kg-1" = "nitrogen", 
+    "Soil pH" = "phh2o", 
+    "Soil organic carbon, g kg-1"= "soc", 
+    "Organic carbon density, kg dm³" = "ocd"
+    )
+     ) %>% 
+  ggplot(aes(x = value, y = median * 100/agb_0)) +
+  geom_pointrange(aes(ymin = q5 * 100/agb_0,
+                      ymax = q95 * 100/agb_0, 
+                      col = Site,
+                      shape = continent)) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+  ) +
+  labs(
+    x = "",
+    y = "AGB over-productivity [% prelogging AGB]"
+  ) +
+  facet_wrap(~var_soil, scales = "free_x") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
+
+* Forest dynamism (turnover rate $\omega$): the graph below shows that over-mortality decreases with turnover rate.
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>% 
+  filter(variable == "int_p"& !(is.na(agb_0))) %>% 
+  select(Site, variable, median, q5, q95, agb_0, continent) %>% 
+  left_join(dt_omega) %>% 
+  ggplot(aes(x = median_omega, y = median * 100/agb_0)) + 
+  geom_errorbar(aes(ymin = q5 * 100/agb_0, 
+                    ymax = q95 * 100/agb_0, 
+                    col = Site,
+                    shape = continent),
+                    width = 0) +
+  geom_errorbarh(aes(xmin = q5_omega, 
+                     xmax = q95_omega, 
+                     col = Site,
+                     shape = continent), 
+                     height = 0) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+    ) +
+  labs(
+    x = "Turnover rate (omega)",
+    y = "AGB over-productivity [% prelogging AGB]"
+    ) +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
