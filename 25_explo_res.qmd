@@ -36,21 +36,25 @@ plot_info_raw <- read.csv("data/raw_data/bioforest-plot-information.csv") %>%
 plot_info <- read_csv("data/derived_data/aggregated_data_v9.csv") %>%
   filter(Site %in% site_info$Site & variable %in% c("ba", "agb")) %>%
   mutate(plot_new = Plot) %>%
-  separate(Plot, "Plot", "_") %>% 
-  pivot_wider(names_from = "variable", 
-              values_from = "value") %>% 
-  left_join(plot_info_raw, by = join_by(Site == site, Plot == plot)) %>% 
+  separate(Plot, "Plot", "_") %>%
+  pivot_wider(
+    names_from = "variable",
+    values_from = "value"
+  ) %>%
+  left_join(plot_info_raw, by = join_by(Site == site, Plot == plot)) %>%
   group_by(Site, plot_new, Treatment, Year_of_harvest) %>%
   summarise(
-   census1 = min(Year),
-   ba_0 = ba[Year == min(Year)],
-   ba_min = min(ba[Year > Year_of_harvest &
-                         Year <= Year_of_harvest + 5]),
-   agb_0 = agb[Year == min(Year)]) %>% 
-  mutate(ba_0 = if_else(census1 < Year_of_harvest, ba_0, NA),
-         agb_0 = if_else(census1 < Year_of_harvest, agb_0, NA),
-         intensity = (ba_0 - ba_min) / ba_0
-         )
+    census1 = min(Year),
+    ba_0 = ba[Year == min(Year)],
+    ba_min = min(ba[Year > Year_of_harvest &
+                      Year <= Year_of_harvest + 5]),
+    agb_0 = agb[Year == min(Year)]
+  ) %>%
+  mutate(
+    ba_0 = if_else(census1 < Year_of_harvest, ba_0, NA),
+    agb_0 = if_else(census1 < Year_of_harvest, agb_0, NA),
+    intensity = (ba_0 - ba_min) / ba_0
+  )
 
 
 data_explo <- params %>%
@@ -92,7 +96,7 @@ read_csv("data/derived_data/aggregated_data_v9.csv") %>%
   mutate(trec = Year - Year_of_harvest) %>%
   filter(trec > 0 & trec < 6) %>%
   group_by(Site) %>%
-  summarise(trec = paste(unique(trec), collapse = ", ")) %>% 
+  summarise(trec = paste(unique(trec), collapse = ", ")) %>%
   kable()
 ```
 
@@ -138,16 +142,16 @@ data_explo %>%
     et, cwd, pr, tmax, vpd, soil, dsl, dsi
   ) %>%
   pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
-  mutate(var_clim = fct_recode(var_clim, 
+  mutate(var_clim = fct_recode(var_clim,
     "Evapotranspiration, mm" = "et",
     "Climate water deficit, mm" = "cwd",
     "Precipitation, mm" = "pr",
     "Maximum temperature, °C" = "tmax",
-     "Vapour Pressure Deficit, kPa" = "vpd",
-     "Soil humidity, mm" = "soil",
-     "Dry season length, days" = "dsl",
-     "Dry season intensity, mm" = "dsi")
-     ) %>% 
+    "Vapour Pressure Deficit, kPa" = "vpd",
+    "Soil humidity, mm" = "soil",
+    "Dry season length, days" = "dsl",
+    "Dry season intensity, mm" = "dsi"
+  )) %>%
   ggplot(aes(x = value, y = median)) +
   geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
   geom_smooth(
@@ -177,19 +181,18 @@ data_explo %>%
     bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
   ) %>%
   pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
-  mutate(var_soil = fct_recode(var_soil, 
-    "Bulk density, kg dm³" = "bdod", 
+  mutate(var_soil = fct_recode(var_soil,
+    "Bulk density, kg dm³" = "bdod",
     "CEC, cmolC kg-1" = "cec",
     "Fraction of coarse fragments, cm3 100cm-3" = "cfvo",
     "Proportion of clay particles, %" = "clay",
-    "Proportion of sand particles, %" = "sand", 
-    "Proportion of silt particles, %"= "silt", 
-    "Total nitrogen, g kg-1" = "nitrogen", 
-    "Soil pH" = "phh2o", 
-    "Soil organic carbon, g kg-1"= "soc", 
+    "Proportion of sand particles, %" = "sand",
+    "Proportion of silt particles, %" = "silt",
+    "Total nitrogen, g kg-1" = "nitrogen",
+    "Soil pH" = "phh2o",
+    "Soil organic carbon, g kg-1" = "soc",
     "Organic carbon density, kg dm³" = "ocd"
-    )
-     ) %>% 
+  )) %>%
   ggplot(aes(x = value, y = median)) +
   geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
   geom_smooth(
@@ -210,26 +213,32 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>% 
-  filter(variable %in% c("omega", "t95_p")) %>% 
-  select(Site, variable, median, q5, q95, continent) %>% 
-  pivot_wider(names_from = variable,
-              values_from = c(median, q5, q95)) %>% 
-  ggplot(aes(x = median_omega, y = median_t95_p)) + 
-  geom_errorbar(aes(ymin = q5_t95_p, ymax = q95_t95_p, 
-                    col = continent,
-                    width = 0)) +
-  geom_errorbarh(aes(xmin = q5_omega, xmax = q95_omega, 
-                     col = continent,
-                     height = 0)) +
+data_explo %>%
+  filter(variable %in% c("omega", "t95_p")) %>%
+  select(Site, variable, median, q5, q95, continent) %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = c(median, q5, q95)
+  ) %>%
+  ggplot(aes(x = median_omega, y = median_t95_p)) +
+  geom_errorbar(aes(
+    ymin = q5_t95_p, ymax = q95_t95_p,
+    col = continent,
+    width = 0
+  )) +
+  geom_errorbarh(aes(
+    xmin = q5_omega, xmax = q95_omega,
+    col = continent,
+    height = 0
+  )) +
   geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
-    ) +
+  ) +
   labs(
     x = "Turnover rate (omega)",
     y = "Duration of over-productivity (t95, in years)"
-    ) +
+  ) +
   theme_bw() +
   theme(legend.position = "bottom")
 ```
@@ -254,14 +263,17 @@ The graph below show that there is a lot of variability in the relative AGB over
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "int_m" & !(is.na(agb_0))) %>% 
-  mutate(site_plot = paste(Site, plot_new)) %>% 
-  ggplot(aes(median * 100/agb_0, 
-             reorder(site_plot, median * 100/agb_0), 
-             col = Site,
-             shape = continent)) +
-  geom_pointrange(aes(xmin = q5 * 100/agb_0, 
-                      xmax = q95 * 100/agb_0)) +
+  filter(variable == "int_m" & !(is.na(agb_0))) %>%
+  mutate(site_plot = paste(Site, plot_new)) %>%
+  ggplot(aes(median * 100 / agb_0,
+    reorder(site_plot, median * 100 / agb_0),
+    col = Site,
+    shape = continent
+  )) +
+  geom_pointrange(aes(
+    xmin = q5 * 100 / agb_0,
+    xmax = q95 * 100 / agb_0
+  )) +
   labs(
     x = "AGB over-mortality [% prelogging AGB]",
     y = ""
@@ -276,18 +288,22 @@ There seems to be a strong site effect, but the within site trends seems to show
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "int_m"& !(is.na(agb_0))) %>% 
-  mutate(Site = fct_drop(as.factor(Site))) %>% 
-  ggplot(aes(x = intensity * 100, 
-             y = median *100/agb_0)) +
-  geom_pointrange(aes(ymin = q5*100/agb_0, 
-                      ymax = q95*100/agb_0,
-                      col = Site, 
-                      shape = continent)) +
-   geom_smooth(
+  filter(variable == "int_m" & !(is.na(agb_0))) %>%
+  mutate(Site = fct_drop(as.factor(Site))) %>%
+  ggplot(aes(
+    x = intensity * 100,
+    y = median * 100 / agb_0
+  )) +
+  geom_pointrange(aes(
+    ymin = q5 * 100 / agb_0,
+    ymax = q95 * 100 / agb_0,
+    col = Site,
+    shape = continent
+  )) +
+  geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
-    ) + 
+  ) +
   labs(
     x = "Logging intensity [% BA loss]",
     y = "AGB over-mortality [% prelogging AGB]"
@@ -305,28 +321,30 @@ NB: the environmental variables are available at the site level, so with 4 sites
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "int_m"& !(is.na(agb_0))) %>%
+  filter(variable == "int_m" & !(is.na(agb_0))) %>%
   select(
-    Site,plot_new, median, q5, q95, agb_0,
+    Site, plot_new, median, q5, q95, agb_0,
     continent,
     et, cwd, pr, tmax, vpd, soil, dsl, dsi
   ) %>%
   pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
-  mutate(var_clim = fct_recode(var_clim, 
+  mutate(var_clim = fct_recode(var_clim,
     "Evapotranspiration, mm" = "et",
     "Climate water deficit, mm" = "cwd",
     "Precipitation, mm" = "pr",
     "Maximum temperature, °C" = "tmax",
-     "Vapour Pressure Deficit, kPa" = "vpd",
-     "Soil humidity, mm" = "soil",
-     "Dry season length, days" = "dsl",
-     "Dry season intensity, mm" = "dsi")
-     ) %>% 
-  ggplot(aes(x = value, y = median * 100/agb_0)) +
-  geom_pointrange(aes(ymin = q5 * 100/agb_0, 
-                      ymax = q95 * 100/agb_0, 
-                      col = Site,
-                      shape = continent)) +
+    "Vapour Pressure Deficit, kPa" = "vpd",
+    "Soil humidity, mm" = "soil",
+    "Dry season length, days" = "dsl",
+    "Dry season intensity, mm" = "dsi"
+  )) %>%
+  ggplot(aes(x = value, y = median * 100 / agb_0)) +
+  geom_pointrange(aes(
+    ymin = q5 * 100 / agb_0,
+    ymax = q95 * 100 / agb_0,
+    col = Site,
+    shape = continent
+  )) +
   geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
@@ -354,24 +372,25 @@ data_explo %>%
     bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
   ) %>%
   pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
-  mutate(var_soil = fct_recode(var_soil, 
-    "Bulk density, kg dm³" = "bdod", 
+  mutate(var_soil = fct_recode(var_soil,
+    "Bulk density, kg dm³" = "bdod",
     "CEC, cmolC kg-1" = "cec",
     "Fraction of coarse fragments, cm3 100cm-3" = "cfvo",
     "Proportion of clay particles, %" = "clay",
-    "Proportion of sand particles, %" = "sand", 
-    "Proportion of silt particles, %"= "silt", 
-    "Total nitrogen, g kg-1" = "nitrogen", 
-    "Soil pH" = "phh2o", 
-    "Soil organic carbon, g kg-1"= "soc", 
+    "Proportion of sand particles, %" = "sand",
+    "Proportion of silt particles, %" = "silt",
+    "Total nitrogen, g kg-1" = "nitrogen",
+    "Soil pH" = "phh2o",
+    "Soil organic carbon, g kg-1" = "soc",
     "Organic carbon density, kg dm³" = "ocd"
-    )
-     ) %>% 
-  ggplot(aes(x = value, y = median * 100/agb_0)) +
-  geom_pointrange(aes(ymin = q5 * 100/agb_0,
-                      ymax = q95 * 100/agb_0, 
-                      col = Site,
-                      shape = continent)) +
+  )) %>%
+  ggplot(aes(x = value, y = median * 100 / agb_0)) +
+  geom_pointrange(aes(
+    ymin = q5 * 100 / agb_0,
+    ymax = q95 * 100 / agb_0,
+    col = Site,
+    shape = continent
+  )) +
   geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
@@ -390,36 +409,46 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-dt_omega <- data_explo %>% 
-  filter(variable == "omega") %>% 
-  select(Site, median, q5, q95) %>% 
-  rename(median_omega = median,
-         q5_omega = q5,
-         q95_omega = q95)
+dt_omega <- data_explo %>%
+  filter(variable == "omega") %>%
+  select(Site, median, q5, q95) %>%
+  rename(
+    median_omega = median,
+    q5_omega = q5,
+    q95_omega = q95
+  )
 
-data_explo %>% 
-  filter(variable == "int_m"& !(is.na(agb_0))) %>% 
-  select(Site, variable, median, q5, q95, agb_0, continent) %>% 
-  left_join(dt_omega) %>% 
-  ggplot(aes(x = median_omega, y = median * 100/agb_0)) + 
-  geom_errorbar(aes(ymin = q5 * 100/agb_0, 
-                    ymax = q95 * 100/agb_0, 
-                    col = Site,
-                    shape = continent),
-                    width = 0) +
-  geom_errorbarh(aes(xmin = q5_omega, 
-                     xmax = q95_omega, 
-                     col = Site,
-                     shape = continent), 
-                     height = 0) +
+data_explo %>%
+  filter(variable == "int_m" & !(is.na(agb_0))) %>%
+  select(Site, variable, median, q5, q95, agb_0, continent) %>%
+  left_join(dt_omega) %>%
+  ggplot(aes(x = median_omega, y = median * 100 / agb_0)) +
+  geom_errorbar(
+    aes(
+      ymin = q5 * 100 / agb_0,
+      ymax = q95 * 100 / agb_0,
+      col = Site,
+      shape = continent
+    ),
+    width = 0
+  ) +
+  geom_errorbarh(
+    aes(
+      xmin = q5_omega,
+      xmax = q95_omega,
+      col = Site,
+      shape = continent
+    ),
+    height = 0
+  ) +
   geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
-    ) +
+  ) +
   labs(
     x = "Turnover rate (omega)",
     y = "AGB over-mortality [% prelogging AGB]"
-    ) +
+  ) +
   theme_bw() +
   theme(legend.position = "bottom")
 ```
@@ -438,14 +467,17 @@ The graph below show that there is a lot of variability in the relative AGB over
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "int_p" & !(is.na(agb_0))) %>% 
-  mutate(site_plot = paste(Site, plot_new)) %>% 
-  ggplot(aes(median * 100/agb_0, 
-             reorder(site_plot, median * 100/agb_0), 
-             col = Site,
-             shape = continent)) +
-  geom_pointrange(aes(xmin = q5 * 100/agb_0, 
-                      xmax = q95 * 100/agb_0)) +
+  filter(variable == "int_p" & !(is.na(agb_0))) %>%
+  mutate(site_plot = paste(Site, plot_new)) %>%
+  ggplot(aes(median * 100 / agb_0,
+    reorder(site_plot, median * 100 / agb_0),
+    col = Site,
+    shape = continent
+  )) +
+  geom_pointrange(aes(
+    xmin = q5 * 100 / agb_0,
+    xmax = q95 * 100 / agb_0
+  )) +
   labs(
     x = "AGB over-productivity [% prelogging AGB]",
     y = ""
@@ -459,18 +491,22 @@ We expect that this variability would be partly explained by logging intensity, 
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "int_p"& !(is.na(agb_0))) %>% 
-  mutate(Site = fct_drop(as.factor(Site))) %>% 
-  ggplot(aes(x = intensity * 100, 
-             y = median *100/agb_0)) +
-  geom_pointrange(aes(ymin = q5*100/agb_0, 
-                      ymax = q95*100/agb_0,
-                      col = Site, 
-                      shape = continent)) +
-   geom_smooth(
+  filter(variable == "int_p" & !(is.na(agb_0))) %>%
+  mutate(Site = fct_drop(as.factor(Site))) %>%
+  ggplot(aes(
+    x = intensity * 100,
+    y = median * 100 / agb_0
+  )) +
+  geom_pointrange(aes(
+    ymin = q5 * 100 / agb_0,
+    ymax = q95 * 100 / agb_0,
+    col = Site,
+    shape = continent
+  )) +
+  geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
-    ) + 
+  ) +
   labs(
     x = "Logging intensity [% BA loss]",
     y = "AGB over-productivity [% prelogging AGB]"
@@ -488,28 +524,30 @@ NB: the environmental variables are available at the site level, so with 4 sites
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "int_p"& !(is.na(agb_0))) %>%
+  filter(variable == "int_p" & !(is.na(agb_0))) %>%
   select(
-    Site,plot_new, median, q5, q95, agb_0,
+    Site, plot_new, median, q5, q95, agb_0,
     continent,
     et, cwd, pr, tmax, vpd, soil, dsl, dsi
   ) %>%
   pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
-  mutate(var_clim = fct_recode(var_clim, 
+  mutate(var_clim = fct_recode(var_clim,
     "Evapotranspiration, mm" = "et",
     "Climate water deficit, mm" = "cwd",
     "Precipitation, mm" = "pr",
     "Maximum temperature, °C" = "tmax",
-     "Vapour Pressure Deficit, kPa" = "vpd",
-     "Soil humidity, mm" = "soil",
-     "Dry season length, days" = "dsl",
-     "Dry season intensity, mm" = "dsi")
-     ) %>% 
-  ggplot(aes(x = value, y = median * 100/agb_0)) +
-  geom_pointrange(aes(ymin = q5 * 100/agb_0, 
-                      ymax = q95 * 100/agb_0, 
-                      col = Site,
-                      shape = continent)) +
+    "Vapour Pressure Deficit, kPa" = "vpd",
+    "Soil humidity, mm" = "soil",
+    "Dry season length, days" = "dsl",
+    "Dry season intensity, mm" = "dsi"
+  )) %>%
+  ggplot(aes(x = value, y = median * 100 / agb_0)) +
+  geom_pointrange(aes(
+    ymin = q5 * 100 / agb_0,
+    ymax = q95 * 100 / agb_0,
+    col = Site,
+    shape = continent
+  )) +
   geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
@@ -537,24 +575,25 @@ data_explo %>%
     bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
   ) %>%
   pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
-  mutate(var_soil = fct_recode(var_soil, 
-    "Bulk density, kg dm³" = "bdod", 
+  mutate(var_soil = fct_recode(var_soil,
+    "Bulk density, kg dm³" = "bdod",
     "CEC, cmolC kg-1" = "cec",
     "Fraction of coarse fragments, cm3 100cm-3" = "cfvo",
     "Proportion of clay particles, %" = "clay",
-    "Proportion of sand particles, %" = "sand", 
-    "Proportion of silt particles, %"= "silt", 
-    "Total nitrogen, g kg-1" = "nitrogen", 
-    "Soil pH" = "phh2o", 
-    "Soil organic carbon, g kg-1"= "soc", 
+    "Proportion of sand particles, %" = "sand",
+    "Proportion of silt particles, %" = "silt",
+    "Total nitrogen, g kg-1" = "nitrogen",
+    "Soil pH" = "phh2o",
+    "Soil organic carbon, g kg-1" = "soc",
     "Organic carbon density, kg dm³" = "ocd"
-    )
-     ) %>% 
-  ggplot(aes(x = value, y = median * 100/agb_0)) +
-  geom_pointrange(aes(ymin = q5 * 100/agb_0,
-                      ymax = q95 * 100/agb_0, 
-                      col = Site,
-                      shape = continent)) +
+  )) %>%
+  ggplot(aes(x = value, y = median * 100 / agb_0)) +
+  geom_pointrange(aes(
+    ymin = q5 * 100 / agb_0,
+    ymax = q95 * 100 / agb_0,
+    col = Site,
+    shape = continent
+  )) +
   geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
@@ -573,29 +612,37 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>% 
-  filter(variable == "int_p"& !(is.na(agb_0))) %>% 
-  select(Site, variable, median, q5, q95, agb_0, continent) %>% 
-  left_join(dt_omega) %>% 
-  ggplot(aes(x = median_omega, y = median * 100/agb_0)) + 
-  geom_errorbar(aes(ymin = q5 * 100/agb_0, 
-                    ymax = q95 * 100/agb_0, 
-                    col = Site,
-                    shape = continent),
-                    width = 0) +
-  geom_errorbarh(aes(xmin = q5_omega, 
-                     xmax = q95_omega, 
-                     col = Site,
-                     shape = continent), 
-                     height = 0) +
+data_explo %>%
+  filter(variable == "int_p" & !(is.na(agb_0))) %>%
+  select(Site, variable, median, q5, q95, agb_0, continent) %>%
+  left_join(dt_omega) %>%
+  ggplot(aes(x = median_omega, y = median * 100 / agb_0)) +
+  geom_errorbar(
+    aes(
+      ymin = q5 * 100 / agb_0,
+      ymax = q95 * 100 / agb_0,
+      col = Site,
+      shape = continent
+    ),
+    width = 0
+  ) +
+  geom_errorbarh(
+    aes(
+      xmin = q5_omega,
+      xmax = q95_omega,
+      col = Site,
+      shape = continent
+    ),
+    height = 0
+  ) +
   geom_smooth(
     method = "lm", se = FALSE,
     size = 0.5, col = "grey", linetype = "dashed"
-    ) +
+  ) +
   labs(
     x = "Turnover rate (omega)",
     y = "AGB over-productivity [% prelogging AGB]"
-    ) +
+  ) +
   theme_bw() +
   theme(legend.position = "bottom")
 ```
