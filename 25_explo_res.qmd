@@ -259,6 +259,8 @@ This analyis is therefore limited to 4 sites for the time being.
 
 The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 30% to almost 80%.
 
+> 80% is very high, to check...
+
 ```{r}
 #| message: false
 #| warning: false
