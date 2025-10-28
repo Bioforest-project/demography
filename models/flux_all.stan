@@ -10,7 +10,8 @@ data {
   vector[n_log] y_log;
   vector[n_log] in_log;
   vector[n_log] out_log;
-  vector[n_log] time;  // recovery time
+  vector[n_log] time_stocks;  // recovery time
+  vector[n_log] time_flux;  // recovery time
   array[n_equ] int<lower=0, upper=s> site_equ;   // equilibrium site index
   array[n_log] int<lower=0, upper=s> site_log;   // logged site index
   array[n_log] int<lower=0, upper=p_log> plot_log;  // logged plot index 
@@ -62,14 +63,14 @@ transformed parameters {
     alpha_p ./ lambda_s[site_plot];
   vector[n_log] mu_y_log = y0_p[plot_log] +
     delta_p[plot_log] .* tau_s[site_log] .* exp(2) ./ 4 - 
-    delta_p[plot_log] .* exp((1 - time ./ tau_s[site_log]) .* 2) .*
-    (time.*time ./ (2 .* tau_s[site_log]) + time ./ 2 + tau_s[site_log] ./ 4) - 
-    alpha_p[plot_log]./lambda_s[site_log].*(1-exp(-lambda_s[site_log].* time));
+    delta_p[plot_log] .* exp((1 - time_stocks ./ tau_s[site_log]) .* 2) .*
+    (time_stocks.*time_stocks ./ (2 .* tau_s[site_log]) + time_stocks ./ 2 + tau_s[site_log] ./ 4) - 
+    alpha_p[plot_log]./lambda_s[site_log].*(1-exp(-lambda_s[site_log].* time_stocks));
   vector[n_log] mu_in_log = omega_s[site_log] .* mu_y_log + 
-    delta_p[plot_log] .*((time .* time) ./ (tau_s[site_log].*tau_s[site_log]) .*
-    exp(2 .* (1 - time ./ tau_s[site_log])));
+    delta_p[plot_log] .*((time_flux .* time_flux) ./ (tau_s[site_log].*tau_s[site_log]) .*
+    exp(2 .* (1 - time_flux ./ tau_s[site_log])));
   vector[n_log] mu_out_log = omega_s[site_log] .* mu_y_log + alpha_p[plot_log] .* 
-    exp(-lambda_s[site_log].*time);
+    exp(-lambda_s[site_log].*time_flux);
 }
 model {
   log(y_log) ~ normal(log(mu_y_log), sigma_y);

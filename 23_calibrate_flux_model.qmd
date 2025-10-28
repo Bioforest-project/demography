@@ -30,6 +30,10 @@ data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   mutate(prod = agb_growth + agb_recr, mort = agb_mort, stocks = agb) |>
   select(!contains("agb")) |>
+  group_by(Site, plot_new) |>
+  arrange(Year) |>
+  mutate(tdiff = c(0, diff(Year))) |>
+  ungroup() |>
   pivot_longer(cols = c("stocks", "prod", "mort"), names_to = "variable") |>
   mutate(Year_of_harvest = ifelse(Site == "Mbaiki" & Treatment == "Logging",
     1985, Year_of_harvest
@@ -83,7 +87,7 @@ bounds |>
 #| warning: false
 data_rec <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
-  subset(Treatment == "Logging" & trec > 3) |>
+  subset(Treatment == "Logging" & trec >= 0) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
   mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))
@@ -114,7 +118,8 @@ mdata_all <- list(
   y_log = data_rec$stocks,
   in_log = data_rec$prod,
   out_log = data_rec$mort,
-  time = data_rec$trec,
+  time_stocks = data_rec$trec,
+  time_flux = data_rec$trec - data_rec$tdiff / 2,
   site_equ = data_old$sitenum,
   site_log = data_rec$sitenum,
   plot_log = data_rec$plotnum,
@@ -208,7 +213,7 @@ labs <- c(stocks = "BA stocks", prod = "BA productivity", mort = "BA mortality")
 
 pov_data |>
   ggplot(aes(pred, obs)) +
-  geom_point(alpha = 0.25, aes(col = type)) +
+  geom_point(alpha = 0.25, aes(col = Site, shape = type)) +
   geom_abline(col = "red", linetype = "dashed") +
   geom_text(
     data = df_rmse,

@@ -28,7 +28,8 @@ The integral calculation is done in the Appendix.
 
 The resulting stocks are:
 
-$$ stocks(t) = stocks(0) + \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{\alpha}{\lambda}(1-exp(-\lambda\cdot t))$$ The equilibrium value is
+$$ stocks(t) = stocks(0) + \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{\alpha}{\lambda}(1-exp(-\lambda\cdot t))$$
+The equilibrium value is
 
 $$stocks(\infty) = stocks(0) + \frac{e^{2}}{4} (\delta \cdot \tau) - \frac{\alpha}{\lambda}$$
 
@@ -93,3 +94,28 @@ data.frame(t = seq(0, 100, length.out = 200)) |>
   theme_minimal() +
   theme(strip.placement = "outside")
 ```
+
+
+## Integrating flux values over the census interval
+
+When measuring productivity and mortality, we not measuring their instanteneous value but rather their value integrated over the census interval (typically 1-2 years). 
+
+We thus integrate the productivity and mortality equations as follows: 
+
+$$
+Prod(t, k)
+= \omega \int_{t-k}^t stocks(x)dx + \int_{t-k}^t STP_P \\
+ = \omega \left( k\!\left(S_0 + \frac{\delta e^2 \tau}{4} - \frac{\alpha}{\lambda}\right)
++ \frac{\alpha}{\lambda^2}\,e^{-\lambda t}\!\left(e^{\lambda k}-1\right) + \\ \frac{\delta}{8}
+\!\left[
+e^{2\!\left(1-\frac{t-k}{\tau}\right)}\!\left(2(t-k)^2 + 4(t-k)\tau + 3\tau^2\right)
+- e^{2\!\left(1-\frac{t}{\tau}\right)}\!\left(2t^2 + 4t\tau + 3\tau^2\right)
+\right]  \right) + \\
+\frac{\delta}{8}
+\Bigg[
+e^{2\!\left(1 - \frac{t - k}{\tau}\right)}\!
+\left(2(t - k)^{2} + 4(t - k)\tau + 3\tau^{2}\right)
+- e^{2\!\left(1 - \frac{t}{\tau}\right)}\!
+\left(2t^{2} + 4t\tau + 3\tau^{2}\right)
+\Bigg]
+$$

@@ -4,6 +4,7 @@
 #| include: false
 
 library(tidyverse)
+library(cmdstanr)
 list.files("r", full.names = TRUE, pattern = ".R") %>%
   lapply(source)
 ```
