@@ -43,7 +43,6 @@ data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
 ### Annual changes
 
 ::: panel-tabset
-
 ```{r}
 #| results: asis
 #| message: false
@@ -79,15 +78,11 @@ purrr::walk(
   }
 )
 ```
-
 :::
-
 
 ### Cumulative changes
 
-
 ::: panel-tabset
-
 ```{r}
 #| results: asis
 #| message: false
@@ -126,5 +121,4 @@ purrr::walk(
   }
 )
 ```
-
 :::
