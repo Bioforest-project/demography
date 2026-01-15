@@ -8,7 +8,7 @@ library(cmdstanr)
 library(bayesplot)
 library(patchwork)
 library(flextable)
-list.files("r", full.names = TRUE, pattern = ".R") %>%
+list.files("r", full.names = TRUE, pattern = ".R") |>
   lapply(source)
 ```
 
@@ -38,7 +38,11 @@ data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
   mutate(Year_of_harvest = ifelse(Site == "Mbaiki" & Treatment == "Logging",
     1985, Year_of_harvest
   )) |>
-  mutate(trec = Year - Year_of_harvest)
+  mutate(Year_of_harvest = ifelse(Site == "Paracou" & Treatment == "Logging",
+    1987, Year_of_harvest
+  )) |>
+  mutate(trec = Year - Year_of_harvest) |>
+  filter(!(Site == "Tapajos Km67" & Year > 2014))
 ```
 
 For now, we only calibrate the model with sites that meet all the criteria listed [here](https://bioforest-project.github.io/demography/21_flux_data.html), and that have at least 10 censuses.
@@ -87,7 +91,7 @@ bounds |>
 #| warning: false
 data_rec <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
-  subset(Treatment == "Logging" & trec >= 0) |>
+  subset(Treatment == "Logging" & trec >= 3) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
   mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))

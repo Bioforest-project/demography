@@ -26,7 +26,6 @@ data {
 }
 parameters {
   // post-logging stocks (logged plot)
-  real<lower=y0_bounds[1], upper=y0_bounds[2]> mu_y0; 
   real<lower=0> sigma_y0;
   vector<lower=y0_bounds[1], upper=y0_bounds[2]>[p_log] y0_p;
   // mortality decrease rate (site)
@@ -88,7 +87,7 @@ model {
   delta_p ~ normal(mu_delta, sigma_delta);
   tau_s ~ normal(mu_tau, sigma_tau);
   omega_s ~ normal(mu_omega, sigma_omega);
-  y0_p ~ normal(mu_y0, sigma_y0);
+  y0_p ~ normal(theta_s[site_plot], sigma_y0); //initial value posterior centered around site equilibrium value
   
   sigma_y ~ std_normal();
   sigma_in ~ std_normal();
