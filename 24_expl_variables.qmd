@@ -5,7 +5,7 @@
 
 library(tidyverse)
 library(cmdstanr)
-list.files("r", full.names = TRUE, pattern = ".R") %>%
+list.files("r", full.names = TRUE, pattern = ".R") |>
   lapply(source)
 ```
 
@@ -55,7 +55,7 @@ data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
 #| warning: false
 #| eval: false
 fit_flux_all <-
-  as_cmdstan_fit(list.files("chains/flux_all/", full.names = TRUE))
+  as_cmdstan_fit(list.files("chains/flux_all_simpl/", full.names = TRUE))
 site_plot_num <- data |>
   filter(Treatment == "Logging" & trec > 3) |>
   select(Site, plot_new) |>
@@ -194,9 +194,13 @@ read.csv("data/derived_data/aggregated_data_v9.csv") |>
   mutate(plot_new = Plot) |>
   separate(Plot, "Plot", "_") |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  group_by(Site) |>
+  mutate(ba_control = mean(value[Treatment == "Control"])) |>
   group_by(Site, plot_new, Treatment) |>
   summarise(
-    ba_0 = value[Year == min(Year)],
+    ba_0 = ifelse(Year_of_harvest <= min(Year),
+      ba_control, value[Year == min(Year)]
+    ),
     ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
   ) |>
   mutate(intensity = (ba_0 - ba_min) / ba_0) |>
@@ -206,6 +210,34 @@ read.csv("data/derived_data/aggregated_data_v9.csv") |>
   labs(
     x = "Logging intensity [% BA loss]",
     y = "AGB total overproductivity [Mg/ha]"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+#| message: false
+#| warning: false
+read.csv("data/derived_data/aggregated_data_v9.csv") |>
+  filter(Site %in% sites$Site & variable == "ba") |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  group_by(Site) |>
+  mutate(ba_control = mean(value[Treatment == "Control"])) |>
+  group_by(Site, plot_new, Treatment) |>
+  summarise(
+    ba_0 = ifelse(Year_of_harvest <= min(Year),
+      ba_control, value[Year == min(Year)]
+    ),
+    ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
+  ) |>
+  mutate(intensity = (ba_0 - ba_min) / ba_0) |>
+  inner_join(filter(params, variable == "int_m")) |>
+  ggplot(aes(intensity * 100, median, col = Site)) +
+  geom_pointrange(aes(ymin = q5, ymax = q95)) +
+  labs(
+    x = "Logging intensity [% BA loss]",
+    y = "AGB total overmortality [Mg/ha]"
   ) +
   theme_minimal()
 ```

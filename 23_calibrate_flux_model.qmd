@@ -91,7 +91,12 @@ bounds |>
 #| warning: false
 data_rec <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
-  subset(Treatment == "Logging" & trec >= 3) |>
+  subset(Treatment == "Logging" & trec >= 0) |>
+  # problem with first years in SUAS: excessive prod. because of  DBH increases
+  filter(!(Site == "SUAS" & trec < 3 & variable == "prod")) |>
+  filter(!(Site == "Tapajos Km67" &
+             Plot %in% c(1:12, paste0(1:12, "E")) &
+             Year >= 2014)) |> # remove second logging event in Tapajos
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
   mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))
@@ -122,8 +127,8 @@ mdata_all <- list(
   y_log = data_rec$stocks,
   in_log = data_rec$prod,
   out_log = data_rec$mort,
-  time_stocks = data_rec$trec,
-  time_flux = data_rec$trec - data_rec$tdiff / 2,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
   site_equ = data_old$sitenum,
   site_log = data_rec$sitenum,
   plot_log = data_rec$plotnum,
@@ -136,7 +141,7 @@ mdata_all <- list(
   omega_bounds = c(bounds$omega_min, bounds$omega_max),
   y0_bounds = c(bounds$y0_min, bounds$y0_max)
 )
-sample_model("flux_all", mdata_all)
+sample_model("flux_all_simpl", mdata_all)
 ```
 
 The resulting Stan fit summary is presented below.
@@ -145,7 +150,7 @@ The resulting Stan fit summary is presented below.
 #| message: false
 #| warning: false
 fit_flux_all <- as_cmdstan_fit(
-  list.files("chains/flux_all/", full.names = TRUE)
+  list.files("chains/flux_all_simpl/", full.names = TRUE)
 )
 fit_flux_all
 mcmc_trace(fit_flux_all$draws(variables = c("lp__")))
@@ -175,7 +180,6 @@ The goodness of fit is satisfactory.
 pred_data <- data_rec |>
   select(-plotnum) |>
   mutate(
-    stocks = fit_flux_all$summary(c("mu_y_log"), median)$median,
     prod = fit_flux_all$summary(c("mu_in_log"), median)$median,
     mort = fit_flux_all$summary(c("mu_out_log"), median)$median,
     val = "pred",
@@ -183,8 +187,6 @@ pred_data <- data_rec |>
   ) |>
   rbind(mutate(
     data_old,
-    stocks =
-      fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum],
     prod = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] *
       fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
     mort = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] *
@@ -206,14 +208,14 @@ obs_data <- data_rec |>
   ))
 
 pov_data <- rbind(pred_data, obs_data) |>
-  pivot_longer(cols = c(stocks, prod, mort), names_to = "variable") |>
+  pivot_longer(cols = c(prod, mort), names_to = "variable") |>
   pivot_wider(names_from = val, values_from = value)
 
 df_rmse <- pov_data |>
   group_by(variable) |>
   summarise(rmse = sqrt(mean((pred - obs)^2)))
 
-labs <- c(stocks = "BA stocks", prod = "BA productivity", mort = "BA mortality")
+labs <- c(prod = "BA productivity", mort = "BA mortality")
 
 pov_data |>
   ggplot(aes(pred, obs)) +
@@ -232,28 +234,6 @@ pov_data |>
   facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
 ```
 
-The equilibrium AGB estimated in the logged plots is consistent overall with the control plots, except in the Malaysian sites (Lesong, Sungai Lalang and Ulu Muda), where it is significantly lower.
-
-```{r}
-#| message: false
-#| warning: false
-ind_rec <- data_rec |>
-  select(Site, Plot, sitenum, plotnum) |>
-  unique() |>
-  arrange(plotnum)
-data.frame(
-  site = levels(as.factor(data_old$Site))[ind_rec$sitenum],
-  theta_rec = fit_flux_all$summary(c("theta_log"), median)$median,
-  theta_equ =
-    fit_flux_all$summary(c("theta_s"), median)$median[ind_rec$sitenum]
-) |>
-  ggplot(aes(theta_equ, theta_rec, col = site)) +
-  geom_point() +
-  geom_abline(intercept = 0, slope = 1, lty = 2) +
-  labs(x = "Equilibrium AGB - controls", y = "Equilibrium AGB - logged") +
-  theme_minimal()
-```
-
 ### Visualising the trajectories
 
 The predicted flux and stocks trajectories look consistent with the data.
@@ -264,10 +244,6 @@ The predicted flux and stocks trajectories look consistent with the data.
 #| fig-width: 10
 #| fig-height: 8
 #| fig-cap: "Predicted trajectories."
-pov_data |>
-  subset(variable == "stocks") |>
-  mutate(Plot = plot_new) |>
-  graph_traj(expression("AGB [" ~ Mg ~ ha^-1 ~ "]"))
 pov_data |>
   subset(variable == "prod") |>
   mutate(Plot = plot_new) |>
