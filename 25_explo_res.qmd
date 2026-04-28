@@ -82,7 +82,7 @@ data_explo %>%
   theme_minimal()
 ```
 
-We expect it to be quite consistent between sites =\> not confirmed, the sites have quite different duration of over-mortality. This is not due to the timing of the censuses after logging (trec):
+We expect it to be quite consistent between sites =\> confirmed, although some differences between sites have in duration of over-mortality. This is not due to the timing of the censuses after logging (trec):
 
 ```{r}
 #| message: false
@@ -123,9 +123,10 @@ We expect the variability of the duration of over-productivity to depends on:
 
 -   the logging intensity =\> cannot be tested as this duration is fitted at the site scale
 
--   the ecology of the pioneer species (life span) =\> could that explain the effect of continent that seems to be quite clear, except for Corinto?
+-   the ecology of the pioneer species (life span) =\> could that explain the effect of continent?
 
--   cimatic variables related to productivity =\> we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) and lower evapotranspiration and precipitation). The pattern with soil humidity is however counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
+-   climatic variables related to productivity =\> we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) but the trend is quite weak, and this is not suported by evapotranspiration and precipitation. 
+The pattern with soil humidity is also counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
 
 ```{r}
 #| message: false
@@ -163,7 +164,8 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   soil variables related to productivity =\> we see below that higher bulk density and lower SOC soils are related to longer duration of over-productivity, which would support the hypotheses that over-productivity lasts longer in less fertile soils. But the pattern obtained for clay content shows the opposite.
+-   soil variables related to productivity =\> we see below that higher bulk density is (weakly) related to to longer duration of over-productivity, and over-productivity last less time in soil with higher clay content.
+This could  support the hypotheses that over-productivity lasts longer in less fertile soils. But there is no pattern with SOC...
 
 ```{r}
 #| message: false
@@ -238,7 +240,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
-> The trends observed seems to generally support the hypothesis that over-productivity would lask longuer is less productive (drier and less fertile) and less dynamic sites (lower turnover rate), which would make sense. Let's be careful not to over interpret it though, as there are just 8 sites and possible confunding effects due to the correlation among environmental factors in the data set.
+> The trends observed could support the hypothesis that over-productivity would lask longuer is less productive (drier and less fertile) and less dynamic sites (lower turnover rate), which would make sense. Let's be careful not to over interpret it though, as there are just 8 sites, the patterns are not very clear, and ther are possible confunding effects due to the correlation among environmental factors in the data set.
 
 ## Relative over-mortality
 
@@ -246,9 +248,9 @@ We consider relative over-mortality, being the AGB of total over-mortality expre
 
 > We could consider another way to standardise over-mortality, for exemple by using the stock estimated at infinite time by the model (but we first need to check how well it matches pre-logging AGB), or by considering the AGB of control plots (but we first need to check how much intrasite variability the is).
 
-The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 30% to almost 80%.
+The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 5% to more than 15%.
 
-> 80% is very high, to check...
+> The values of over-mortality are much more consistent than the ones from the previous version of the model.
 
 ```{r}
 #| message: false
@@ -272,7 +274,7 @@ data_explo %>%
   theme_minimal()
 ```
 
-We expect that this variability would be partly explained by logging intensity, with a higher over-mortality when logging intensity is higher =\> this is not confirmed, as the graph below shows the opposite. There seems to be a strong site effect, but the within site trends seems to show that relative-overmortality decreases with logging intensity as well.
+We expect that this variability would be partly explained by logging intensity, with a higher over-mortality when logging intensity is higher =\> this is not confirmed, as the graph below shows a weal opposite effect, or no effect...
 
 ```{r}
 #| message: false
@@ -304,7 +306,7 @@ data_explo %>%
 
 I have no real hypothesis on the effect of environmental variables on the relative over-mortality, but I make some graph anyway, in case some people have. NB: the environmental variables are available at the site level, so with 4 sites, I don't think we will be able to say much.
 
--   Climate variables: the graphs below suggest that relative over-mortality is lower in drier sites.
+-   Climate variables: no clear trend...
 
 ```{r}
 #| message: false
@@ -347,7 +349,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   Soil variables: the graphs below suggest that relative over-mortality is lower in less fertile soils.
+-   Soil variables: no clear trend...
 
 ```{r}
 #| message: false
@@ -392,7 +394,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   Forest dynamism (turnover rate $\omega$): the graph below shows that over-mortality increases with turnover rate.
+-   Forest dynamism (turnover rate $\omega$): the graph below shows that over-mortality decreases with increasing turnover rate.
 
 ```{r}
 #| message: false
@@ -447,7 +449,7 @@ We consider relative over-productivity, being the AGB of total over-productivity
 
 > We could consider another way to standardise over-productivity, for exemple by using the stock estimated at infinite time by the model (but we first need to check how well it matches pre-logging AGB), or by considering the AGB of control plots (but we first need to check how much intrasite variability the is).
 
-The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 10% to almost 80%\*.
+The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 10% to more than 50%.
 
 ```{r}
 #| message: false
@@ -591,7 +593,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   Forest dynamism (turnover rate $\omega$): the graph below shows that over-mortality decreases with turnover rate.
+-   Forest dynamism (turnover rate $\omega$): the graph below shows that over-productivity decreases with increasing turnover rate.
 
 ```{r}
 #| message: false

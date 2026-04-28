@@ -215,7 +215,7 @@ df_rmse <- pov_data |>
   group_by(variable) |>
   summarise(rmse = sqrt(mean((pred - obs)^2)))
 
-labs <- c(prod = "BA productivity", mort = "BA mortality")
+labs <- c(prod = "AGB productivity", mort = "AGB mortality")
 
 pov_data |>
   ggplot(aes(pred, obs)) +
