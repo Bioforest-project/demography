@@ -74,6 +74,8 @@ bounds <- data.frame(
   "delta_max" = 20,
   "tau_min" = 2,
   "tau_max" = 30,
+  "k_min" = 0.1,
+  "k_max" = 5,
   "omega_min" = 1e-3,
   "omega_max" = 0.5,
   "y0_min" = 10,
@@ -91,7 +93,7 @@ bounds |>
 #| warning: false
 data_rec <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
-  subset(Treatment == "Logging" & trec >= 0) |>
+  subset(Treatment == "Logging" & trec > 0) |>
   # problem with first years in SUAS: excessive prod. because of  DBH increases
   filter(!(Site == "SUAS" & trec < 3 & variable == "prod")) |>
   filter(!(Site == "Tapajos Km67" &
@@ -107,7 +109,10 @@ data_old <- data |>
   subset(!is.na(prod) & !is.na(mort))
 ```
 
-```{r fit_flux_model}
+
+### Constant kurtosis
+
+```{r}
 #| message: false
 #| warning: false
 #| eval: false
@@ -234,7 +239,296 @@ pov_data |>
   facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
 ```
 
-### Visualising the trajectories
+#### Visualising the trajectories
+
+The predicted flux and stocks trajectories look consistent with the data.
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 8
+#| fig-cap: "Predicted trajectories."
+pov_data |>
+  subset(variable == "prod") |>
+  mutate(Plot = plot_new) |>
+  graph_traj(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
+pov_data |>
+  subset(variable == "mort") |>
+  mutate(Plot = plot_new) |>
+  graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
+```
+
+
+### Fitted kurtosis
+
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  k_bounds = c(bounds$k_min, bounds$k_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+)
+sample_model("flux_all_simpl_Ksite", mdata_all)
+```
+
+The resulting Stan fit summary is presented below.
+
+```{r}
+#| message: false
+#| warning: false
+fit_flux_all_Ksite <- as_cmdstan_fit(
+  list.files("chains/flux_all_simpl_Ksite/", full.names = TRUE)
+)
+fit_flux_all_Ksite
+mcmc_trace(fit_flux_all_Ksite$draws(variables = c("lp__")))
+```
+
+The goodness of fit is satisfactory. 
+For mortality, it seems to be a bit better than the model with fixed kurtosis, with predicted values more spread.
+
+```{r}
+#| warning: false
+#| fig-cap: "Predicted vs observed values."
+#| fig-width: 8
+#| fig-height: 3
+
+pred_data <- data_rec |>
+  select(-plotnum) |>
+  mutate(
+    prod = fit_flux_all_Ksite$summary(c("mu_in_log"), median)$median,
+    mort = fit_flux_all_Ksite$summary(c("mu_out_log"), median)$median,
+    val = "pred",
+    type = "rec"
+  ) |>
+  rbind(mutate(
+    data_old,
+    prod = fit_flux_all_Ksite$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all_Ksite$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    mort = fit_flux_all_Ksite$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all_Ksite$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    val = "pred",
+    type = "equ"
+  ))
+
+obs_data <- data_rec |>
+  mutate(
+    val = "obs",
+    type = "rec"
+  ) |>
+  select(-plotnum) |>
+  rbind(mutate(
+    data_old,
+    val = "obs",
+    type = "equ"
+  ))
+
+pov_data <- rbind(pred_data, obs_data) |>
+  pivot_longer(cols = c(prod, mort), names_to = "variable") |>
+  pivot_wider(names_from = val, values_from = value)
+
+df_rmse <- pov_data |>
+  group_by(variable) |>
+  summarise(rmse = sqrt(mean((pred - obs)^2)))
+
+labs <- c(prod = "AGB productivity", mort = "AGB mortality")
+
+pov_data |>
+  ggplot(aes(pred, obs)) +
+  geom_point(alpha = 0.25, aes(col = Site, shape = type)) +
+  geom_abline(col = "red", linetype = "dashed") +
+  geom_text(
+    data = df_rmse,
+    aes(
+      x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
+      label = paste("RMSE =", round(rmse, 2))
+    )
+  ) +
+  theme_bw() +
+  xlab("Predicted") +
+  ylab("Observed") +
+  facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
+```
+
+#### Visualising the trajectories
+
+The predicted flux and stocks trajectories look consistent with the data.
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 8
+#| fig-cap: "Predicted trajectories."
+pov_data |>
+  subset(variable == "prod") |>
+  mutate(Plot = plot_new) |>
+  graph_traj(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
+pov_data |>
+  subset(variable == "mort") |>
+  mutate(Plot = plot_new) |>
+  graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
+```
+
+
+### Fitted kurtosis
+
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  k_bounds = c(bounds$k_min, bounds$k_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+)
+sample_model("flux_all_simpl_Ksite", mdata_all)
+```
+
+The resulting Stan fit summary is presented below.
+
+```{r}
+#| message: false
+#| warning: false
+fit_flux_all_Ksite <- as_cmdstan_fit(
+  list.files("chains/flux_all_simpl_Ksite/", full.names = TRUE)
+)
+fit_flux_all_Ksite
+mcmc_trace(fit_flux_all_Ksite$draws(variables = c("lp__")))
+```
+
+The goodness of fit is satisfactory. 
+For mortality, it seems to be a bit better than the model with fixed kurtosis, with predicted values more spread.
+
+```{r}
+#| warning: false
+#| fig-cap: "Predicted vs observed values."
+#| fig-width: 8
+#| fig-height: 3
+
+pred_data <- data_rec |>
+  select(-plotnum) |>
+  mutate(
+    prod = fit_flux_all_Ksite$summary(c("mu_in_log"), median)$median,
+    mort = fit_flux_all_Ksite$summary(c("mu_out_log"), median)$median,
+    val = "pred",
+    type = "rec"
+  ) |>
+  rbind(mutate(
+    data_old,
+    prod = fit_flux_all_Ksite$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all_Ksite$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    mort = fit_flux_all_Ksite$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all_Ksite$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    val = "pred",
+    type = "equ"
+  ))
+
+obs_data <- data_rec |>
+  mutate(
+    val = "obs",
+    type = "rec"
+  ) |>
+  select(-plotnum) |>
+  rbind(mutate(
+    data_old,
+    val = "obs",
+    type = "equ"
+  ))
+
+pov_data <- rbind(pred_data, obs_data) |>
+  pivot_longer(cols = c(prod, mort), names_to = "variable") |>
+  pivot_wider(names_from = val, values_from = value)
+
+df_rmse <- pov_data |>
+  group_by(variable) |>
+  summarise(rmse = sqrt(mean((pred - obs)^2)))
+
+labs <- c(prod = "AGB productivity", mort = "AGB mortality")
+
+pov_data |>
+  ggplot(aes(pred, obs)) +
+  geom_point(alpha = 0.25, aes(col = Site, shape = type)) +
+  geom_abline(col = "red", linetype = "dashed") +
+  geom_text(
+    data = df_rmse,
+    aes(
+      x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
+      label = paste("RMSE =", round(rmse, 2))
+    )
+  ) +
+  theme_bw() +
+  xlab("Predicted") +
+  ylab("Observed") +
+  facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
+```
+
+#### Fitted kurtosis
+
+```{r}
+fit_flux_all_Ksite$summary(c("mu_k", "sigma_k", 
+                             "k_s[1]",  "k_s[2]",  "k_s[3]",  "k_s[4]", 
+                             "k_s[5]",  "k_s[6]",  "k_s[7]",  "k_s[8]"))
+```
+
+
+#### Visualising the trajectories
 
 The predicted flux and stocks trajectories look consistent with the data.
 

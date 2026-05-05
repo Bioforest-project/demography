@@ -256,7 +256,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#data" id="toc-data" class="nav-link active" data-scroll-target="#data">Data</a></li>
   <li><a href="#model" id="toc-model" class="nav-link" data-scroll-target="#model">Model</a>
   <ul class="collapse">
-  <li><a href="#visualising-the-trajectories" id="toc-visualising-the-trajectories" class="nav-link" data-scroll-target="#visualising-the-trajectories">Visualising the trajectories</a></li>
+  <li><a href="#constant-kurtosis" id="toc-constant-kurtosis" class="nav-link" data-scroll-target="#constant-kurtosis">Constant kurtosis</a></li>
+  <li><a href="#fitted-kurtosis" id="toc-fitted-kurtosis" class="nav-link" data-scroll-target="#fitted-kurtosis">Fitted kurtosis</a></li>
+  <li><a href="#fitted-kurtosis-1" id="toc-fitted-kurtosis-1" class="nav-link" data-scroll-target="#fitted-kurtosis-1">Fitted kurtosis</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -342,19 +344,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"delta_max"</span> <span class="ot">=</span> <span class="dv">20</span>,</span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tau_min"</span> <span class="ot">=</span> <span class="dv">2</span>,</span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tau_max"</span> <span class="ot">=</span> <span class="dv">30</span>,</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"omega_min"</span> <span class="ot">=</span> <span class="fl">1e-3</span>,</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"omega_max"</span> <span class="ot">=</span> <span class="fl">0.5</span>,</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"y0_min"</span> <span class="ot">=</span> <span class="dv">10</span>,</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"y0_max"</span> <span class="ot">=</span> <span class="dv">1000</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>bounds <span class="sc">|&gt;</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"parameter"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(parameter, <span class="fu">c</span>(<span class="st">"parameter"</span>, <span class="st">"bound"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> bound) <span class="sc">|&gt;</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">flextable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"k_min"</span> <span class="ot">=</span> <span class="fl">0.1</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"k_max"</span> <span class="ot">=</span> <span class="dv">5</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"omega_min"</span> <span class="ot">=</span> <span class="fl">1e-3</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"omega_max"</span> <span class="ot">=</span> <span class="fl">0.5</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"y0_min"</span> <span class="ot">=</span> <span class="dv">10</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"y0_max"</span> <span class="ot">=</span> <span class="dv">1000</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>bounds <span class="sc">|&gt;</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"parameter"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(parameter, <span class="fu">c</span>(<span class="st">"parameter"</span>, <span class="st">"bound"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> bound) <span class="sc">|&gt;</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">flextable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div class="tabwid"><style>.cl-3cf1f85e{}.cl-3cebaefe{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-3ceee4fc{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3ceee506{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3ceef7da{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3ceef7e4{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3ceef7e5{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3ceef7e6{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3ceef7ee{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3ceef7ef{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-3cf1f85e"><thead><tr style="overflow-wrap:break-word;"><th class="cl-3ceef7da"><p class="cl-3ceee4fc"><span class="cl-3cebaefe">parameter</span></p></th><th class="cl-3ceef7e4"><p class="cl-3ceee506"><span class="cl-3cebaefe">min</span></p></th><th class="cl-3ceef7e4"><p class="cl-3ceee506"><span class="cl-3cebaefe">max</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-3ceef7e5"><p class="cl-3ceee4fc"><span class="cl-3cebaefe">theta</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">50.000</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">1,000.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3ceef7e5"><p class="cl-3ceee4fc"><span class="cl-3cebaefe">lambda</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">0.010</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3ceef7e5"><p class="cl-3ceee4fc"><span class="cl-3cebaefe">alpha</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">0.000</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">200.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3ceef7e5"><p class="cl-3ceee4fc"><span class="cl-3cebaefe">delta</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">0.000</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">20.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3ceef7e5"><p class="cl-3ceee4fc"><span class="cl-3cebaefe">tau</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">2.000</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">30.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3ceef7e5"><p class="cl-3ceee4fc"><span class="cl-3cebaefe">omega</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">0.001</span></p></td><td class="cl-3ceef7e6"><p class="cl-3ceee506"><span class="cl-3cebaefe">0.5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3ceef7ee"><p class="cl-3ceee4fc"><span class="cl-3cebaefe">y0</span></p></td><td class="cl-3ceef7ef"><p class="cl-3ceee506"><span class="cl-3cebaefe">10.000</span></p></td><td class="cl-3ceef7ef"><p class="cl-3ceee506"><span class="cl-3cebaefe">1,000.0</span></p></td></tr></tbody></table></div>
+<div class="tabwid"><style>.cl-e46d45ae{}.cl-e4676aa8{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-e469ca64{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e469ca6e{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e469dfae{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e469dfb8{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e469dfb9{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e469dfba{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e469dfbb{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e469dfc2{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-e46d45ae"><thead><tr style="overflow-wrap:break-word;"><th class="cl-e469dfae"><p class="cl-e469ca64"><span class="cl-e4676aa8">parameter</span></p></th><th class="cl-e469dfb8"><p class="cl-e469ca6e"><span class="cl-e4676aa8">min</span></p></th><th class="cl-e469dfb8"><p class="cl-e469ca6e"><span class="cl-e4676aa8">max</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-e469dfb9"><p class="cl-e469ca64"><span class="cl-e4676aa8">theta</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">50.000</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">1,000.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e469dfb9"><p class="cl-e469ca64"><span class="cl-e4676aa8">lambda</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">0.010</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e469dfb9"><p class="cl-e469ca64"><span class="cl-e4676aa8">alpha</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">0.000</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">200.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e469dfb9"><p class="cl-e469ca64"><span class="cl-e4676aa8">delta</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">0.000</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">20.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e469dfb9"><p class="cl-e469ca64"><span class="cl-e4676aa8">tau</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">2.000</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">30.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e469dfb9"><p class="cl-e469ca64"><span class="cl-e4676aa8">k</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">0.100</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e469dfb9"><p class="cl-e469ca64"><span class="cl-e4676aa8">omega</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">0.001</span></p></td><td class="cl-e469dfba"><p class="cl-e469ca6e"><span class="cl-e4676aa8">0.5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e469dfbb"><p class="cl-e469ca64"><span class="cl-e4676aa8">y0</span></p></td><td class="cl-e469dfc2"><p class="cl-e469ca6e"><span class="cl-e4676aa8">10.000</span></p></td><td class="cl-e469dfc2"><p class="cl-e469ca6e"><span class="cl-e4676aa8">1,000.0</span></p></td></tr></tbody></table></div>
 </div>
 </div>
 <div class="cell">
@@ -362,7 +366,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data_rec <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sitenum =</span> <span class="fu">as.numeric</span>(<span class="fu">as.factor</span>(Site))) <span class="sc">|&gt;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(Treatment <span class="sc">==</span> <span class="st">"Logging"</span> <span class="sc">&amp;</span> trec <span class="sc">&gt;=</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(Treatment <span class="sc">==</span> <span class="st">"Logging"</span> <span class="sc">&amp;</span> trec <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># problem with first years in SUAS: excessive prod. because of  DBH increases</span></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(Site <span class="sc">==</span> <span class="st">"SUAS"</span> <span class="sc">&amp;</span> trec <span class="sc">&lt;</span> <span class="dv">3</span> <span class="sc">&amp;</span> variable <span class="sc">==</span> <span class="st">"prod"</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(Site <span class="sc">==</span> <span class="st">"Tapajos Km67"</span> <span class="sc">&amp;</span></span>
@@ -378,6 +382,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="sc">!</span><span class="fu">is.na</span>(prod) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(mort))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<section id="constant-kurtosis" class="level3">
+<h3 class="anchored" data-anchor-id="constant-kurtosis">Constant kurtosis</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -425,29 +431,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>     variable    mean  median    sd   mad      q5     q95 rhat ess_bulk
- lp__         3422.28 3414.54 81.10 82.39 3305.53 3570.71 1.29       11
- mu_lambda       1.51    1.47  0.33  0.28    1.05    2.11 1.03      181
- sigma_lambda    0.64    0.58  0.28  0.24    0.30    1.17 1.08       58
- lambda_s[1]     0.79    0.79  0.21  0.21    0.43    1.13 1.20       14
- lambda_s[2]     1.42    1.38  0.30  0.28    0.99    1.94 1.04      195
- lambda_s[3]     1.50    1.48  0.15  0.15    1.28    1.75 1.01      376
- lambda_s[4]     0.91    0.91  0.10  0.10    0.76    1.08 1.11       26
- lambda_s[5]     1.78    1.65  0.65  0.51    1.02    3.07 1.04      162
- lambda_s[6]     1.93    1.86  0.52  0.50    1.23    2.88 1.03      157
- lambda_s[7]     2.18    2.06  0.55  0.46    1.51    3.20 1.06       88
+ lp__         3464.39 3447.84 70.15 63.12 3364.72 3598.68 1.27       12
+ mu_lambda       1.75    1.70  0.36  0.32    1.28    2.42 1.10       43
+ sigma_lambda    0.71    0.67  0.29  0.26    0.30    1.23 1.07       64
+ lambda_s[1]     2.09    2.09  0.49  0.54    1.34    2.84 1.15       21
+ lambda_s[2]     1.52    1.50  0.28  0.27    1.11    2.01 1.10       31
+ lambda_s[3]     1.59    1.58  0.17  0.16    1.36    1.91 1.03      107
+ lambda_s[4]     0.89    0.89  0.08  0.08    0.75    1.03 1.05       80
+ lambda_s[5]     1.86    1.74  0.59  0.55    1.08    3.06 1.17       18
+ lambda_s[6]     2.09    2.03  0.56  0.54    1.28    3.10 1.07       41
+ lambda_s[7]     2.46    2.37  0.58  0.48    1.68    3.78 1.10       28
  ess_tail
-       48
-      185
-      239
-       48
-      336
-      607
-      242
-      153
-      234
-      184
+       35
+      183
+       59
+       99
+      140
+      163
+       77
+      112
+      123
+       40
 
- # showing 10 of 5200 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)</code></pre>
+ # showing 10 of 5060 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)</code></pre>
 </div>
 <details class="code-fold">
 <summary>Code</summary>
@@ -456,7 +462,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -476,16 +482,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code># A tibble: 32 × 7
    variable Site           mean median    q5   q95  rhat
    &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
- 1 lambda   Corinto       0.792  0.793 0.431  1.13  1.20
- 2 lambda   Lesong        1.42   1.38  0.994  1.94  1.04
- 3 lambda   Mbaiki        1.50   1.48  1.28   1.75  1.01
- 4 lambda   Paracou       0.912  0.908 0.757  1.08  1.11
- 5 lambda   SUAS          1.78   1.65  1.02   3.07  1.04
- 6 lambda   Sungai Lalang 1.93   1.86  1.23   2.88  1.03
- 7 lambda   Tapajos Km67  2.18   2.06  1.51   3.20  1.06
- 8 lambda   Ulu Muda      1.60   1.53  1.06   2.36  1.02
- 9 tau      Corinto       6.44   6.37  5.48   7.61  1.01
-10 tau      Lesong        4.83   4.83  4.42   5.26  1.01
+ 1 lambda   Corinto       2.09   2.09  1.34   2.84  1.15
+ 2 lambda   Lesong        1.52   1.50  1.11   2.01  1.10
+ 3 lambda   Mbaiki        1.59   1.58  1.36   1.91  1.03
+ 4 lambda   Paracou       0.887  0.886 0.753  1.03  1.05
+ 5 lambda   SUAS          1.86   1.74  1.08   3.06  1.17
+ 6 lambda   Sungai Lalang 2.09   2.03  1.28   3.10  1.07
+ 7 lambda   Tapajos Km67  2.46   2.37  1.68   3.78  1.10
+ 8 lambda   Ulu Muda      1.93   1.82  1.18   2.90  1.10
+ 9 tau      Corinto       5.87   5.84  4.63   7.14  1.14
+10 tau      Lesong        4.82   4.81  4.41   5.24  1.06
 # ℹ 22 more rows</code></pre>
 </div>
 </div>
@@ -552,14 +558,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="768"></p>
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="768"></p>
 <figcaption>Predicted vs observed values.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<section id="visualising-the-trajectories" class="level3">
-<h3 class="anchored" data-anchor-id="visualising-the-trajectories">Visualising the trajectories</h3>
+<section id="visualising-the-trajectories" class="level4">
+<h4 class="anchored" data-anchor-id="visualising-the-trajectories">Visualising the trajectories</h4>
 <p>The predicted flux and stocks trajectories look consistent with the data.</p>
 <div class="cell">
 <details class="code-fold">
@@ -572,7 +578,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="960"></p>
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="960"></p>
 <figcaption>Predicted trajectories.</figcaption>
 </figure>
 </div>
@@ -587,7 +593,417 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-8-2.png" class="img-fluid figure-img" width="960"></p>
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-9-2.png" class="img-fluid figure-img" width="960"></p>
+<figcaption>Predicted trajectories.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="fitted-kurtosis" class="level3">
+<h3 class="anchored" data-anchor-id="fitted-kurtosis">Fitted kurtosis</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ind_rec <span class="ot">&lt;-</span> data_rec <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Site, Plot, sitenum, plotnum) <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">|&gt;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(plotnum)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>mdata_all <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_equ =</span> <span class="fu">nrow</span>(data_old),</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_log =</span> <span class="fu">nrow</span>(data_rec),</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">s =</span> <span class="fu">max</span>(data_old<span class="sc">$</span>sitenum),</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">p_log =</span> <span class="fu">max</span>(data_rec<span class="sc">$</span>plotnum),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">y_equ =</span> data_old<span class="sc">$</span>stocks,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">in_equ =</span> data_old<span class="sc">$</span>prod,</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">out_equ =</span> data_old<span class="sc">$</span>mort,</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">y_log =</span> data_rec<span class="sc">$</span>stocks,</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">in_log =</span> data_rec<span class="sc">$</span>prod,</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">out_log =</span> data_rec<span class="sc">$</span>mort,</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> data_rec<span class="sc">$</span>trec,</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> data_rec<span class="sc">$</span>tdiff,</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">site_equ =</span> data_old<span class="sc">$</span>sitenum,</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">site_log =</span> data_rec<span class="sc">$</span>sitenum,</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot_log =</span> data_rec<span class="sc">$</span>plotnum,</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">site_plot =</span> ind_rec<span class="sc">$</span>sitenum,</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">theta_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>theta_min, bounds<span class="sc">$</span>theta_max),</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>lambda_min, bounds<span class="sc">$</span>lambda_max),</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>alpha_min, bounds<span class="sc">$</span>alpha_max),</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>delta_min, bounds<span class="sc">$</span>delta_max),</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>tau_min, bounds<span class="sc">$</span>tau_max),</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">k_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>k_min, bounds<span class="sc">$</span>k_max),</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">omega_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>omega_min, bounds<span class="sc">$</span>omega_max),</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">y0_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>y0_min, bounds<span class="sc">$</span>y0_max)</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a><span class="fu">sample_model</span>(<span class="st">"flux_all_simpl_Ksite"</span>, mdata_all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>The resulting Stan fit summary is presented below.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fit_flux_all_Ksite <span class="ot">&lt;-</span> <span class="fu">as_cmdstan_fit</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list.files</span>(<span class="st">"chains/flux_all_simpl_Ksite/"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>fit_flux_all_Ksite</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>     variable    mean  median     sd    mad      q5     q95 rhat ess_bulk
+ lp__         3992.87 3990.93 101.17 102.90 3850.81 4173.87 2.16        5
+ mu_lambda       1.61    1.54   0.38   0.34    1.09    2.33 1.29       11
+ sigma_lambda    0.69    0.60   0.34   0.31    0.28    1.37 1.33       10
+ lambda_s[1]     1.65    1.63   0.36   0.38    1.08    2.23 1.10       36
+ lambda_s[2]     1.38    1.33   0.35   0.29    0.92    1.96 1.11       44
+ lambda_s[3]     1.44    1.43   0.18   0.19    1.18    1.77 1.25       12
+ lambda_s[4]     0.75    0.73   0.10   0.10    0.61    0.94 1.53        7
+ lambda_s[5]     1.81    1.68   0.59   0.50    1.08    2.94 1.15       28
+ lambda_s[6]     1.80    1.68   0.50   0.43    1.17    2.71 1.16       17
+ lambda_s[7]     2.13    2.00   0.52   0.46    1.45    3.19 1.26       12
+ ess_tail
+       12
+       67
+       28
+      155
+      111
+       51
+       58
+       27
+       76
+       56
+
+ # showing 10 of 7434 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mcmc_trace</span>(fit_flux_all_Ksite<span class="sc">$</span><span class="fu">draws</span>(<span class="at">variables =</span> <span class="fu">c</span>(<span class="st">"lp__"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The goodness of fit is satisfactory. For mortality, it seems to be a bit better than the model with fixed kurtosis, with predicted values more spread.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>pred_data <span class="ot">&lt;-</span> data_rec <span class="sc">|&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>plotnum) <span class="sc">|&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"mu_in_log"</span>), median)<span class="sc">$</span>median,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"mu_out_log"</span>), median)<span class="sc">$</span>median,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">val =</span> <span class="st">"pred"</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"rec"</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rbind</span>(<span class="fu">mutate</span>(</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    data_old,</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"theta_s"</span>), median)<span class="sc">$</span>median[data_old<span class="sc">$</span>sitenum] <span class="sc">*</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>      fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"omega_s"</span>), median)<span class="sc">$</span>median[data_old<span class="sc">$</span>sitenum], <span class="co"># nolint</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"theta_s"</span>), median)<span class="sc">$</span>median[data_old<span class="sc">$</span>sitenum] <span class="sc">*</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>      fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"omega_s"</span>), median)<span class="sc">$</span>median[data_old<span class="sc">$</span>sitenum], <span class="co"># nolint</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">val =</span> <span class="st">"pred"</span>,</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"equ"</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>obs_data <span class="ot">&lt;-</span> data_rec <span class="sc">|&gt;</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">val =</span> <span class="st">"obs"</span>,</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"rec"</span></span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>plotnum) <span class="sc">|&gt;</span></span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rbind</span>(<span class="fu">mutate</span>(</span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>    data_old,</span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">val =</span> <span class="st">"obs"</span>,</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"equ"</span></span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>pov_data <span class="ot">&lt;-</span> <span class="fu">rbind</span>(pred_data, obs_data) <span class="sc">|&gt;</span></span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(prod, mort), <span class="at">names_to =</span> <span class="st">"variable"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> val, <span class="at">values_from =</span> value)</span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>df_rmse <span class="ot">&lt;-</span> pov_data <span class="sc">|&gt;</span></span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variable) <span class="sc">|&gt;</span></span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">rmse =</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((pred <span class="sc">-</span> obs)<span class="sc">^</span><span class="dv">2</span>)))</span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>labs <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">prod =</span> <span class="st">"AGB productivity"</span>, <span class="at">mort =</span> <span class="st">"AGB mortality"</span>)</span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(pred, obs)) <span class="sc">+</span></span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.25</span>, <span class="fu">aes</span>(<span class="at">col =</span> Site, <span class="at">shape =</span> type)) <span class="sc">+</span></span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">col =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> df_rmse,</span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">y =</span> <span class="cn">Inf</span>, <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">vjust =</span> <span class="dv">1</span>,</span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"RMSE ="</span>, <span class="fu">round</span>(rmse, <span class="dv">2</span>))</span>
+<span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb18-51"><a href="#cb18-51" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb18-52"><a href="#cb18-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb18-53"><a href="#cb18-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Predicted"</span>) <span class="sc">+</span></span>
+<span id="cb18-54"><a href="#cb18-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Observed"</span>) <span class="sc">+</span></span>
+<span id="cb18-55"><a href="#cb18-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>variable, <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">variable =</span> labs))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="768"></p>
+<figcaption>Predicted vs observed values.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="visualising-the-trajectories-1" class="level4">
+<h4 class="anchored" data-anchor-id="visualising-the-trajectories-1">Visualising the trajectories</h4>
+<p>The predicted flux and stocks trajectories look consistent with the data.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"prod"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Plot =</span> plot_new) <span class="sc">|&gt;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">graph_traj</span>(<span class="fu">expression</span>(<span class="st">"AGB productivity ["</span> <span class="sc">~</span> Mg <span class="sc">~</span> ha<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> yr<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> <span class="st">"]"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="960"></p>
+<figcaption>Predicted trajectories.</figcaption>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"mort"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Plot =</span> plot_new) <span class="sc">|&gt;</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">graph_traj</span>(<span class="fu">expression</span>(<span class="st">"AGB mortality ["</span> <span class="sc">~</span> Mg <span class="sc">~</span> ha<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> yr<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> <span class="st">"]"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid figure-img" width="960"></p>
+<figcaption>Predicted trajectories.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="fitted-kurtosis-1" class="level3">
+<h3 class="anchored" data-anchor-id="fitted-kurtosis-1">Fitted kurtosis</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ind_rec <span class="ot">&lt;-</span> data_rec <span class="sc">|&gt;</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Site, Plot, sitenum, plotnum) <span class="sc">|&gt;</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">|&gt;</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(plotnum)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>mdata_all <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_equ =</span> <span class="fu">nrow</span>(data_old),</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_log =</span> <span class="fu">nrow</span>(data_rec),</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">s =</span> <span class="fu">max</span>(data_old<span class="sc">$</span>sitenum),</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">p_log =</span> <span class="fu">max</span>(data_rec<span class="sc">$</span>plotnum),</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">y_equ =</span> data_old<span class="sc">$</span>stocks,</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">in_equ =</span> data_old<span class="sc">$</span>prod,</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">out_equ =</span> data_old<span class="sc">$</span>mort,</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">y_log =</span> data_rec<span class="sc">$</span>stocks,</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">in_log =</span> data_rec<span class="sc">$</span>prod,</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">out_log =</span> data_rec<span class="sc">$</span>mort,</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> data_rec<span class="sc">$</span>trec,</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> data_rec<span class="sc">$</span>tdiff,</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">site_equ =</span> data_old<span class="sc">$</span>sitenum,</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">site_log =</span> data_rec<span class="sc">$</span>sitenum,</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot_log =</span> data_rec<span class="sc">$</span>plotnum,</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">site_plot =</span> ind_rec<span class="sc">$</span>sitenum,</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">theta_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>theta_min, bounds<span class="sc">$</span>theta_max),</span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>lambda_min, bounds<span class="sc">$</span>lambda_max),</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>alpha_min, bounds<span class="sc">$</span>alpha_max),</span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>delta_min, bounds<span class="sc">$</span>delta_max),</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>tau_min, bounds<span class="sc">$</span>tau_max),</span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">k_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>k_min, bounds<span class="sc">$</span>k_max),</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">omega_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>omega_min, bounds<span class="sc">$</span>omega_max),</span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">y0_bounds =</span> <span class="fu">c</span>(bounds<span class="sc">$</span>y0_min, bounds<span class="sc">$</span>y0_max)</span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a><span class="fu">sample_model</span>(<span class="st">"flux_all_simpl_Ksite"</span>, mdata_all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>The resulting Stan fit summary is presented below.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>fit_flux_all_Ksite <span class="ot">&lt;-</span> <span class="fu">as_cmdstan_fit</span>(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list.files</span>(<span class="st">"chains/flux_all_simpl_Ksite/"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>fit_flux_all_Ksite</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>     variable    mean  median     sd    mad      q5     q95 rhat ess_bulk
+ lp__         3992.87 3990.93 101.17 102.90 3850.81 4173.87 2.16        5
+ mu_lambda       1.61    1.54   0.38   0.34    1.09    2.33 1.29       11
+ sigma_lambda    0.69    0.60   0.34   0.31    0.28    1.37 1.33       10
+ lambda_s[1]     1.65    1.63   0.36   0.38    1.08    2.23 1.10       36
+ lambda_s[2]     1.38    1.33   0.35   0.29    0.92    1.96 1.11       44
+ lambda_s[3]     1.44    1.43   0.18   0.19    1.18    1.77 1.25       12
+ lambda_s[4]     0.75    0.73   0.10   0.10    0.61    0.94 1.53        7
+ lambda_s[5]     1.81    1.68   0.59   0.50    1.08    2.94 1.15       28
+ lambda_s[6]     1.80    1.68   0.50   0.43    1.17    2.71 1.16       17
+ lambda_s[7]     2.13    2.00   0.52   0.46    1.45    3.19 1.26       12
+ ess_tail
+       12
+       67
+       28
+      155
+      111
+       51
+       58
+       27
+       76
+       56
+
+ # showing 10 of 7434 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mcmc_trace</span>(fit_flux_all_Ksite<span class="sc">$</span><span class="fu">draws</span>(<span class="at">variables =</span> <span class="fu">c</span>(<span class="st">"lp__"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The goodness of fit is satisfactory. For mortality, it seems to be a bit better than the model with fixed kurtosis, with predicted values more spread.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>pred_data <span class="ot">&lt;-</span> data_rec <span class="sc">|&gt;</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>plotnum) <span class="sc">|&gt;</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"mu_in_log"</span>), median)<span class="sc">$</span>median,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"mu_out_log"</span>), median)<span class="sc">$</span>median,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">val =</span> <span class="st">"pred"</span>,</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"rec"</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rbind</span>(<span class="fu">mutate</span>(</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    data_old,</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"theta_s"</span>), median)<span class="sc">$</span>median[data_old<span class="sc">$</span>sitenum] <span class="sc">*</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>      fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"omega_s"</span>), median)<span class="sc">$</span>median[data_old<span class="sc">$</span>sitenum], <span class="co"># nolint</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"theta_s"</span>), median)<span class="sc">$</span>median[data_old<span class="sc">$</span>sitenum] <span class="sc">*</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>      fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"omega_s"</span>), median)<span class="sc">$</span>median[data_old<span class="sc">$</span>sitenum], <span class="co"># nolint</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">val =</span> <span class="st">"pred"</span>,</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"equ"</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>obs_data <span class="ot">&lt;-</span> data_rec <span class="sc">|&gt;</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">val =</span> <span class="st">"obs"</span>,</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"rec"</span></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>plotnum) <span class="sc">|&gt;</span></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rbind</span>(<span class="fu">mutate</span>(</span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>    data_old,</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">val =</span> <span class="st">"obs"</span>,</span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"equ"</span></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>pov_data <span class="ot">&lt;-</span> <span class="fu">rbind</span>(pred_data, obs_data) <span class="sc">|&gt;</span></span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(prod, mort), <span class="at">names_to =</span> <span class="st">"variable"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> val, <span class="at">values_from =</span> value)</span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>df_rmse <span class="ot">&lt;-</span> pov_data <span class="sc">|&gt;</span></span>
+<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variable) <span class="sc">|&gt;</span></span>
+<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">rmse =</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((pred <span class="sc">-</span> obs)<span class="sc">^</span><span class="dv">2</span>)))</span>
+<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a>labs <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">prod =</span> <span class="st">"AGB productivity"</span>, <span class="at">mort =</span> <span class="st">"AGB mortality"</span>)</span>
+<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
+<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(pred, obs)) <span class="sc">+</span></span>
+<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.25</span>, <span class="fu">aes</span>(<span class="at">col =</span> Site, <span class="at">shape =</span> type)) <span class="sc">+</span></span>
+<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">col =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb25-45"><a href="#cb25-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb25-46"><a href="#cb25-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> df_rmse,</span>
+<span id="cb25-47"><a href="#cb25-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb25-48"><a href="#cb25-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">y =</span> <span class="cn">Inf</span>, <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">vjust =</span> <span class="dv">1</span>,</span>
+<span id="cb25-49"><a href="#cb25-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"RMSE ="</span>, <span class="fu">round</span>(rmse, <span class="dv">2</span>))</span>
+<span id="cb25-50"><a href="#cb25-50" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb25-51"><a href="#cb25-51" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb25-52"><a href="#cb25-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb25-53"><a href="#cb25-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Predicted"</span>) <span class="sc">+</span></span>
+<span id="cb25-54"><a href="#cb25-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Observed"</span>) <span class="sc">+</span></span>
+<span id="cb25-55"><a href="#cb25-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>variable, <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">variable =</span> labs))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="768"></p>
+<figcaption>Predicted vs observed values.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="fitted-kurtosis-2" class="level4">
+<h4 class="anchored" data-anchor-id="fitted-kurtosis-2">Fitted kurtosis</h4>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>fit_flux_all_Ksite<span class="sc">$</span><span class="fu">summary</span>(<span class="fu">c</span>(<span class="st">"mu_k"</span>, <span class="st">"sigma_k"</span>, </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"k_s[1]"</span>,  <span class="st">"k_s[2]"</span>,  <span class="st">"k_s[3]"</span>,  <span class="st">"k_s[4]"</span>, </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"k_s[5]"</span>,  <span class="st">"k_s[6]"</span>,  <span class="st">"k_s[7]"</span>,  <span class="st">"k_s[8]"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 10
+   variable  mean median     sd    mad    q5   q95  rhat ess_bulk ess_tail
+   &lt;chr&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+ 1 mu_k     0.550  0.534 0.128  0.114  0.359 0.798  1.11    34.7     101. 
+ 2 sigma_k  0.316  0.306 0.0993 0.0954 0.165 0.481  1.08    39.1      86.4
+ 3 k_s[1]   0.750  0.695 0.317  0.279  0.269 1.27   1.26    11.7      14.0
+ 4 k_s[2]   0.542  0.522 0.168  0.175  0.272 0.839  1.39     8.75     13.4
+ 5 k_s[3]   0.642  0.640 0.0511 0.0475 0.563 0.730  1.04   109.      154. 
+ 6 k_s[4]   0.323  0.320 0.0430 0.0477 0.254 0.394  1.04    65.6     151. 
+ 7 k_s[5]   0.339  0.314 0.133  0.136  0.162 0.589  1.18    17.9      96.5
+ 8 k_s[6]   0.729  0.727 0.153  0.149  0.464 0.970  1.08    38.8     106. 
+ 9 k_s[7]   0.133  0.121 0.0363 0.0245 0.102 0.220  1.52     7.51     39.8
+10 k_s[8]   0.790  0.763 0.194  0.207  0.517 1.11   1.06    42.2      56.1</code></pre>
+</div>
+</div>
+</section>
+<section id="visualising-the-trajectories-2" class="level4">
+<h4 class="anchored" data-anchor-id="visualising-the-trajectories-2">Visualising the trajectories</h4>
+<p>The predicted flux and stocks trajectories look consistent with the data.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"prod"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Plot =</span> plot_new) <span class="sc">|&gt;</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">graph_traj</span>(<span class="fu">expression</span>(<span class="st">"AGB productivity ["</span> <span class="sc">~</span> Mg <span class="sc">~</span> ha<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> yr<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> <span class="st">"]"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="960"></p>
+<figcaption>Predicted trajectories.</figcaption>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>pov_data <span class="sc">|&gt;</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(variable <span class="sc">==</span> <span class="st">"mort"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Plot =</span> plot_new) <span class="sc">|&gt;</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">graph_traj</span>(<span class="fu">expression</span>(<span class="st">"AGB mortality ["</span> <span class="sc">~</span> Mg <span class="sc">~</span> ha<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> yr<span class="sc">^-</span><span class="dv">1</span> <span class="sc">~</span> <span class="st">"]"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-18-2.png" class="img-fluid figure-img" width="960"></p>
 <figcaption>Predicted trajectories.</figcaption>
 </figure>
 </div>
@@ -595,6 +1011,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 
 
+</section>
 </section>
 </section>
 
