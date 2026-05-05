@@ -64,9 +64,6 @@ data_explo <- params %>%
 
 ## Turnover rate omega
 
-
-
-
 ## Duration of over-mortality
 
 We expect over-mortality to be due to the delayed mortality of damaged trees and to gap contagion (due to increased mortality at the edge of the gaps).
@@ -77,11 +74,11 @@ We expect it to occur within the first few years after logging =\> confirmed, ov
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "t95_m") %>%
+  filter(variable == "t90_m") %>%
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
-    x = "Duration of over-mortality (t95, in years)",
+    x = "Duration of over-mortality (t90, in years)",
     y = ""
   ) +
   theme_minimal()
@@ -114,11 +111,11 @@ We expect it to last several decades as post-logging canopy closure takes severa
 
 ```{r}
 data_explo %>%
-  filter(variable == "t95_p") %>%
+  filter(variable == "t90_p") %>%
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
-    x = "Duration of over-productivity (t95, in years)",
+    x = "Duration of over-productivity (t90, in years)",
     y = ""
   ) +
   theme_minimal()
@@ -130,14 +127,13 @@ We expect the variability of the duration of over-productivity to depends on:
 
 -   the ecology of the pioneer species (life span) =\> could that explain the effect of continent?
 
--   climatic variables related to productivity =\> we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) but the trend is quite weak, and this is not suported by evapotranspiration and precipitation. 
-The pattern with soil humidity is also counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
+-   climatic variables related to productivity =\> we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) but the trend is quite weak, and this is not suported by evapotranspiration and precipitation. The pattern with soil humidity is also counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
 
 ```{r}
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "t95_p") %>%
+  filter(variable == "t90_p") %>%
   select(
     Site, median, q5, q95,
     continent,
@@ -162,21 +158,20 @@ data_explo %>%
   ) +
   labs(
     x = "",
-    y = "Duration of over-productivity (t95, in years)"
+    y = "Duration of over-productivity (t90, in years)"
   ) +
   facet_wrap(~var_clim, scales = "free_x") +
   theme_bw() +
   theme(legend.position = "bottom")
 ```
 
--   soil variables related to productivity =\> we see below that higher bulk density is (weakly) related to to longer duration of over-productivity, and over-productivity last less time in soil with higher clay content.
-This could  support the hypotheses that over-productivity lasts longer in less fertile soils. But there is no pattern with SOC...
+-   soil variables related to productivity =\> we see below that higher bulk density is (weakly) related to to longer duration of over-productivity, and over-productivity last less time in soil with higher clay content. This could support the hypotheses that over-productivity lasts longer in less fertile soils. But there is no pattern with SOC...
 
 ```{r}
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable == "t95_p") %>%
+  filter(variable == "t90_p") %>%
   select(
     Site, median, q5, q95,
     continent,
@@ -203,7 +198,7 @@ data_explo %>%
   ) +
   labs(
     x = "",
-    y = "Duration of over-productivity (t95, in years)"
+    y = "Duration of over-productivity (t90, in years)"
   ) +
   facet_wrap(~var_soil, scales = "free_x") +
   theme_bw() +
@@ -216,15 +211,15 @@ data_explo %>%
 #| message: false
 #| warning: false
 data_explo %>%
-  filter(variable %in% c("omega", "t95_p")) %>%
+  filter(variable %in% c("omega", "t90_p")) %>%
   select(Site, variable, median, q5, q95, continent) %>%
   pivot_wider(
     names_from = variable,
     values_from = c(median, q5, q95)
   ) %>%
-  ggplot(aes(x = median_omega, y = median_t95_p)) +
+  ggplot(aes(x = median_omega, y = median_t90_p)) +
   geom_errorbar(aes(
-    ymin = q5_t95_p, ymax = q95_t95_p,
+    ymin = q5_t90_p, ymax = q95_t90_p,
     col = continent,
     width = 0
   )) +
@@ -239,7 +234,7 @@ data_explo %>%
   ) +
   labs(
     x = "Turnover rate (omega)",
-    y = "Duration of over-productivity (t95, in years)"
+    y = "Duration of over-productivity (t90, in years)"
   ) +
   theme_bw() +
   theme(legend.position = "bottom")
