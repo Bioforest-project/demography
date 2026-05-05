@@ -64,7 +64,94 @@ data_explo <- params %>%
 
 ## Turnover rate omega
 
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "omega") %>%
+  ggplot(aes(median, reorder(Site, median), col = continent)) +
+  geom_pointrange(aes(xmin = q5, xmax = q95)) +
+  labs(
+    x = "Turvover rate (omega)",
+    y = ""
+  ) +
+  theme_minimal()
+```
 
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "omega") %>%
+  select(
+    Site, median, q5, q95,
+    continent,
+    et, cwd, pr, tmax, vpd, soil, dsl, dsi
+  ) %>%
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
+  mutate(var_clim = fct_recode(var_clim,
+    "Evapotranspiration, mm" = "et",
+    "Climate water deficit, mm" = "cwd",
+    "Precipitation, mm" = "pr",
+    "Maximum temperature, °C" = "tmax",
+    "Vapour Pressure Deficit, kPa" = "vpd",
+    "Soil humidity, mm" = "soil",
+    "Dry season length, days" = "dsl",
+    "Dry season intensity, mm" = "dsi"
+  )) %>%
+  ggplot(aes(x = value, y = median)) +
+  geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+  ) +
+  labs(
+    x = "",
+    y = "Turvover rate (omega)"
+  ) +
+  facet_wrap(~var_clim, scales = "free_x") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+#| message: false
+#| warning: false
+data_explo %>%
+  filter(variable == "omega") %>%
+  select(
+    Site, median, q5, q95,
+    continent,
+    bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
+  ) %>%
+  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
+  mutate(var_soil = fct_recode(var_soil,
+    "Bulk density, kg dm³" = "bdod",
+    "CEC, cmolC kg-1" = "cec",
+    "Fraction of coarse fragments, cm3 100cm-3" = "cfvo",
+    "Proportion of clay particles, %" = "clay",
+    "Proportion of sand particles, %" = "sand",
+    "Proportion of silt particles, %" = "silt",
+    "Total nitrogen, g kg-1" = "nitrogen",
+    "Soil pH" = "phh2o",
+    "Soil organic carbon, g kg-1" = "soc",
+    "Organic carbon density, kg dm³" = "ocd"
+  )) %>%
+  ggplot(aes(x = value, y = median)) +
+  geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
+  geom_smooth(
+    method = "lm", se = FALSE,
+    size = 0.5, col = "grey", linetype = "dashed"
+  ) +
+  labs(
+    x = "",
+    y = "Turvover rate (omega)"
+  ) +
+  facet_wrap(~var_soil, scales = "free_x") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
 
 
 ## Duration of over-mortality
