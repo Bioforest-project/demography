@@ -55,7 +55,7 @@ data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
 #| warning: false
 #| eval: false
 fit_flux_all <-
-  as_cmdstan_fit(list.files("chains/flux_all_simpl/", full.names = TRUE))
+  as_cmdstan_fit(list.files("chains/flux_all_simpl_Ksite/", full.names = TRUE))
 site_plot_num <- data |>
   filter(Treatment == "Logging" & trec > 3) |>
   select(Site, plot_new) |>

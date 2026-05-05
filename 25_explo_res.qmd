@@ -62,6 +62,11 @@ data_explo <- params %>%
   left_join(plot_info)
 ```
 
+## Turnover rate omega
+
+
+
+
 ## Duration of over-mortality
 
 We expect over-mortality to be due to the delayed mortality of damaged trees and to gap contagion (due to increased mortality at the edge of the gaps).
