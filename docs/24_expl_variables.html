@@ -305,6 +305,7 @@ window.Quarto = {
 </header>
 
 
+<p>Done for the model with a fitted kurtosis per site without hyperlaw.</p>
 <p>We chose the following summary statistics:</p>
 <ul>
 <li><p>the turnover rate <span class="math inline">\(\omega\)</span>;</p></li>
@@ -342,7 +343,7 @@ window.Quarto = {
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fit_flux_all <span class="ot">&lt;-</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_cmdstan_fit</span>(<span class="fu">list.files</span>(<span class="st">"chains/flux_all_simpl_Ksite/"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_cmdstan_fit</span>(<span class="fu">list.files</span>(<span class="st">"chains/flux_all_simpl_Ksite_nohyper/"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>site_plot_num <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Treatment <span class="sc">==</span> <span class="st">"Logging"</span> <span class="sc">&amp;</span> trec <span class="sc">&gt;=</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Site, plot_new) <span class="sc">|&gt;</span></span>
@@ -489,7 +490,7 @@ window.Quarto = {
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>environ <span class="sc">|&gt;</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(site) <span class="sc">|&gt;</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">pr =</span> <span class="fu">mean</span>(pr)) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(<span class="fu">filter</span>(params, variable <span class="sc">==</span> <span class="st">"t95_p"</span>), <span class="at">by =</span> <span class="fu">join_by</span>(site <span class="sc">==</span> Site)) <span class="sc">|&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(<span class="fu">filter</span>(params, variable <span class="sc">==</span> <span class="st">"t90_p"</span>), <span class="at">by =</span> <span class="fu">join_by</span>(site <span class="sc">==</span> Site)) <span class="sc">|&gt;</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(pr, median, <span class="at">col =</span> site)) <span class="sc">+</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> q5, <span class="at">ymax =</span> q95)) <span class="sc">+</span></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>

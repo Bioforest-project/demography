@@ -278,7 +278,7 @@ pov_data |>
 ```
 
 
-### Fitted kurtosis
+### Fitted kurtosis (one per site with hyperlaw)
 
 
 ```{r}
@@ -330,6 +330,7 @@ fit_flux_all_Ksite <- as_cmdstan_fit(
 fit_flux_all_Ksite
 mcmc_trace(fit_flux_all_Ksite$draws(variables = c("lp__")))
 ```
+
 Rhat superior to 1.5:
 
 ```{r}
@@ -437,6 +438,330 @@ pov_data |>
   mutate(Plot = plot_new) |>
   graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 ```
+
+
+### Fitted kurtosis (common to all sites)
+
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  k_bounds = c(bounds$k_min, bounds$k_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+)
+sample_model("flux_all_simpl_K", mdata_all)
+```
+
+The resulting Stan fit summary is presented below.
+
+```{r}
+#| message: false
+#| warning: false
+fit_flux_all_K <- as_cmdstan_fit(
+  list.files("chains/flux_all_simpl_K/", full.names = TRUE)
+)
+fit_flux_all_K
+mcmc_trace(fit_flux_all_K$draws(variables = c("lp__")))
+```
+
+Rhat superior to 1.5:
+
+```{r}
+rhat_all <- summarise_draws(fit_flux_all_K$draws(), "rhat")
+rhat_all %>% filter(rhat > 1.5)
+```
+
+The goodness of fit is satisfactory. 
+
+
+```{r}
+#| warning: false
+#| fig-cap: "Predicted vs observed values."
+#| fig-width: 8
+#| fig-height: 3
+
+pred_data <- data_rec |>
+  select(-plotnum) |>
+  mutate(
+    prod = fit_flux_all_K$summary(c("mu_in_log"), median)$median,
+    mort = fit_flux_all_K$summary(c("mu_out_log"), median)$median,
+    val = "pred",
+    type = "rec"
+  ) |>
+  rbind(mutate(
+    data_old,
+    prod = fit_flux_all_K$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all_K$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    mort = fit_flux_all_K$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all_K$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    val = "pred",
+    type = "equ"
+  ))
+
+obs_data <- data_rec |>
+  mutate(
+    val = "obs",
+    type = "rec"
+  ) |>
+  select(-plotnum) |>
+  rbind(mutate(
+    data_old,
+    val = "obs",
+    type = "equ"
+  ))
+
+pov_data <- rbind(pred_data, obs_data) |>
+  pivot_longer(cols = c(prod, mort), names_to = "variable") |>
+  pivot_wider(names_from = val, values_from = value)
+
+df_rmse <- pov_data |>
+  group_by(variable) |>
+  summarise(rmse = sqrt(mean((pred - obs)^2)))
+
+labs <- c(prod = "AGB productivity", mort = "AGB mortality")
+
+pov_data |>
+  ggplot(aes(pred, obs)) +
+  geom_point(alpha = 0.25, aes(col = Site, shape = type)) +
+  geom_abline(col = "red", linetype = "dashed") +
+  geom_text(
+    data = df_rmse,
+    aes(
+      x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
+      label = paste("RMSE =", round(rmse, 2))
+    )
+  ) +
+  theme_bw() +
+  xlab("Predicted") +
+  ylab("Observed") +
+  facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
+```
+
+#### Parameter (k and tau)
+
+```{r}
+fit_flux_all_K$summary(c("k"))
+```
+
+```{r}
+fit_flux_all_K$summary(c("mu_tau", "sigma_tau", 
+                              "tau_s[1]",  "tau_s[2]",  "tau_s[3]", "tau_s[4]", 
+                              "tau_s[5]",  "tau_s[6]",  "tau_s[7]", "tau_s[8]"))
+```
+
+
+#### Visualising the trajectories
+
+The predicted flux and stocks trajectories look consistent with the data.
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 8
+#| fig-cap: "Predicted trajectories."
+pov_data |>
+  subset(variable == "prod") |>
+  mutate(Plot = plot_new) |>
+  graph_traj(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
+pov_data |>
+  subset(variable == "mort") |>
+  mutate(Plot = plot_new) |>
+  graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
+```
+
+
+
+### Fitted kurtosis (one per site no hyperlaw)
+
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  k_bounds = c(bounds$k_min, bounds$k_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+)
+sample_model("flux_all_simpl_Ksite_nohyper", mdata_all)
+```
+
+The resulting Stan fit summary is presented below.
+
+```{r}
+#| message: false
+#| warning: false
+fit_flux_all_Ks_nh <- as_cmdstan_fit(
+  list.files("chains/flux_all_simpl_Ksite_nohyper/", full.names = TRUE)
+)
+fit_flux_all_Ks_nh
+mcmc_trace(fit_flux_all_Ks_nh$draws(variables = c("lp__")))
+```
+
+Rhat superior to 1.5:
+
+```{r}
+rhat_all <- summarise_draws(fit_flux_all_Ks_nh$draws(), "rhat")
+rhat_all %>% filter(rhat > 1.5)
+```
+
+The goodness of fit is satisfactory. 
+
+```{r}
+#| warning: false
+#| fig-cap: "Predicted vs observed values."
+#| fig-width: 8
+#| fig-height: 3
+
+pred_data <- data_rec |>
+  select(-plotnum) |>
+  mutate(
+    prod = fit_flux_all_Ks_nh$summary(c("mu_in_log"), median)$median,
+    mort = fit_flux_all_Ks_nh$summary(c("mu_out_log"), median)$median,
+    val = "pred",
+    type = "rec"
+  ) |>
+  rbind(mutate(
+    data_old,
+    prod = fit_flux_all_Ks_nh$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all_Ks_nh$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    mort = fit_flux_all_Ks_nh$summary(c("theta_s"), median)$median[data_old$sitenum] *
+      fit_flux_all_Ks_nh$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    val = "pred",
+    type = "equ"
+  ))
+
+obs_data <- data_rec |>
+  mutate(
+    val = "obs",
+    type = "rec"
+  ) |>
+  select(-plotnum) |>
+  rbind(mutate(
+    data_old,
+    val = "obs",
+    type = "equ"
+  ))
+
+pov_data <- rbind(pred_data, obs_data) |>
+  pivot_longer(cols = c(prod, mort), names_to = "variable") |>
+  pivot_wider(names_from = val, values_from = value)
+
+df_rmse <- pov_data |>
+  group_by(variable) |>
+  summarise(rmse = sqrt(mean((pred - obs)^2)))
+
+labs <- c(prod = "AGB productivity", mort = "AGB mortality")
+
+pov_data |>
+  ggplot(aes(pred, obs)) +
+  geom_point(alpha = 0.25, aes(col = Site, shape = type)) +
+  geom_abline(col = "red", linetype = "dashed") +
+  geom_text(
+    data = df_rmse,
+    aes(
+      x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
+      label = paste("RMSE =", round(rmse, 2))
+    )
+  ) +
+  theme_bw() +
+  xlab("Predicted") +
+  ylab("Observed") +
+  facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
+```
+
+#### Parameter (k and tau)
+
+```{r}
+fit_flux_all_Ks_nh$summary(c("k_s[1]",  "k_s[2]",  "k_s[3]",  "k_s[4]", 
+                             "k_s[5]",  "k_s[6]",  "k_s[7]",  "k_s[8]"))
+```
+
+```{r}
+fit_flux_all_Ks_nh$summary(c("mu_tau", "sigma_tau", 
+                              "tau_s[1]",  "tau_s[2]",  "tau_s[3]", "tau_s[4]", 
+                              "tau_s[5]",  "tau_s[6]",  "tau_s[7]", "tau_s[8]"))
+```
+
+
+#### Visualising the trajectories
+
+The predicted flux and stocks trajectories look consistent with the data.
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 8
+#| fig-cap: "Predicted trajectories."
+pov_data |>
+  subset(variable == "prod") |>
+  mutate(Plot = plot_new) |>
+  graph_traj(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
+pov_data |>
+  subset(variable == "mort") |>
+  mutate(Plot = plot_new) |>
+  graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
+```
+
+
+
 
 
 
