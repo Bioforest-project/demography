@@ -78,7 +78,6 @@ data_explo %>%
   theme_minimal()
 ```
 
-
 ```{r}
 #| message: false
 #| warning: false
@@ -152,7 +151,6 @@ data_explo %>%
   theme_bw() +
   theme(legend.position = "bottom")
 ```
-
 
 ## Duration of over-mortality
 

@@ -23,7 +23,7 @@ list.files("r", full.names = TRUE, pattern = ".R") |>
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
 
-data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
+data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
   mutate(plot_new = Plot) |>
   separate(Plot, "Plot", "_") |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
@@ -109,7 +109,6 @@ data_old <- data |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort))
 ```
-
 
 ### Constant kurtosis
 
@@ -255,8 +254,6 @@ fit_flux_all$summary(c("mu_tau", "sigma_tau",
                        "tau_s[5]",  "tau_s[6]",  "tau_s[7]", "tau_s[8]"))
 ```
 
-
-
 #### Visualising the trajectories
 
 The predicted flux and stocks trajectories look consistent with the data.
@@ -277,9 +274,7 @@ pov_data |>
   graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 ```
 
-
 ### Fitted kurtosis (one per site with hyperlaw)
-
 
 ```{r}
 #| message: false
@@ -338,8 +333,7 @@ rhat_all <- summarise_draws(fit_flux_all_Ksite$draws(), "rhat")
 rhat_all %>% filter(rhat > 1.5)
 ```
 
-The goodness of fit is satisfactory. 
-For mortality, it seems to be a bit better than the model with fixed kurtosis, with predicted values more spread.
+The goodness of fit is satisfactory. For mortality, it seems to be a bit better than the model with fixed kurtosis, with predicted values more spread.
 
 ```{r}
 #| warning: false
@@ -418,7 +412,6 @@ fit_flux_all_Ksite$summary(c("mu_tau", "sigma_tau",
                               "tau_s[5]",  "tau_s[6]",  "tau_s[7]", "tau_s[8]"))
 ```
 
-
 #### Visualising the trajectories
 
 The predicted flux and stocks trajectories look consistent with the data.
@@ -439,9 +432,7 @@ pov_data |>
   graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 ```
 
-
 ### Fitted kurtosis (common to all sites)
-
 
 ```{r}
 #| message: false
@@ -500,8 +491,7 @@ rhat_all <- summarise_draws(fit_flux_all_K$draws(), "rhat")
 rhat_all %>% filter(rhat > 1.5)
 ```
 
-The goodness of fit is satisfactory. 
-
+The goodness of fit is satisfactory.
 
 ```{r}
 #| warning: false
@@ -578,7 +568,6 @@ fit_flux_all_K$summary(c("mu_tau", "sigma_tau",
                               "tau_s[5]",  "tau_s[6]",  "tau_s[7]", "tau_s[8]"))
 ```
 
-
 #### Visualising the trajectories
 
 The predicted flux and stocks trajectories look consistent with the data.
@@ -599,10 +588,7 @@ pov_data |>
   graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 ```
 
-
-
-### Fitted kurtosis (one per site no hyperlaw)
-
+### Fitted kurtosis (one per site no hyperdistribution)
 
 ```{r}
 #| message: false
@@ -661,7 +647,7 @@ rhat_all <- summarise_draws(fit_flux_all_Ks_nh$draws(), "rhat")
 rhat_all %>% filter(rhat > 1.5)
 ```
 
-The goodness of fit is satisfactory. 
+The goodness of fit is satisfactory.
 
 ```{r}
 #| warning: false
@@ -739,7 +725,6 @@ fit_flux_all_Ks_nh$summary(c("mu_tau", "sigma_tau",
                               "tau_s[5]",  "tau_s[6]",  "tau_s[7]", "tau_s[8]"))
 ```
 
-
 #### Visualising the trajectories
 
 The predicted flux and stocks trajectories look consistent with the data.
@@ -759,12 +744,3 @@ pov_data |>
   mutate(Plot = plot_new) |>
   graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 ```
-
-
-
-
-
-
-
-
-
