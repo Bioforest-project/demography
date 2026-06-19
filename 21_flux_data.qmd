@@ -14,24 +14,42 @@ Below we show the productivity in four sites that have been remeasured for multi
 ```{r}
 #| message: false
 #| warning: false
-data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
-  mutate(plot_new = Plot) |>
-  separate(Plot, "Plot", "_")
-plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv")
+plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
+  select(site, plot = new_plot, Year_of_harvest, Treatment) |>
+  unique()
+
+data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(grepl("^agb", variable) & !grepl("]$", variable)) |>
+  pivot_wider(names_from = "variable", values_from = "value") |>
+  mutate(prod = agb_growth + agb_recr, mort = agb_mort, stocks = agb) |>
+  select(!contains("agb")) |>
+  group_by(Site, plot_new = Plot) |>
+  arrange(Year) |>
+  mutate(tdiff = c(0, diff(Year))) |>
+  ungroup() |>
+  pivot_longer(cols = c("stocks", "prod", "mort"), names_to = "variable") |>
+  mutate(Year_of_harvest = ifelse(Site == "Mbaiki" & Treatment == "Logging",
+    1985, Year_of_harvest
+  )) |>
+  mutate(Year_of_harvest = ifelse(Site == "Paracou" & Treatment == "Logging",
+    1987, Year_of_harvest
+  )) |>
+  mutate(trec = Year - Year_of_harvest) |>
+  filter(!(Site == "Tapajos Km67" &
+             grepl("loggedtwice", Plot) & Year > 2014)) |>
+  filter(!(Site == "Tapajos Km67" & grepl("later", Plot)))
 ```
 
 ```{r}
 #| message: false
 #| warning: false
 data |>
-  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
-  subset(variable %in% c("agb_growth", "agb_recr")) |>
-  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
-  pivot_wider(names_from = "variable") |>
-  ggplot(aes(Year, agb_recr + agb_growth, ,
-    group = plot_new,
-    col = Treatment
-  )) +
+  filter(variable == "prod") |>
+  filter(Site %in% c("Paracou", "Mbaiki", "SUAS", "Lesong")) |>
+  filter(Year > Year_of_harvest | Treatment == "Control") |>
+  ggplot(aes(Year, value, group = plot_new, col = Treatment)) +
   geom_point() +
   geom_line() +
   labs(y = "AGB productivity [Mg/ha/yr]", col = NULL) +
@@ -43,45 +61,13 @@ data |>
 #| message: false
 #| warning: false
 data |>
-  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
-  subset(variable == "nstem_recr") |>
-  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
-  ggplot(aes(Year, value, group = plot_new, col = Treatment)) +
-  geom_point() +
-  geom_line() +
-  labs(y = "Stem recruitment [/ha/yr]", col = NULL) +
-  facet_wrap(~Site, scales = "free") +
-  theme_minimal()
-```
-
-```{r}
-#| message: false
-#| warning: false
-data |>
-  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
-  subset(variable == "agb_mort") |>
-  filter(Treatment == "Control" | Year >= Year_of_harvest + 3) |>
-  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
+  filter(variable == "mort") |>
+  filter(Site %in% c("Paracou", "Mbaiki", "SUAS", "Lesong")) |>
+  filter(Year > Year_of_harvest + 3 | Treatment == "Control") |>
   ggplot(aes(Year, value, group = plot_new, col = Treatment)) +
   geom_point() +
   geom_line() +
   labs(y = "AGB mortality [Mg/ha/yr]", col = NULL) +
-  facet_wrap(~Site, scales = "free") +
-  theme_minimal()
-```
-
-```{r}
-#| message: false
-#| warning: false
-data |>
-  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
-  subset(variable == "nstem_mort") |>
-  filter(Treatment == "Control" | Year >= Year_of_harvest + 3) |>
-  subset(Site %in% c("Mbaiki", "Paracou", "Ulu Muda", "Lesong")) |>
-  ggplot(aes(Year, value, group = plot_new, col = Treatment)) +
-  geom_point() +
-  geom_line() +
-  labs(y = "Stem mortality [/ha/yr]", col = NULL) +
   facet_wrap(~Site, scales = "free") +
   theme_minimal()
 ```
@@ -103,14 +89,12 @@ In this analysis, we only kept sites that meet the following criteria:
 #| warning: false
 #| eval: false
 criteria_site <- data |>
-  inner_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   group_by(Site) |>
   summarise(
     controls = length(unique(plot_new[Treatment == "Control"])),
     logged = length(unique(plot_new[Treatment == "Logging"]))
   )
 data |>
-  inner_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   filter(Treatment == "Logging" & !is.na(Year)) |>
   group_by(Site, plot_new) |>
   summarise(

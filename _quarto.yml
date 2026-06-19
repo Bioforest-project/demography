@@ -22,6 +22,7 @@ book:
   appendices:
     - 91_ipp.qmd
     - 92_diff_equa.qmd
+    - 93_test_prod_model.qmd
 
 bibliography: references.bib
 
