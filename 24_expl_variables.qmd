@@ -15,19 +15,19 @@ Done for the model with a fitted kurtosis per site without hyperlaw.
 
 We chose the following summary statistics:
 
--   the turnover rate $\omega$;
+- the turnover rate $\omega$;
 
--   the total over-productivity and over-mortality are estimated as the area under the curve of the short-term process:
+- the total over-productivity and over-mortality are estimated as the area under the curve of the short-term process:
 
--   $\frac{\delta e^2 \tau}{4}$ for productivity;
+- $\frac{\delta e^2 \tau}{4}$ for productivity;
 
--   $\frac{\alpha}{\lambda}$ for mortality;
+- $\frac{\alpha}{\lambda}$ for mortality;
 
--   the time taken to reach 95% of the total over-productivity and mortality (i.e. the duration of the change in fluxes):
+- the time taken to reach 95% of the total over-productivity and mortality (i.e. the duration of the change in fluxes):
 
--   the numerical solution to the equation: $e^{-\frac{2}{\tau} t_{95}}(\frac{t_{95}^2}{2\tau}+\frac{t_{95}}{2}+\frac{\tau}{4})=\frac{\tau}{80}$ for productivity;
+- the numerical solution to the equation: $e^{-\frac{2}{\tau} t_{95}}(\frac{t_{95}^2}{2\tau}+\frac{t_{95}}{2}+\frac{\tau}{4})=\frac{\tau}{80}$ for productivity;
 
--   $t_{95} = \frac{ln(20)}{\lambda}$ for mortality.
+- $t_{95} = \frac{ln(20)}{\lambda}$ for mortality.
 
 ```{r}
 #| message: false
@@ -57,7 +57,8 @@ data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
 #| warning: false
 #| eval: false
 fit_flux_all <-
-  as_cmdstan_fit(list.files("chains/flux_all_simpl_Ksite_nohyper/", full.names = TRUE))
+  as_cmdstan_fit(list.files("chains/flux_all_simpl_Ksite_nohyper/",
+                            full.names = TRUE))
 site_plot_num <- data |>
   filter(Treatment == "Logging" & trec >= 0) |>
   select(Site, plot_new) |>
@@ -125,9 +126,9 @@ int_m <- alpha |>
 eq_t95_p <- function(t, tau, k, thresh = 0.9) {
   abs(integrate(function(x) (exp(1 - x / tau) * x / tau)^k, 0, t)$value -
     thresh * integrate(
-          function(x) (exp(1 - x / tau) * x / tau)^k,
-          0, Inf
-        )$value)
+      function(x) (exp(1 - x / tau) * x / tau)^k,
+      0, Inf
+    )$value)
 }
 t90_p <- tau |>
   inner_join(kappa, by = join_by(Site, sitenum, iter)) |>
@@ -222,7 +223,7 @@ read.csv("data/derived_data/aggregated_data_v9.csv") |>
   group_by(Site, plot_new, Treatment) |>
   summarise(
     ba_0 = ifelse(Year_of_harvest <= min(Year),
-    ba_control, value[Year == min(Year)]
+      ba_control, value[Year == min(Year)]
     ),
     ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
   ) |>
@@ -250,7 +251,7 @@ read.csv("data/derived_data/aggregated_data_v9.csv") |>
   group_by(Site, plot_new, Treatment) |>
   summarise(
     ba_0 = ifelse(Year_of_harvest <= min(Year),
-    ba_control, value[Year == min(Year)]
+      ba_control, value[Year == min(Year)]
     ),
     ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
   ) |>

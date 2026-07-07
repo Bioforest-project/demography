@@ -80,9 +80,7 @@ bounds <- data.frame(
   "k_min" = 0.1,
   "k_max" = 5,
   "omega_min" = 1e-3,
-  "omega_max" = 0.5,
-  "y0_min" = 10,
-  "y0_max" = 1000
+  "omega_max" = 0.5
 )
 bounds |>
   pivot_longer(everything(), names_to = "parameter") |>
@@ -120,7 +118,9 @@ ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
   unique() |>
   arrange(plotnum)
-
+data_t0 <- data_rec |>
+  group_by(plotnum) |>
+  summarise(t0 = trec[which.min(Year)], y0 = stocks[which.min(Year)])
 mdata_all <- list(
   n_equ = nrow(data_old),
   n_log = nrow(data_rec),
@@ -134,6 +134,8 @@ mdata_all <- list(
   out_log = data_rec$mort,
   time = data_rec$trec,
   dt = data_rec$tdiff,
+  t0 = data_t0$t0,
+  y0 = data_t0$y0,
   site_equ = data_old$sitenum,
   site_log = data_rec$sitenum,
   plot_log = data_rec$plotnum,
@@ -144,8 +146,7 @@ mdata_all <- list(
   delta_bounds = c(bounds$delta_min, bounds$delta_max),
   tau_bounds = c(bounds$tau_min, bounds$tau_max),
   k_bounds = c(bounds$k_min, bounds$k_max),
-  omega_bounds = c(bounds$omega_min, bounds$omega_max),
-  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+  omega_bounds = c(bounds$omega_min, bounds$omega_max)
 )
 sample_model("flux_all_simpl_Ksite_nohyper", mdata_all)
 ```
@@ -162,12 +163,12 @@ fit_flux_all_ks_nh
 mcmc_trace(fit_flux_all_ks_nh$draws(variables = c("lp__")))
 ```
 
-Rhat superior to 1.5:
+Rhat superior to 1.1:
 
 ```{r}
 rhat_all <- summarise_draws(fit_flux_all_ks_nh$draws(), "rhat")
 rhat_all |>
-  filter(rhat > 1.5) |>
+  filter(rhat > 1.1) |>
   arrange(-rhat)
 ```
 
@@ -274,6 +275,39 @@ pov_data |>
   subset(variable == "mort") |>
   mutate(Plot = plot_new) |>
   graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
+```
+
+### Predicted AGB recovery
+
+The predicted AGB recovery can be estimated as the integral of the difference between productivity and mortality over the entire 
+
+```{r}
+data_t0 <- data_rec |>
+  group_by(plotnum) |>
+  summarise(t0 = trec[which.min(Year)], y0 = stocks[which.min(Year)])
+theta <- fit_flux_all_ks_nh$summary(c("theta_s")) |>
+  separate(variable, c("variable", "sitenum"), sep = "\\[") |>
+  mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
+  inner_join(unique(data_rec[, c("Site", "sitenum")])) |>
+  select(Site, median, q5, q95) |>
+  rename(theta_median = median, theta_q5 = q5, theta_q95 = q95)
+agb_rec <- fit_flux_all_ks_nh$summary(c("diff_log")) |>
+  separate(variable, c("variable", "plotnum"), sep = "\\[") |>
+  mutate(plotnum = as.integer(gsub("]", "", plotnum))) |>
+  inner_join(unique(data_rec[, c("Site", "Plot", "plotnum")])) |>
+  left_join(data_t0) |>
+  mutate(rec_median = y0 + median, rec_q5 = q5 + y0, rec_q95 = q95 + y0) |>
+  select(Site, Plot, rec_median, rec_q5, rec_q95) |>
+  left_join(theta)
+ggplot(agb_rec, aes(theta_median, rec_median, col = Site)) +
+  geom_abline(intercept = 0, slope = 1, lty = 2) +
+  geom_pointrange(aes(ymin = rec_q5, ymax = rec_q95)) +
+  geom_errorbar(aes(xmin = theta_q5, xmax = theta_q95), orientation = "y") +
+  theme_minimal() +
+  labs(
+    x = "Estimated AGB of unlogged plots (parameter theta)",
+    y = "Estimated AGB of logged plots after recovery"
+  )
 ```
 
 

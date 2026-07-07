@@ -47,7 +47,7 @@ plot_info <- read_csv("data/derived_data/aggregated_data_v9.csv") %>%
     census1 = min(Year),
     ba_0 = ba[Year == min(Year)],
     ba_min = min(ba[Year > Year_of_harvest &
-                      Year <= Year_of_harvest + 5]),
+      Year <= Year_of_harvest + 5]),
     agb_0 = agb[Year == min(Year)]
   ) %>%
   mutate(
@@ -211,11 +211,11 @@ data_explo %>%
 
 We expect the variability of the duration of over-productivity to depends on:
 
--   the logging intensity =\> cannot be tested as this duration is fitted at the site scale
+- the logging intensity =\> cannot be tested as this duration is fitted at the site scale
 
--   the ecology of the pioneer species (life span) =\> could that explain the effect of continent?
+- the ecology of the pioneer species (life span) =\> could that explain the effect of continent?
 
--   climatic variables related to productivity =\> we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) but the trend is quite weak, and this is not suported by evapotranspiration and precipitation. The pattern with soil humidity is also counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
+- climatic variables related to productivity =\> we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) but the trend is quite weak, and this is not suported by evapotranspiration and precipitation. The pattern with soil humidity is also counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
 
 ```{r}
 #| message: false
@@ -253,7 +253,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   soil variables related to productivity =\> we see below that higher bulk density is (weakly) related to to longer duration of over-productivity, and over-productivity last less time in soil with higher clay content. This could support the hypotheses that over-productivity lasts longer in less fertile soils. But there is no pattern with SOC...
+- soil variables related to productivity =\> we see below that higher bulk density is (weakly) related to to longer duration of over-productivity, and over-productivity last less time in soil with higher clay content. This could support the hypotheses that over-productivity lasts longer in less fertile soils. But there is no pattern with SOC...
 
 ```{r}
 #| message: false
@@ -293,7 +293,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   forest dynamism (turnover rate) =\> we see below that more dynamic sites (higher turnover rate $\omega$) have a lower duration of over-productivity.
+- forest dynamism (turnover rate) =\> we see below that more dynamic sites (higher turnover rate $\omega$) have a lower duration of over-productivity.
 
 ```{r}
 #| message: false
@@ -394,7 +394,7 @@ data_explo %>%
 
 I have no real hypothesis on the effect of environmental variables on the relative over-mortality, but I make some graph anyway, in case some people have. NB: the environmental variables are available at the site level, so with 4 sites, I don't think we will be able to say much.
 
--   Climate variables: no clear trend...
+- Climate variables: no clear trend...
 
 ```{r}
 #| message: false
@@ -437,7 +437,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   Soil variables: no clear trend...
+- Soil variables: no clear trend...
 
 ```{r}
 #| message: false
@@ -482,7 +482,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   Forest dynamism (turnover rate $\omega$): the graph below shows that over-mortality decreases with increasing turnover rate.
+- Forest dynamism (turnover rate $\omega$): the graph below shows that over-mortality decreases with increasing turnover rate.
 
 ```{r}
 #| message: false
@@ -593,7 +593,7 @@ data_explo %>%
 
 I have no real hypothesis on the effect of environmental variables on the relative over-productivity, but I make some graphs anyway, in case some people have. NB: the environmental variables are available at the site level, so with 4 sites, I don't think we will be able to say much.
 
--   Climate variables: *the graphs below suggest that relative over-productivity is higher in drier sites.*
+- Climate variables: *the graphs below suggest that relative over-productivity is higher in drier sites.*
 
 ```{r}
 #| message: false
@@ -636,7 +636,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   Soil variables: *the graphs below suggest that relative over-productivity is higher in less fertile soils.*
+- Soil variables: *the graphs below suggest that relative over-productivity is higher in less fertile soils.*
 
 ```{r}
 #| message: false
@@ -681,7 +681,7 @@ data_explo %>%
   theme(legend.position = "bottom")
 ```
 
--   Forest dynamism (turnover rate $\omega$): the graph below shows that over-productivity decreases with increasing turnover rate.
+- Forest dynamism (turnover rate $\omega$): the graph below shows that over-productivity decreases with increasing turnover rate.
 
 ```{r}
 #| message: false

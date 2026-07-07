@@ -76,13 +76,13 @@ data |>
 
 In this analysis, we only kept sites that meet the following criteria:
 
--   at least 4 post-logging measurements
+- at least 4 post-logging measurements
 
--   at least 10 years of post-logging measurements
+- at least 10 years of post-logging measurements
 
--   presence of control plots
+- presence of control plots
 
--   productivity values \< 10% (too high)?
+- productivity values \< 10% (too high)?
 
 ```{r}
 #| message: false
