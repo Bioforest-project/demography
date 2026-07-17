@@ -12,9 +12,9 @@ $$ flux(t) = \omega \cdot stocks(t) + \nu \cdot STP(t)$$ where $stocks(t)$ is th
 
 The short term process (STP) is an intermediary process caused by logging operations, that disappears over time.
 
-For productivity, we define it as: $STP_P = \delta \cdot(\frac{t}{\tau}exp(1-\frac{t}{\tau}))^2$
+For productivity, we define it as: $STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa_s}$
 
-For mortality, we define it as $STP_M = \alpha\cdot exp(-\lambda\cdot t)$
+For mortality, we define it as $STPmort_{p,t} = \alpha_p \cdot exp(-\lambda_s \cdot t)$
 
 Because we expect stocks to reach an equilibrium value at $t \rightarrow +\infty$, we have:
 
@@ -28,8 +28,7 @@ The integral calculation is done in the Appendix.
 
 The resulting stocks are:
 
-$$ stocks(t) = stocks(0) + \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{\alpha}{\lambda}(1-exp(-\lambda\cdot t))$$
-The equilibrium value is
+$$ stocks(t) = stocks(0) + \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{\alpha}{\lambda}(1-exp(-\lambda\cdot t))$$ The equilibrium value is
 
 $$stocks(\infty) = stocks(0) + \frac{e^{2}}{4} (\delta \cdot \tau) - \frac{\alpha}{\lambda}$$
 
@@ -95,12 +94,11 @@ data.frame(t = seq(0, 100, length.out = 200)) |>
   theme(strip.placement = "outside")
 ```
 
-
 ## Integrating flux values over the census interval
 
-When measuring productivity and mortality, we not measuring their instanteneous value but rather their value integrated over the census interval (typically 1-2 years). 
+When measuring productivity and mortality, we not measuring their instanteneous value but rather their value integrated over the census interval (typically 1-2 years).
 
-We thus integrate the productivity and mortality equations as follows: 
+We thus integrate the productivity and mortality equations as follows:
 
 $$
 Prod(t, k)
@@ -119,3 +117,9 @@ e^{2\!\left(1 - \frac{t - k}{\tau}\right)}\!
 \left(2t^{2} + 4t\tau + 3\tau^{2}\right)
 \Bigg]
 $$
+
+Current version of the model is as follows (06/05/2026):
+
+Productivity: $OverProd_{p,t} = \omega_s \cdot AGB_{p,t} + \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa_s}$
+
+Mortality: $OverMort_{p,t} = \omega_s \cdot AGB_{p,t} + \alpha_p \cdot exp(-\lambda_s \cdot t)$

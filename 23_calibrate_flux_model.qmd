@@ -21,17 +21,17 @@ list.files("r", full.names = TRUE, pattern = ".R") |>
 #| message: false
 #| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
-  select(site, plot, Year_of_harvest, Treatment)
+  left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
+  select(site, plot = new_plot, Year_of_harvest, Treatment) |>
+  unique()
 
-data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
-  mutate(plot_new = Plot) |>
-  separate(Plot, "Plot", "_") |>
+data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
-  filter(grepl("^agb", variable)) |>
+  filter(grepl("^agb", variable) & !grepl("]$", variable)) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   mutate(prod = agb_growth + agb_recr, mort = agb_mort, stocks = agb) |>
   select(!contains("agb")) |>
-  group_by(Site, plot_new) |>
+  group_by(Site, plot_new = Plot) |>
   arrange(Year) |>
   mutate(tdiff = c(0, diff(Year))) |>
   ungroup() |>
@@ -43,7 +43,9 @@ data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
     1987, Year_of_harvest
   )) |>
   mutate(trec = Year - Year_of_harvest) |>
-  filter(!(Site == "Tapajos Km67" & Year > 2014))
+  filter(!(Site == "Tapajos Km67" &
+             grepl("loggedtwice", Plot) & Year > 2014)) |>
+  filter(!(Site == "Tapajos Km67" & grepl("later", Plot)))
 ```
 
 For now, we only calibrate the model with sites that meet all the criteria listed [here](https://bioforest-project.github.io/demography/21_flux_data.html), and that have at least 10 censuses.
@@ -78,9 +80,7 @@ bounds <- data.frame(
   "k_min" = 0.1,
   "k_max" = 5,
   "omega_min" = 1e-3,
-  "omega_max" = 0.5,
-  "y0_min" = 10,
-  "y0_max" = 1000
+  "omega_max" = 0.5
 )
 bounds |>
   pivot_longer(everything(), names_to = "parameter") |>
@@ -110,7 +110,6 @@ data_old <- data |>
   subset(!is.na(prod) & !is.na(mort))
 ```
 
-### Constant kurtosis
 
 ```{r}
 #| message: false
@@ -120,7 +119,9 @@ ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
   unique() |>
   arrange(plotnum)
-
+data_t0 <- data_rec |>
+  group_by(plotnum) |>
+  summarise(t0 = trec[which.min(Year)], y0 = stocks[which.min(Year)])
 mdata_all <- list(
   n_equ = nrow(data_old),
   n_log = nrow(data_rec),
@@ -134,6 +135,8 @@ mdata_all <- list(
   out_log = data_rec$mort,
   time = data_rec$trec,
   dt = data_rec$tdiff,
+  t0 = data_t0$t0,
+  y0 = data_t0$y0,
   site_equ = data_old$sitenum,
   site_log = data_rec$sitenum,
   plot_log = data_rec$plotnum,
@@ -143,10 +146,10 @@ mdata_all <- list(
   alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
   delta_bounds = c(bounds$delta_min, bounds$delta_max),
   tau_bounds = c(bounds$tau_min, bounds$tau_max),
-  omega_bounds = c(bounds$omega_min, bounds$omega_max),
-  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+  k_bounds = c(bounds$k_min, bounds$k_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max)
 )
-sample_model("flux_all_simpl", mdata_all)
+sample_model("flux_all_simpl_Ksite_nohyper", mdata_all)
 ```
 
 The resulting Stan fit summary is presented below.
@@ -154,31 +157,20 @@ The resulting Stan fit summary is presented below.
 ```{r}
 #| message: false
 #| warning: false
-fit_flux_all <- as_cmdstan_fit(
-  list.files("chains/flux_all_simpl/", full.names = TRUE)
+fit_flux_all_ks_nh <- as_cmdstan_fit(
+  list.files("chains/flux_all_simpl_Ksite_nohyper/", full.names = TRUE)
 )
-fit_flux_all
-mcmc_trace(fit_flux_all$draws(variables = c("lp__")))
+fit_flux_all_ks_nh
+mcmc_trace(fit_flux_all_ks_nh$draws(variables = c("lp__")))
 ```
 
-The main parameter values are consistent with our expectations.
+Rhat superior to 1.1:
 
 ```{r}
-#| message: false
-#| warning: false
-c("lambda_s", "tau_s", "theta_s", "omega_s") |>
-  fit_flux_all$summary() |>
-  separate(variable, c("variable", NA, "sitenum")) |>
-  mutate(sitenum = as.numeric(sitenum)) |>
-  left_join(unique(data_old[, c("sitenum", "Site")])) |>
-  select(variable, Site, mean, median, q5, q95, rhat)
-```
-
-Rhat superior to 1.5:
-
-```{r}
-rhat_all <- summarise_draws(fit_flux_all$draws(), "rhat")
-rhat_all %>% filter(rhat > 1.5)
+rhat_all <- summarise_draws(fit_flux_all_ks_nh$draws(), "rhat")
+rhat_all |>
+  filter(rhat > 1.1) |>
+  arrange(-rhat)
 ```
 
 The goodness of fit is satisfactory.
@@ -192,17 +184,17 @@ The goodness of fit is satisfactory.
 pred_data <- data_rec |>
   select(-plotnum) |>
   mutate(
-    prod = fit_flux_all$summary(c("mu_in_log"), median)$median,
-    mort = fit_flux_all$summary(c("mu_out_log"), median)$median,
+    prod = fit_flux_all_ks_nh$summary(c("mu_in_log"), median)$median,
+    mort = fit_flux_all_ks_nh$summary(c("mu_out_log"), median)$median,
     val = "pred",
     type = "rec"
   ) |>
   rbind(mutate(
     data_old,
-    prod = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] *
-      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
-    mort = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] *
-      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    prod = fit_flux_all_ks_nh$summary(c("theta_s"), median)$median[data_old$sitenum] * # nolint
+      fit_flux_all_ks_nh$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    mort = fit_flux_all_ks_nh$summary(c("theta_s"), median)$median[data_old$sitenum] * # nolint
+      fit_flux_all_ks_nh$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
     val = "pred",
     type = "equ"
   ))
@@ -246,15 +238,31 @@ pov_data |>
   facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
 ```
 
-#### Parameters
+### Parameters (k and tau)
 
 ```{r}
-fit_flux_all$summary(c("mu_tau", "sigma_tau", 
-                       "tau_s[1]",  "tau_s[2]",  "tau_s[3]", "tau_s[4]", 
-                       "tau_s[5]",  "tau_s[6]",  "tau_s[7]", "tau_s[8]"))
+fit_flux_all_ks_nh$summary(c("k_s")) |>
+  separate(variable, c("variable", "sitenum"), sep = "\\[") |>
+  mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
+  inner_join(unique(data_rec[, c("Site", "sitenum")])) |>
+  select(-sitenum) |>
+  relocate(variable, Site)
 ```
 
+<<<<<<< HEAD
 #### Visualising the trajectories
+=======
+```{r}
+fit_flux_all_ks_nh$summary(c("mu_tau", "sigma_tau", "tau_s")) |>
+  separate(variable, c("variable", "sitenum"), sep = "\\[") |>
+  mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
+  left_join(unique(data_rec[, c("Site", "sitenum")])) |>
+  select(-sitenum) |>
+  relocate(variable, Site)
+```
+
+### Visualising the trajectories
+>>>>>>> f7eea4536ecc436264548ef0c1e6c7c06894a92d
 
 The predicted flux and stocks trajectories look consistent with the data.
 
@@ -274,6 +282,7 @@ pov_data |>
   graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 ```
 
+<<<<<<< HEAD
 ### Fitted kurtosis (one per site with hyperlaw)
 
 ```{r}
@@ -744,3 +753,39 @@ pov_data |>
   mutate(Plot = plot_new) |>
   graph_traj(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]"))
 ```
+=======
+### Predicted AGB recovery
+
+The predicted AGB recovery can be estimated as the integral of the difference between productivity and mortality over the entire 
+
+```{r}
+data_t0 <- data_rec |>
+  group_by(plotnum) |>
+  summarise(t0 = trec[which.min(Year)], y0 = stocks[which.min(Year)])
+theta <- fit_flux_all_ks_nh$summary(c("theta_s")) |>
+  separate(variable, c("variable", "sitenum"), sep = "\\[") |>
+  mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
+  inner_join(unique(data_rec[, c("Site", "sitenum")])) |>
+  select(Site, median, q5, q95) |>
+  rename(theta_median = median, theta_q5 = q5, theta_q95 = q95)
+agb_rec <- fit_flux_all_ks_nh$summary(c("diff_log")) |>
+  separate(variable, c("variable", "plotnum"), sep = "\\[") |>
+  mutate(plotnum = as.integer(gsub("]", "", plotnum))) |>
+  inner_join(unique(data_rec[, c("Site", "Plot", "plotnum")])) |>
+  left_join(data_t0) |>
+  mutate(rec_median = y0 + median, rec_q5 = q5 + y0, rec_q95 = q95 + y0) |>
+  select(Site, Plot, rec_median, rec_q5, rec_q95) |>
+  left_join(theta)
+ggplot(agb_rec, aes(theta_median, rec_median, col = Site)) +
+  geom_abline(intercept = 0, slope = 1, lty = 2) +
+  geom_pointrange(aes(ymin = rec_q5, ymax = rec_q95)) +
+  geom_errorbar(aes(xmin = theta_q5, xmax = theta_q95), orientation = "y") +
+  theme_minimal() +
+  labs(
+    x = "Estimated AGB of unlogged plots (parameter theta)",
+    y = "Estimated AGB of logged plots after recovery"
+  )
+```
+
+
+>>>>>>> f7eea4536ecc436264548ef0c1e6c7c06894a92d

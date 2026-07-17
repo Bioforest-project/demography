@@ -1,0 +1,420 @@
+```{r setup}
+#| message: false
+#| warning: false
+#| include: false
+
+library(tidyverse)
+library(cmdstanr)
+library(bayesplot)
+library(patchwork)
+library(flextable)
+library(posterior)
+library(ggpubr)
+list.files("r", full.names = TRUE, pattern = ".R") |>
+  lapply(source)
+```
+
+# Testing different versions of the productivity model {.unnumbered}
+
+Here we tested different versions of the demographic rates model, with some changes in the productivity function. 
+
+## Data
+
+```{r}
+#| message: false
+#| warning: false
+plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
+  select(site, plot = new_plot, Year_of_harvest, Treatment) |>
+  unique()
+
+data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(grepl("^agb", variable) & !grepl("]$", variable)) |>
+  pivot_wider(names_from = "variable", values_from = "value") |>
+  mutate(prod = agb_growth + agb_recr, mort = agb_mort, stocks = agb) |>
+  select(!contains("agb")) |>
+  group_by(Site, plot_new = Plot) |>
+  arrange(Year) |>
+  mutate(tdiff = c(0, diff(Year))) |>
+  ungroup() |>
+  pivot_longer(cols = c("stocks", "prod", "mort"), names_to = "variable") |>
+  mutate(Year_of_harvest = ifelse(Site == "Mbaiki" & Treatment == "Logging",
+    1985, Year_of_harvest
+  )) |>
+  mutate(Year_of_harvest = ifelse(Site == "Paracou" & Treatment == "Logging",
+    1987, Year_of_harvest
+  )) |>
+  mutate(trec = Year - Year_of_harvest) |>
+  filter(!(Site == "Tapajos Km67" &
+             grepl("loggedtwice", Plot) & Year > 2014)) |>
+  filter(!(Site == "Tapajos Km67" & grepl("later", Plot)))
+
+sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
+  filter(ncensus >= 10)
+data <- data |>
+  filter(Site %in% sites$Site)
+```
+
+We used the following parameter bounds when calibrating the model.
+
+```{r}
+#| message: false
+#| warning: false
+bounds <- data.frame(
+  "theta_min" = 50,
+  "theta_max" = 1000,
+  "lambda_min" = 1e-2,
+  "lambda_max" = 5,
+  "alpha_min" = 0,
+  "alpha_max" = 200,
+  "delta_min" = 0,
+  "delta_max" = 20,
+  "tau_min" = 2,
+  "tau_max" = 30,
+  "k_min" = 0.1,
+  "k_max" = 5,
+  "omega_min" = 1e-3,
+  "omega_max" = 0.5,
+  "y0_min" = 10,
+  "y0_max" = 1000
+)
+bounds |>
+  pivot_longer(everything(), names_to = "parameter") |>
+  separate(parameter, c("parameter", "bound")) |>
+  pivot_wider(names_from = bound) |>
+  flextable()
+```
+
+```{r}
+#| message: false
+#| warning: false
+data_rec <- data |>
+  mutate(sitenum = as.numeric(as.factor(Site))) |>
+  subset(Treatment == "Logging" & trec > 0) |>
+  # problem with first years in SUAS: excessive prod. because of  DBH increases
+  filter(!(Site == "SUAS" & trec < 3 & variable == "prod")) |>
+  filter(!(Site == "Tapajos Km67" &
+             Plot %in% c(1:12, paste0(1:12, "E")) &
+             Year >= 2014)) |> # remove second logging event in Tapajos
+  pivot_wider(names_from = "variable", values_from = "value") |>
+  subset(!is.na(prod) & !is.na(mort)) |>
+  mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))
+data_old <- data |>
+  mutate(sitenum = as.numeric(as.factor(Site))) |>
+  subset(Treatment == "Control" | trec < 0) |>
+  pivot_wider(names_from = "variable", values_from = "value") |>
+  subset(!is.na(prod) & !is.na(mort))
+```
+
+## Different productivity model versions
+
+### Constant kurtosis
+
+In this version, the kurtosis parameter is set to $\kappa = 2$ and the productivity is therefore modelled as: 
+
+$$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{2} $$
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+)
+sample_model("flux_all_simpl", mdata_all)
+```
+
+### Fitted kurtosis - common to all sites
+
+In this version, the kurtosis parameter $\kappa$ is fitted, with one value common to all sites, and the productivity is therefore modelled as: 
+
+$$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa} $$
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  k_bounds = c(bounds$k_min, bounds$k_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+)
+sample_model("flux_all_simpl_K", mdata_all)
+```
+
+### Fitted kurtosis - per site - no hyperdistribution
+
+In this version, the kurtosis parameter $\kappa$ is fitted, with one value per site, and the productivity is therefore modelled as: 
+
+$$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa_s} $$
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  k_bounds = c(bounds$k_min, bounds$k_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+)
+sample_model("flux_all_simpl_Ksite_nohyper", mdata_all)
+```
+
+### Fitted kurtosis - per site - with a hyperdistribution
+
+In this version, the kurtosis parameter $\kappa$ is fitted, with one value per site, and the productivity is therefore modelled as: 
+
+$$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa_s} $$
+
+We also added a hyperdistribution to all parameters $\kappa_s$: 
+
+$$\kappa_s \sim \mathcal{N}(\mu_{\kappa}, \sigma_{\kappa})$$
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  k_bounds = c(bounds$k_min, bounds$k_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+)
+sample_model("flux_all_simpl_Ksite", mdata_all)
+```
+
+
+## Results comparison
+
+```{r}
+#| message: false
+#| warning: false
+fit_flux_all <- c(
+  "flux_all_simpl",
+  "flux_all_simpl_K",
+  "flux_all_simpl_Ksite_nohyper",
+  "flux_all_simpl_Ksite"
+) |>
+  lapply(function(name) {
+    as_cmdstan_fit(list.files(paste0("chains/", name),
+      full.names = TRUE
+    ))
+  })
+```
+
+```{r}
+#| message: false
+#| warning: false
+obs_data <- data_rec |>
+  mutate(
+    val = "obs",
+    type = "rec"
+  ) |>
+  select(-plotnum) |>
+  rbind(mutate(
+    data_old,
+    val = "obs",
+    type = "equ"
+  ))
+
+pov_data <- lapply(1:4, function(i) {
+  data_rec |>
+    select(-plotnum) |>
+    mutate(
+      prod = fit_flux_all[[i]]$summary(c("mu_in_log"), median)$median,
+      mort = fit_flux_all[[i]]$summary(c("mu_out_log"), median)$median,
+      val = "pred",
+      type = "rec"
+    ) |>
+    bind_rows(mutate(
+      data_old,
+      prod = fit_flux_all[[i]]$summary(c("theta_s"), median)$median[data_old$sitenum] *  # nolint
+        fit_flux_all[[i]]$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+      mort = fit_flux_all[[i]]$summary(c("theta_s"), median)$median[data_old$sitenum] *  # nolint
+        fit_flux_all[[i]]$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+      val = "pred",
+      type = "equ"
+    )) |>
+    bind_rows(obs_data) |>
+    pivot_longer(cols = c(prod, mort), names_to = "variable") |>
+    pivot_wider(names_from = val, values_from = value) |>
+    mutate(model = c("K=2", "One K", "Site K", "Site K + Hyperdistribution")[i])
+}) |>
+  bind_rows()
+```
+
+### Traceplots
+
+```{r}
+#| message: false
+#| warning: false
+lapply(fit_flux_all, function(x) {
+  mcmc_trace(x$draws(variables = c("lp__"))) +
+    theme(legend.position = "none")
+}) %>% #nolint
+  ggarrange(
+    plotlist = .,
+    labels = c("K=2", "One K", "Site K", "Site K + Hyperdistribution")
+  )
+```
+
+
+### Goodness of fit
+
+```{r}
+#| message: false
+#| warning: false
+df_rmse <- pov_data |>
+  group_by(variable, model) |>
+  summarise(rmse = sqrt(mean((pred - obs)^2)))
+
+labs <- c(prod = "AGB productivity", mort = "AGB mortality")
+
+pov_data |>
+  filter(variable == "prod") |>
+  ggplot(aes(pred, obs)) +
+  geom_point(alpha = 0.25, aes(col = Site, shape = type)) +
+  geom_abline(col = "red", linetype = "dashed") +
+  geom_text(
+    data = filter(df_rmse, variable == "prod"),
+    aes(
+      x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
+      label = paste("RMSE =", round(rmse, 2))
+    )
+  ) +
+  theme_bw() +
+  xlab("Predicted") +
+  ylab("Observed") +
+  facet_wrap(~model, scales = "free", labeller = labeller(variable = labs))
+```
+
+### Predicted productivity
+
+The predicted productivity trajectories are presented below.
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 15
+df_rmse <- pov_data |>
+  filter(variable == "prod") |>
+  group_by(model, Site) |>
+  summarise(rmse = sqrt(mean((pred - obs)^2)))
+pov_data |>
+  subset(variable == "prod") |>
+  mutate(Plot = plot_new) |>
+  graph_traj(expression("AGB productivity [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]")) +
+  geom_text(data = df_rmse, aes(
+    x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
+    label = paste("RMSE =", round(rmse, 2))
+  )) +
+  facet_grid(Site ~ model, scales = "free")
+```
+
+
+## Conclusion

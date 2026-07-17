@@ -1,7 +1,8 @@
-sample_model <- function(model, mdata) {
+sample_model <- function(model, mdata, name = NULL) {
+  if (is.null(name)) name <- model
   model_path <- file.path("models", paste0(model, ".stan"))
   stan_model <- cmdstan_model(model_path)
-  chains_path <- file.path("chains", model)
+  chains_path <- file.path("chains", name)
   unlink(chains_path, recursive = TRUE)
   dir.create(chains_path)
   fit <- stan_model$sample(
@@ -11,5 +12,5 @@ sample_model <- function(model, mdata) {
     save_warmup = FALSE,
     output_dir = chains_path
   )
-  print(paste(model, "done!"))
+  print(paste(name, "done!"))
 }
