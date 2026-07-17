@@ -8,3 +8,5 @@
 .snakemake
 report.html
 demography.Rproj
+93_traj_sites.qmd
+93_traj_sites_files

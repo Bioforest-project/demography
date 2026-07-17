@@ -22,6 +22,7 @@ book:
   appendices:
     - 91_ipp.qmd
     - 92_diff_equa.qmd
+    - 93_traj_sites.qmd
 
 bibliography: references.bib
 
