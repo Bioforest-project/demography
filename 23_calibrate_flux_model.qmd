@@ -293,7 +293,7 @@ pov_data |>
 
 ### Predicted AGB recovery
 
-The predicted AGB recovery can be estimated as the integral of the difference between productivity and mortality over the entire 
+The predicted AGB recovery can be estimated as the integral of the difference between productivity and mortality over the entire
 
 ```{r}
 data_t0 <- data_rec |>
@@ -323,5 +323,3 @@ ggplot(agb_rec, aes(theta_median, rec_median, col = Site)) +
     y = "Estimated AGB of logged plots after recovery"
   )
 ```
-
-
