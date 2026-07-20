@@ -8,3 +8,5 @@
 .snakemake
 report.html
 demography.Rproj
+
+**/*.quarto_ipynb
