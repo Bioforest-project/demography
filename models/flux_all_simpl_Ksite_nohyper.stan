@@ -53,6 +53,7 @@ parameters {
   real<lower=theta_bounds[1], upper=theta_bounds[2]> mu_theta; 
   real<lower=0> sigma_theta;
   vector<lower=theta_bounds[1], upper=theta_bounds[2]>[s] theta_s;
+  vector[s] gamma;   // exp(gamma) = relative difference between theta and expected recovery
   real<lower=0> sigma_y;
   real<lower=0> sigma_in;
   real<lower=0> sigma_out;
@@ -75,7 +76,7 @@ transformed parameters {
 model {
   log(in_log) ~ normal(log(mu_in_log), sigma_in);
   log(out_log) ~ normal(log(mu_out_log), sigma_out);
-  diff_log ~ normal(theta_s[site_plot] - y0, sigma_diff);
+  diff_log ~ normal(theta_s[site_plot].*exp(gamma[site_plot]) - y0, sigma_diff);
   
   log(y_equ) ~ normal(log(theta_s[site_equ]), sigma_y);
   log(in_equ) ~ normal(log(theta_s[site_equ].*omega_s[site_equ]), sigma_in);
@@ -87,6 +88,8 @@ model {
   tau_s ~ normal(mu_tau, sigma_tau) T[tau_bounds[1], tau_bounds[2]];
   omega_s ~ normal(mu_omega, sigma_omega) T[omega_bounds[1], omega_bounds[2]];
   theta_s ~ normal(mu_theta, sigma_theta) T[theta_bounds[1], theta_bounds[2]];
+  gamma ~ normal(0, 0.1); // prior: centered on zero (exp(gamma) = 1
+  // -> agb_rec = theta), with 95% CI = [0.8, 1.2]
   
   sigma_y ~ std_normal();
   sigma_in ~ std_normal();

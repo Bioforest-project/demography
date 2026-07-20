@@ -163,13 +163,14 @@ fit_flux_all_ks_nh
 mcmc_trace(fit_flux_all_ks_nh$draws(variables = c("lp__")))
 ```
 
-Rhat superior to 1.1:
+Rhat superior to 1.2:
 
 ```{r}
 rhat_all <- summarise_draws(fit_flux_all_ks_nh$draws(), "rhat")
 rhat_all |>
-  filter(rhat > 1.1) |>
-  arrange(-rhat)
+  filter(rhat > 1.2) |>
+  arrange(-rhat) |>
+  head()
 ```
 
 The goodness of fit is satisfactory.
@@ -255,6 +256,19 @@ fit_flux_all_ks_nh$summary(c("mu_tau", "sigma_tau", "tau_s")) |>
   left_join(unique(data_rec[, c("Site", "sitenum")])) |>
   select(-sitenum) |>
   relocate(variable, Site)
+```
+
+### Parameter gamma
+
+```{r}
+fit_flux_all_ks_nh$summary(c("gamma")) |>
+  separate(variable, c("variable", "sitenum"), sep = "\\[") |>
+  mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
+  inner_join(unique(data_rec[, c("Site", "sitenum")])) |>
+  select(-sitenum) |>
+  relocate(variable, Site) |>
+  mutate(across(c(mean, median, q5, q95), ~ exp(.x))) |>
+  mutate(variable = "exp(gamma)")
 ```
 
 ### Visualising the trajectories

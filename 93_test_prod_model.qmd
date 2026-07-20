@@ -332,9 +332,9 @@ pov_data <- lapply(1:4, function(i) {
     ) |>
     bind_rows(mutate(
       data_old,
-      prod = fit_flux_all[[i]]$summary(c("theta_s"), median)$median[data_old$sitenum] *  # nolint
+      prod = fit_flux_all[[i]]$summary(c("theta_s"), median)$median[data_old$sitenum] * # nolint
         fit_flux_all[[i]]$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
-      mort = fit_flux_all[[i]]$summary(c("theta_s"), median)$median[data_old$sitenum] *  # nolint
+      mort = fit_flux_all[[i]]$summary(c("theta_s"), median)$median[data_old$sitenum] * # nolint
         fit_flux_all[[i]]$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
       val = "pred",
       type = "equ"
@@ -355,7 +355,7 @@ pov_data <- lapply(1:4, function(i) {
 lapply(fit_flux_all, function(x) {
   mcmc_trace(x$draws(variables = c("lp__"))) +
     theme(legend.position = "none")
-}) %>% #nolint
+}) %>% # nolint
   ggarrange(
     plotlist = .,
     labels = c("K=2", "One K", "Site K", "Site K + Hyperdistribution")
@@ -405,6 +405,29 @@ df_rmse <- pov_data |>
   filter(variable == "prod") |>
   group_by(model, Site) |>
   summarise(rmse = sqrt(mean((pred - obs)^2)))
+ind_site <- data_rec |>
+  select(Site, sitenum) |>
+  unique() |>
+  arrange(sitenum)
+df_k <- lapply(1:4, function(i) {
+  if (i == 1) {
+    ind_site |>
+      mutate(model = "K=2", k = "2")
+  } else if (i == 2) {
+    k <- round(fit_flux_all[[i]]$summary(c("k"))[, c("q5", "median", "q95")], 2)
+    ind_site |>
+      mutate(model = "One K", k = paste0(k$median, " [", k$q5, ",", k$q95, "]"))
+  } else {
+    fit_flux_all[[i]]$summary(c("k_s")) |>
+      mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+      mutate(k = paste0(median, " [", q5, ",", q95, "]")) |>
+      bind_cols(ind_site) |>
+      mutate(model = c("Site K", "Site K + Hyperdistribution")[i - 2]) |>
+      select(Site, sitenum, model, k)
+  }
+}) |>
+  bind_rows()
+
 pov_data |>
   subset(variable == "prod") |>
   mutate(Plot = plot_new) |>
@@ -413,8 +436,15 @@ pov_data |>
     x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
     label = paste("RMSE =", round(rmse, 2))
   )) +
+  geom_text(data = df_k, aes(
+    x = -Inf, y = Inf, hjust = -0.1, vjust = 2, label = paste("K =", k)
+  )) +
   facet_grid(Site ~ model, scales = "free")
 ```
 
 
 ## Conclusion
+
+The model with one fitted kurtosis per site and no hyperdistribution predicted the productivity trajectories better. Our interpretation is that it introduces enough variability to capture the sites' differences in the productivity response, but the introduction of a hyperdistribution constrained the sites with little data too much, as the site with the most data (Paracou) had one of the lowest kurtosis values. 
+
+We therefore chose this model. 
