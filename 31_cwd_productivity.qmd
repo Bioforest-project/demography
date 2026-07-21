@@ -5,7 +5,7 @@
 
 library(tidyverse)
 library(dplyr)
-list.files("r", full.names = TRUE, pattern = ".R") %>%
+list.files("r", full.names = TRUE, pattern = ".R") |>
   lapply(source)
 ```
 
@@ -32,12 +32,13 @@ $$CWM_t= CWM_{t-1} + CF_{G,t} + CF_{R,t}+CF_{M,t}$$
 #| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
-data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
+data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
   mutate(plot_new = Plot) |>
   separate(Plot, "Plot", "_") |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   filter(grepl("cwmdiff", variable)) |>
-  separate(variable, c("trait", NA, "flux"), sep = "_")
+  separate(variable, c("trait", NA, "cohort", "flux"), sep = "_") |>
+  mutate(flux = ifelse(is.na(flux), "all", flux))
 ```
 
 ### Annual changes
@@ -64,6 +65,8 @@ purrr::walk(
     print(
       data |>
         filter(Site == s) |>
+        group_by(plot_new, Treatment, Year, trait, flux) |>
+        summarise(value = sum(value)) |>
         ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
         geom_line() +
         geom_point() +
@@ -104,8 +107,57 @@ purrr::walk(
     print(
       data |>
         filter(Site == s) |>
-        arrange(Site, plot_new, Year) |>
-        group_by(Site, plot_new, trait, flux) |>
+        group_by(plot_new, Treatment, Year, trait, flux) |>
+        summarise(value = sum(value)) |>
+        arrange(plot_new, Year) |>
+        group_by(plot_new, trait, flux) |>
+        mutate(value = cumsum(value)) |>
+        ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
+        geom_line() +
+        geom_point() +
+        facet_grid(trait ~ flux,
+          scales = "free",
+          labeller = labeller(flux = labs_flux)
+        ) +
+        labs(y = NULL, x = NULL) +
+        theme_minimal()
+    )
+    cat("\n\n")
+  }
+)
+```
+:::
+
+
+
+### Cumulative changes - by cohort
+
+::: panel-tabset
+```{r}
+#| results: asis
+#| message: false
+#| warning: false
+#| fig.height: 7
+#| fig.width: 10
+
+sites <- c("Paracou", "Mbaiki", "SUAS")
+labs_flux <- c(
+  all_all = "Change in CWM",
+  s_gba = "Contribution of survivors' growth",
+  s_mba = "Contribution of survivors' mortality",
+  n_rba = "Contribution of recruitment",
+  n_gba = "Contribution of recruits' growth",
+  n_mba = "Contribution of recruits' mortality"
+)
+purrr::walk(
+  sites,
+  \(s) {
+    cat("#### ", s, "\n\n")
+    print(
+      data |>
+        filter(Site == s) |>
+        arrange(plot_new, Year) |>
+        group_by(plot_new, trait, flux = paste0(cohort, "_", flux)) |>
         mutate(value = cumsum(value)) |>
         ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
         geom_line() +
