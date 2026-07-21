@@ -52,124 +52,6 @@ data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
   mutate(trec = Year - Year_of_harvest)
 ```
 
-```{r}
-#| message: false
-#| warning: false
-#| eval: false
-fit_flux_all <-
-  as_cmdstan_fit(list.files("chains/flux_all_simpl_Ksite_nohyper/",
-                            full.names = TRUE))
-site_plot_num <- data |>
-  filter(Treatment == "Logging" & trec >= 0) |>
-  select(Site, plot_new) |>
-  mutate(sitenum = as.numeric(as.factor(Site))) |>
-  mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new)))) |>
-  unique()
-
-alpha <- extract_draws(fit_flux_all, "alpha_p") |>
-  separate(variable, into = c(NA, NA, "plotnum", NA), remove = FALSE) |>
-  mutate(plotnum = as.numeric(plotnum)) |>
-  rename(alpha = value) |>
-  left_join(site_plot_num)
-lambda <- extract_draws(fit_flux_all, "lambda_s") |>
-  separate(variable, into = c(NA, NA, "sitenum", NA)) |>
-  mutate(sitenum = as.numeric(sitenum)) |>
-  rename(lambda = value) |>
-  left_join(unique(select(site_plot_num, contains("ite"))))
-tau <- extract_draws(fit_flux_all, "tau_s") |>
-  separate(variable, into = c(NA, NA, "sitenum", NA)) |>
-  mutate(sitenum = as.numeric(sitenum)) |>
-  rename(tau = value) |>
-  left_join(unique(select(site_plot_num, contains("ite"))))
-kappa <- extract_draws(fit_flux_all, "k_s") |>
-  separate(variable, into = c(NA, NA, "sitenum", NA)) |>
-  mutate(sitenum = as.numeric(sitenum)) |>
-  rename(k = value) |>
-  left_join(unique(select(site_plot_num, contains("ite"))))
-delta <- extract_draws(fit_flux_all, "delta_p") |>
-  separate(variable, into = c(NA, NA, "plotnum", NA), remove = FALSE) |>
-  mutate(plotnum = as.numeric(plotnum)) |>
-  rename(delta = value) |>
-  left_join(site_plot_num)
-
-int_p <- delta |>
-  inner_join(tau, by = join_by(Site, sitenum, iter)) |>
-  inner_join(kappa, by = join_by(Site, sitenum, iter)) |>
-  group_by(Site, sitenum, plot_new, plotnum, iter) |>
-  mutate(
-    value = integrate(
-      function(x) delta * (exp(1 - x / tau) * x / tau)^k,
-      0, Inf
-    )$value,
-    variable = "int_p"
-  ) |>
-  group_by(Site, plot_new, variable) |>
-  summarise(
-    mean = mean(value),
-    median = median(value),
-    q5 = quantile(value, 0.05),
-    q95 = quantile(value, 0.95)
-  ) |>
-  select(Site, plot_new, variable, mean, median, q5, q95)
-int_m <- alpha |>
-  inner_join(lambda, by = join_by(Site, sitenum, iter)) |>
-  mutate(value = alpha / lambda, variable = "int_m") |>
-  group_by(Site, plot_new, variable) |>
-  summarise(
-    mean = mean(value),
-    median = median(value),
-    q5 = quantile(value, 0.05),
-    q95 = quantile(value, 0.95)
-  ) |>
-  select(Site, plot_new, variable, mean, median, q5, q95)
-
-eq_t95_p <- function(t, tau, k, thresh = 0.9) {
-  abs(integrate(function(x) (exp(1 - x / tau) * x / tau)^k, 0, t)$value -
-    thresh * integrate(
-      function(x) (exp(1 - x / tau) * x / tau)^k,
-      0, Inf
-    )$value)
-}
-t90_p <- tau |>
-  inner_join(kappa, by = join_by(Site, sitenum, iter)) |>
-  group_by(Site, iter) |>
-  mutate(value = optimize(
-    function(x) eq_t95_p(x, tau, k),
-    c(0, 100)
-  )$minimum) |>
-  group_by(Site) |>
-  summarise(
-    mean = mean(value),
-    median = median(value),
-    q5 = quantile(value, 0.05),
-    q95 = quantile(value, 0.95)
-  ) |>
-  mutate(variable = "t90_p") |>
-  select(Site, variable, mean, median, q5, q95)
-t90_m <- lambda |>
-  mutate(value = log(10) / lambda) |>
-  group_by(Site) |>
-  summarise(
-    mean = mean(value),
-    median = median(value),
-    q5 = quantile(value, 0.05),
-    q95 = quantile(value, 0.95)
-  ) |>
-  mutate(variable = "t90_m") |>
-  select(Site, variable, mean, median, q5, q95)
-
-fit_flux_all$summary(variables = "omega_s") |>
-  separate(variable, into = c("variable", NA, "sitenum", NA)) |>
-  mutate(sitenum = as.numeric(sitenum)) |>
-  left_join(unique(select(site_plot_num, contains("ite")))) |>
-  select(Site, variable, mean, median, q5, q95) |>
-  bind_rows(int_p) |>
-  bind_rows(int_m) |>
-  bind_rows(t90_p) |>
-  bind_rows(t90_m) |>
-  write.csv("data/derived_data/params_flux_all.csv", row.names = FALSE)
-```
-
 ## Effect of environmental variables
 
 ```{r}
@@ -198,7 +80,7 @@ environ |>
 environ |>
   group_by(site) |>
   summarise(pr = mean(pr)) |>
-  inner_join(filter(params, variable == "t90_p"), by = join_by(site == Site)) |>
+  inner_join(filter(params, variable == "t90p"), by = join_by(site == Site)) |>
   ggplot(aes(pr, median, col = site)) +
   geom_pointrange(aes(ymin = q5, ymax = q95)) +
   labs(
@@ -213,7 +95,7 @@ environ |>
 ```{r}
 #| message: false
 #| warning: false
-read.csv("data/derived_data/aggregated_data_v9.csv") |>
+read.csv("data/derived_data/aggregated_data_v10.csv") |>
   filter(Site %in% sites$Site & variable == "ba") |>
   mutate(plot_new = Plot) |>
   separate(Plot, "Plot", "_") |>
@@ -228,7 +110,7 @@ read.csv("data/derived_data/aggregated_data_v9.csv") |>
     ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
   ) |>
   mutate(intensity = (ba_0 - ba_min) / ba_0) |>
-  inner_join(filter(params, variable == "int_p")) |>
+  inner_join(filter(params, variable == "stpp")) |>
   ggplot(aes(intensity * 100, median, col = Site)) +
   geom_pointrange(aes(ymin = q5, ymax = q95)) +
   labs(
@@ -241,7 +123,7 @@ read.csv("data/derived_data/aggregated_data_v9.csv") |>
 ```{r}
 #| message: false
 #| warning: false
-read.csv("data/derived_data/aggregated_data_v9.csv") |>
+read.csv("data/derived_data/aggregated_data_v10.csv") |>
   filter(Site %in% sites$Site & variable == "ba") |>
   mutate(plot_new = Plot) |>
   separate(Plot, "Plot", "_") |>
@@ -256,7 +138,7 @@ read.csv("data/derived_data/aggregated_data_v9.csv") |>
     ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
   ) |>
   mutate(intensity = (ba_0 - ba_min) / ba_0) |>
-  inner_join(filter(params, variable == "int_m")) |>
+  inner_join(filter(params, variable == "stpm")) |>
   ggplot(aes(intensity * 100, median, col = Site)) +
   geom_pointrange(aes(ymin = q5, ymax = q95)) +
   labs(

@@ -16,7 +16,7 @@ list.files("r", full.names = TRUE, pattern = ".R") |>
 
 # Testing different versions of the productivity model {.unnumbered}
 
-Here we tested different versions of the demographic rates model, with some changes in the productivity function. 
+Here we tested different versions of the demographic rates model, with some changes in the productivity function.
 
 ## Data
 
@@ -111,9 +111,10 @@ data_old <- data |>
 
 ### Constant kurtosis
 
-In this version, the kurtosis parameter is set to $\kappa = 2$ and the productivity is therefore modelled as: 
+In this version, the kurtosis parameter is set to $\kappa = 2$ and the productivity is therefore modelled as:
 
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{2} $$
+
 ```{r}
 #| message: false
 #| warning: false
@@ -153,7 +154,7 @@ sample_model("flux_all_simpl", mdata_all)
 
 ### Fitted kurtosis - common to all sites
 
-In this version, the kurtosis parameter $\kappa$ is fitted, with one value common to all sites, and the productivity is therefore modelled as: 
+In this version, the kurtosis parameter $\kappa$ is fitted, with one value common to all sites, and the productivity is therefore modelled as:
 
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa} $$
 
@@ -197,7 +198,7 @@ sample_model("flux_all_simpl_K", mdata_all)
 
 ### Fitted kurtosis - per site - no hyperdistribution
 
-In this version, the kurtosis parameter $\kappa$ is fitted, with one value per site, and the productivity is therefore modelled as: 
+In this version, the kurtosis parameter $\kappa$ is fitted, with one value per site, and the productivity is therefore modelled as:
 
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa_s} $$
 
@@ -241,11 +242,11 @@ sample_model("flux_all_simpl_Ksite_nohyper", mdata_all)
 
 ### Fitted kurtosis - per site - with a hyperdistribution
 
-In this version, the kurtosis parameter $\kappa$ is fitted, with one value per site, and the productivity is therefore modelled as: 
+In this version, the kurtosis parameter $\kappa$ is fitted, with one value per site, and the productivity is therefore modelled as:
 
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa_s} $$
 
-We also added a hyperdistribution to all parameters $\kappa_s$: 
+We also added a hyperdistribution to all parameters $\kappa_s$:
 
 $$\kappa_s \sim \mathcal{N}(\mu_{\kappa}, \sigma_{\kappa})$$
 
@@ -287,6 +288,56 @@ mdata_all <- list(
 sample_model("flux_all_simpl_Ksite", mdata_all)
 ```
 
+### AGB recovery
+
+Additionally, we wanted to incorporate into the model our expectation that the total recovered biomass at equilibrium would be close to the parameter $\theta$, i.e. the equilibrium biomass estimated using the biomass of the control plots. 
+
+Starting from the best previous model (with one kurtosis value per site and no hyperdistribution), we added the following to the model likelihood:
+
+$$AGB0_p + \int_{t0_p}^{+\infty} (STPP_{t,p} -  STPM_{t,p}) \sim \mathcal{N}(\theta_s \cdot exp(\gamma_s), \sigma_{rec})$$
+
+Where: $AGB0_p$ is the biomass at $t0_p$ (the first post-logging census in plot $p$); $STPP_{t,p}$ and $STPM_{t,p}$ are the short-term productivity and mortality process terms, respectively; and the estimated equilibrium biomass in site $s$ is represented by the term $\theta_s$. The term $\gamma_s$ represents the expected deviation from this equilibrium biomass when the biomass recovery of the plots seems to exceed ($\gamma > 0$) or fall below ($\gamma < 0$) the value of biomass in the control plots. $\sigma_{rec}$ is the standard deviation of the biomass recovery. 
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: false
+ind_rec <- data_rec |>
+  select(Site, Plot, sitenum, plotnum) |>
+  unique() |>
+  arrange(plotnum)
+data_t0 <- data_rec |>
+  group_by(plotnum) |>
+  summarise(t0 = trec[which.min(Year)], y0 = stocks[which.min(Year)])
+mdata_all <- list(
+  n_equ = nrow(data_old),
+  n_log = nrow(data_rec),
+  s = max(data_old$sitenum),
+  p_log = max(data_rec$plotnum),
+  y_equ = data_old$stocks,
+  in_equ = data_old$prod,
+  out_equ = data_old$mort,
+  y_log = data_rec$stocks,
+  in_log = data_rec$prod,
+  out_log = data_rec$mort,
+  time = data_rec$trec,
+  dt = data_rec$tdiff,
+  t0 = data_t0$t0,
+  y0 = data_t0$y0,
+  site_equ = data_old$sitenum,
+  site_log = data_rec$sitenum,
+  plot_log = data_rec$plotnum,
+  site_plot = ind_rec$sitenum,
+  theta_bounds = c(bounds$theta_min, bounds$theta_max),
+  lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
+  alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
+  delta_bounds = c(bounds$delta_min, bounds$delta_max),
+  tau_bounds = c(bounds$tau_min, bounds$tau_max),
+  k_bounds = c(bounds$k_min, bounds$k_max),
+  omega_bounds = c(bounds$omega_min, bounds$omega_max)
+)
+sample_model("flux_all_simpl_recov", mdata_all)
+```
 
 ## Results comparison
 
@@ -297,7 +348,8 @@ fit_flux_all <- c(
   "flux_all_simpl",
   "flux_all_simpl_K",
   "flux_all_simpl_Ksite_nohyper",
-  "flux_all_simpl_Ksite"
+  "flux_all_simpl_Ksite",
+  "flux_all_simpl_recov"
 ) |>
   lapply(function(name) {
     as_cmdstan_fit(list.files(paste0("chains/", name),
@@ -321,7 +373,7 @@ obs_data <- data_rec |>
     type = "equ"
   ))
 
-pov_data <- lapply(1:4, function(i) {
+pov_data <- lapply(1:5, function(i) {
   data_rec |>
     select(-plotnum) |>
     mutate(
@@ -342,7 +394,8 @@ pov_data <- lapply(1:4, function(i) {
     bind_rows(obs_data) |>
     pivot_longer(cols = c(prod, mort), names_to = "variable") |>
     pivot_wider(names_from = val, values_from = value) |>
-    mutate(model = c("K=2", "One K", "Site K", "Site K + Hyperdistribution")[i])
+    mutate(model = c("K=2", "One K", "Site K", "Site K + Hyperdistribution",
+                     "Recovery term")[i])
 }) |>
   bind_rows()
 ```
@@ -358,10 +411,9 @@ lapply(fit_flux_all, function(x) {
 }) %>% # nolint
   ggarrange(
     plotlist = .,
-    labels = c("K=2", "One K", "Site K", "Site K + Hyperdistribution")
+    labels = c("K=2", "One K", "Site K", "Site K + HD", "Recovery term")
   )
 ```
-
 
 ### Goodness of fit
 
@@ -409,7 +461,7 @@ ind_site <- data_rec |>
   select(Site, sitenum) |>
   unique() |>
   arrange(sitenum)
-df_k <- lapply(1:4, function(i) {
+df_k <- lapply(1:5, function(i) {
   if (i == 1) {
     ind_site |>
       mutate(model = "K=2", k = "2")
@@ -422,7 +474,8 @@ df_k <- lapply(1:4, function(i) {
       mutate(across(where(is.numeric), ~ round(.x, 2))) |>
       mutate(k = paste0(median, " [", q5, ",", q95, "]")) |>
       bind_cols(ind_site) |>
-      mutate(model = c("Site K", "Site K + Hyperdistribution")[i - 2]) |>
+      mutate(model = c("Site K", "Site K + Hyperdistribution",
+                       "Recovery term")[i - 2]) |>
       select(Site, sitenum, model, k)
   }
 }) |>
@@ -442,9 +495,8 @@ pov_data |>
   facet_grid(Site ~ model, scales = "free")
 ```
 
-
 ## Conclusion
 
-The model with one fitted kurtosis per site and no hyperdistribution predicted the productivity trajectories better. Our interpretation is that it introduces enough variability to capture the sites' differences in the productivity response, but the introduction of a hyperdistribution constrained the sites with little data too much, as the site with the most data (Paracou) had one of the lowest kurtosis values. 
+The model with one fitted kurtosis per site and no hyperdistribution predicted the productivity trajectories better. Our interpretation is that it introduces enough variability to capture the sites' differences in the productivity response, but the introduction of a hyperdistribution constrained the sites with little data too much, as the site with the most data (Paracou) had one of the lowest kurtosis values.
 
-We therefore chose this model. 
+We therefore chose this model.

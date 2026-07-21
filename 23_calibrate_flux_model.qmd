@@ -118,9 +118,6 @@ ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
   unique() |>
   arrange(plotnum)
-data_t0 <- data_rec |>
-  group_by(plotnum) |>
-  summarise(t0 = trec[which.min(Year)], y0 = stocks[which.min(Year)])
 mdata_all <- list(
   n_equ = nrow(data_old),
   n_log = nrow(data_rec),
@@ -134,8 +131,6 @@ mdata_all <- list(
   out_log = data_rec$mort,
   time = data_rec$trec,
   dt = data_rec$tdiff,
-  t0 = data_t0$t0,
-  y0 = data_t0$y0,
   site_equ = data_old$sitenum,
   site_log = data_rec$sitenum,
   plot_log = data_rec$plotnum,
@@ -146,7 +141,8 @@ mdata_all <- list(
   delta_bounds = c(bounds$delta_min, bounds$delta_max),
   tau_bounds = c(bounds$tau_min, bounds$tau_max),
   k_bounds = c(bounds$k_min, bounds$k_max),
-  omega_bounds = c(bounds$omega_min, bounds$omega_max)
+  omega_bounds = c(bounds$omega_min, bounds$omega_max),
+  y0_bounds = c(bounds$y0_min, bounds$y0_max)
 )
 sample_model("flux_all_simpl_Ksite_nohyper", mdata_all)
 ```
@@ -156,17 +152,17 @@ The resulting Stan fit summary is presented below.
 ```{r}
 #| message: false
 #| warning: false
-fit_flux_all_ks_nh <- as_cmdstan_fit(
+fit_flux_all <- as_cmdstan_fit(
   list.files("chains/flux_all_simpl_Ksite_nohyper/", full.names = TRUE)
 )
-fit_flux_all_ks_nh
-mcmc_trace(fit_flux_all_ks_nh$draws(variables = c("lp__")))
+fit_flux_all
+mcmc_trace(fit_flux_all$draws(variables = c("lp__")))
 ```
 
 Rhat superior to 1.2:
 
 ```{r}
-rhat_all <- summarise_draws(fit_flux_all_ks_nh$draws(), "rhat")
+rhat_all <- summarise_draws(fit_flux_all$draws(), "rhat")
 rhat_all |>
   filter(rhat > 1.2) |>
   arrange(-rhat) |>
@@ -184,17 +180,17 @@ The goodness of fit is satisfactory.
 pred_data <- data_rec |>
   select(-plotnum) |>
   mutate(
-    prod = fit_flux_all_ks_nh$summary(c("mu_in_log"), median)$median,
-    mort = fit_flux_all_ks_nh$summary(c("mu_out_log"), median)$median,
+    prod = fit_flux_all$summary(c("mu_in_log"), median)$median,
+    mort = fit_flux_all$summary(c("mu_out_log"), median)$median,
     val = "pred",
     type = "rec"
   ) |>
   rbind(mutate(
     data_old,
-    prod = fit_flux_all_ks_nh$summary(c("theta_s"), median)$median[data_old$sitenum] * # nolint
-      fit_flux_all_ks_nh$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
-    mort = fit_flux_all_ks_nh$summary(c("theta_s"), median)$median[data_old$sitenum] * # nolint
-      fit_flux_all_ks_nh$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    prod = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] * # nolint
+      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
+    mort = fit_flux_all$summary(c("theta_s"), median)$median[data_old$sitenum] * # nolint
+      fit_flux_all$summary(c("omega_s"), median)$median[data_old$sitenum], # nolint
     val = "pred",
     type = "equ"
   ))
@@ -241,34 +237,21 @@ pov_data |>
 ### Parameters (k and tau)
 
 ```{r}
-fit_flux_all_ks_nh$summary(c("k_s")) |>
+fit_flux_all$summary(c("k_s")) |>
   separate(variable, c("variable", "sitenum"), sep = "\\[") |>
   mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
   inner_join(unique(data_rec[, c("Site", "sitenum")])) |>
   select(-sitenum) |>
-  relocate(variable, Site)
+  select(variable, Site, mean, median, sd, q5, q95, rhat)
 ```
 
 ```{r}
-fit_flux_all_ks_nh$summary(c("mu_tau", "sigma_tau", "tau_s")) |>
+fit_flux_all$summary(c("mu_tau", "sigma_tau", "tau_s")) |>
   separate(variable, c("variable", "sitenum"), sep = "\\[") |>
   mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
   left_join(unique(data_rec[, c("Site", "sitenum")])) |>
   select(-sitenum) |>
-  relocate(variable, Site)
-```
-
-### Parameter gamma
-
-```{r}
-fit_flux_all_ks_nh$summary(c("gamma")) |>
-  separate(variable, c("variable", "sitenum"), sep = "\\[") |>
-  mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
-  inner_join(unique(data_rec[, c("Site", "sitenum")])) |>
-  select(-sitenum) |>
-  relocate(variable, Site) |>
-  mutate(across(c(mean, median, q5, q95), ~ exp(.x))) |>
-  mutate(variable = "exp(gamma)")
+  select(variable, Site, mean, median, sd, q5, q95, rhat)
 ```
 
 ### Visualising the trajectories
@@ -293,30 +276,128 @@ pov_data |>
 
 ### Predicted AGB recovery
 
-The predicted AGB recovery can be estimated as the integral of the difference between productivity and mortality over the entire
+The predicted AGB recovered at the end of the trajectory is estimated as the sum of the AGB at the start of the trajectory and the integral of the productivity minus the mortality fluxes between the start of the recovery period and $t = +\infty$.
 
 ```{r}
+#| message: false
+#| warning: false
+#| eval: false
+stpp_integral <- function(t0, delta, tau, k) {
+  u0 <- k * t0 / tau
+  log_i <- log(delta) + k + log(tau) - (k + 1) * log(k) +
+    lgamma(k + 1) + pgamma(u0, k + 1, lower.tail = FALSE, log.p = TRUE)
+  exp(log_i)
+}
+
 data_t0 <- data_rec |>
   group_by(plotnum) |>
-  summarise(t0 = trec[which.min(Year)], y0 = stocks[which.min(Year)])
-theta <- fit_flux_all_ks_nh$summary(c("theta_s")) |>
-  separate(variable, c("variable", "sitenum"), sep = "\\[") |>
-  mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
-  inner_join(unique(data_rec[, c("Site", "sitenum")])) |>
-  select(Site, median, q5, q95) |>
-  rename(theta_median = median, theta_q5 = q5, theta_q95 = q95)
-agb_rec <- fit_flux_all_ks_nh$summary(c("diff_log")) |>
-  separate(variable, c("variable", "plotnum"), sep = "\\[") |>
-  mutate(plotnum = as.integer(gsub("]", "", plotnum))) |>
-  inner_join(unique(data_rec[, c("Site", "Plot", "plotnum")])) |>
-  left_join(data_t0) |>
-  mutate(rec_median = y0 + median, rec_q5 = q5 + y0, rec_q95 = q95 + y0) |>
-  select(Site, Plot, rec_median, rec_q5, rec_q95) |>
-  left_join(theta)
-ggplot(agb_rec, aes(theta_median, rec_median, col = Site)) +
+  summarise(t0 = trec[which.min(Year)], agb0 = stocks[which.min(Year)])
+site_plot_num <- data |>
+  filter(Treatment == "Logging" & trec >= 0) |>
+  select(Site, plot_new) |>
+  mutate(sitenum = as.numeric(as.factor(Site))) |>
+  mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new)))) |>
+  unique()
+
+alpha <- extract_draws(fit_flux_all, "alpha_p") |>
+  mutate(plotnum = as.numeric(gsub("alpha_p|\\[|\\]", "", variable))) |>
+  select(-variable) |>
+  rename(alpha = value)
+lambda <- extract_draws(fit_flux_all, "lambda_s") |>
+  mutate(sitenum = as.numeric(gsub("lambda_s|\\[|\\]", "", variable))) |>
+  select(-variable) |>
+  rename(lambda = value)
+tau <- extract_draws(fit_flux_all, "tau_s") |>
+  mutate(sitenum = as.numeric(gsub("tau_s|\\[|\\]", "", variable))) |>
+  select(-variable) |>
+  rename(tau = value)
+kappa <- extract_draws(fit_flux_all, "k_s") |>
+  mutate(sitenum = as.numeric(gsub("k_s|\\[|\\]", "", variable))) |>
+  rename(k = value) |>
+  select(-variable)
+delta <- extract_draws(fit_flux_all, "delta_p") |>
+  mutate(plotnum = as.numeric(gsub("delta_p|\\[|\\]", "", variable))) |>
+  select(-variable) |>
+  rename(delta = value)
+theta <- extract_draws(fit_flux_all, "theta_s") |>
+  mutate(sitenum = as.numeric(gsub("theta_s|\\[|\\]", "", variable))) |>
+  rename(theta = value) |>
+  select(-variable)
+omega <- extract_draws(fit_flux_all, "omega_s") |>
+  mutate(sitenum = as.numeric(gsub("omega_s|\\[|\\]", "", variable))) |>
+  rename(omega = value) |>
+  select(-variable)
+t90_p <- inner_join(tau, kappa) |>
+  group_by(Site, iter) |>
+  summarise(t90p = optimize(
+    function(t) {
+      abs(
+        integrate(function(x) (exp(1 - x / tau) * x / tau)^k, 0, t)$value -
+          0.9 * stpp_integral(0, 1, tau, k)
+      )
+    }, c(0, 100)
+  )$minimum)
+
+pars <- inner_join(site_plot_num, delta) |>
+  inner_join(alpha) |>
+  inner_join(tau) |>
+  inner_join(kappa) |>
+  inner_join(lambda) |>
+  inner_join(theta) |>
+  inner_join(omega) |>
+  inner_join(t90_p) |>
+  inner_join(data_t0) |>
+  mutate(rec = agb0 + stpp_integral(t0, delta, tau, k) -
+           alpha / lambda * exp(-lambda * t0)) |>
+  mutate(stpp = stpp_integral(0, delta, tau, k)) |>
+  mutate(stpm = alpha / lambda) |>
+  mutate(t90m = log(10) / lambda) |>
+  select(!contains(c("agb0", "t0", "num"))) |>
+  pivot_longer(names_to = "variable", cols = !contains(c("ite", "lot")))
+
+pars_plot <- pars |>
+  filter(variable %in% c("alpha", "delta", "rec", "stpp", "stpm")) |>
+  group_by(Site, plot_new, variable) |>
+  summarise(
+    mean = mean(value),
+    median = median(value),
+    sd = sd(value),
+    q5 = quantile(value, 0.05),
+    q95 = quantile(value, 0.95)
+  )
+pars_site <- pars |>
+  filter(!variable %in% c("alpha", "delta", "rec", "stpp", "stpm")) |>
+  group_by(Site, variable) |>
+  summarise(
+    mean = mean(value),
+    median = median(value),
+    sd = sd(value),
+    q5 = quantile(value, 0.05),
+    q95 = quantile(value, 0.95)
+  )
+bind_rows(pars_plot, pars_site) |>
+  write.csv("data/derived_data/params_flux_all.csv", row.names = FALSE)
+```
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-width: 5
+#| fig-height: 4
+#| fig-cap: "Predicted AGB at the end of the recovery trajectories (as the integral of fluxes + the initial AGB) vs the equilibrium biomass parameter theta." #nolint
+theta <- read.csv("data/derived_data/params_flux_all.csv") |>
+  filter(variable == "theta") |>
+  select(Site, median, variable, q5, q95) |>
+  pivot_wider(names_from = variable, values_from = c(median, q5, q95))
+read.csv("data/derived_data/params_flux_all.csv") |>
+  filter(variable == "rec") |>
+  select(Site, plot_new, median, variable, q5, q95) |>
+  pivot_wider(names_from = variable, values_from = c(median, q5, q95)) |>
+  inner_join(theta) |>
+  ggplot(aes(median_theta, median_rec, col = Site)) +
   geom_abline(intercept = 0, slope = 1, lty = 2) +
-  geom_pointrange(aes(ymin = rec_q5, ymax = rec_q95)) +
-  geom_errorbar(aes(xmin = theta_q5, xmax = theta_q95), orientation = "y") +
+  geom_pointrange(aes(ymin = q5_rec, ymax = q95_rec)) +
+  geom_errorbar(aes(xmin = q5_theta, xmax = q95_theta), orientation = "y") +
   theme_minimal() +
   labs(
     x = "Estimated AGB of unlogged plots (parameter theta)",

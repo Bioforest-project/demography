@@ -284,14 +284,8 @@ window.Quarto = {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Table of contents</h2>
-   
-  <ul>
-  <li><a href="#integrating-flux-values-over-the-census-interval" id="toc-integrating-flux-values-over-the-census-interval" class="nav-link active" data-scroll-target="#integrating-flux-values-over-the-census-interval">Integrating flux values over the census interval</a></li>
-  </ul>
-</nav>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -328,108 +322,8 @@ window.Quarto = {
 <p>For mortality, we define it as <span class="math inline">\(STPmort_{p,t} = \alpha_p \cdot exp(-\lambda_s \cdot t)\)</span></p>
 <p>Because we expect stocks to reach an equilibrium value at <span class="math inline">\(t \rightarrow +\infty\)</span>, we have:</p>
 <p><span class="math display">\[lim_{+\infty}(prod) = lim_{+\infty}(mort)\]</span> Therefore, <span class="math inline">\(\omega\)</span> is the same for productivity and mortality.</p>
-<p>We therefore have:</p>
-<p><span class="math display">\[stocks(t) = stocks(0) + \int_0^t \left(\delta \cdot(\frac{x}{\tau}exp(1-\frac{x}{\tau}))^2 - \alpha\cdot exp(-\lambda\cdot x)\right)dx\]</span></p>
-<p>The integral calculation is done in the Appendix.</p>
-<p>The resulting stocks are:</p>
-<p><span class="math display">\[ stocks(t) = stocks(0) + \frac{\delta \cdot e^{2} \cdot\tau}{4} - \delta \cdot e^{(1-\frac{t}{\tau})2} \left(\frac{t^2}{2\tau}+\frac{t}{2}+\frac{\tau}{4}\right) - \frac{\alpha}{\lambda}(1-exp(-\lambda\cdot t))\]</span> The equilibrium value is</p>
-<p><span class="math display">\[stocks(\infty) = stocks(0) + \frac{e^{2}}{4} (\delta \cdot \tau) - \frac{\alpha}{\lambda}\]</span></p>
-<p>The figure below illustrates the resulting stocks and fluxes with parameters set to:</p>
-<ul>
-<li><span class="math inline">\(\tau = 15 yrs\)</span></li>
-<li><span class="math inline">\(\delta = 4\)</span></li>
-<li><span class="math inline">\(\alpha = 3\)</span></li>
-<li><span class="math inline">\(\lambda = 0.2\)</span></li>
-<li><span class="math inline">\(stocks_0 = 100\)</span></li>
-<li><span class="math inline">\(\omega = 0.02\)</span></li>
-</ul>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>agb0 <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tau <span class="ot">&lt;-</span> <span class="dv">15</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>delta <span class="ot">&lt;-</span> <span class="dv">4</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="dv">3</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>omega <span class="ot">&lt;-</span> <span class="fl">0.02</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>agbinf <span class="ot">&lt;-</span> agb0 <span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">2</span>) <span class="sc">/</span> <span class="dv">4</span> <span class="sc">*</span> delta <span class="sc">*</span> tau <span class="sc">-</span> alpha <span class="sc">/</span> lambda</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>stp <span class="ot">&lt;-</span> <span class="cf">function</span>(time, delta, tau) {</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  delta <span class="sc">*</span> (time <span class="sc">/</span> tau <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> time <span class="sc">/</span> tau))<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>stocks <span class="ot">&lt;-</span> <span class="cf">function</span>(time, y0, delta, tau, lambda, alpha) {</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  y0 <span class="sc">+</span> delta <span class="sc">*</span> tau <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">2</span>) <span class="sc">/</span> <span class="dv">4</span> <span class="sc">-</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    delta <span class="sc">*</span> <span class="fu">exp</span>((<span class="dv">1</span> <span class="sc">-</span> time <span class="sc">/</span> tau) <span class="sc">*</span> <span class="dv">2</span>) <span class="sc">*</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      (time<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> tau) <span class="sc">+</span> time <span class="sc">/</span> <span class="dv">2</span> <span class="sc">+</span> tau <span class="sc">/</span> <span class="dv">4</span>) <span class="sc">-</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    alpha <span class="sc">/</span> lambda <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> time))</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>facet_labs <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"agb"</span> <span class="ot">=</span> <span class="st">"Stocks"</span>,</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">"prod"</span> <span class="ot">=</span> <span class="st">"Productivity"</span>,</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mort"</span> <span class="ot">=</span> <span class="st">"Mortality"</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>ann_segment <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">t =</span> <span class="dv">50</span>, <span class="at">tinf =</span> <span class="dv">100</span>, <span class="at">value =</span> agbinf, <span class="at">name =</span> <span class="st">"agb"</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">t =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="at">length.out =</span> <span class="dv">200</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">prod =</span> <span class="fu">stp</span>(t, delta, tau) <span class="sc">+</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>      omega <span class="sc">*</span> <span class="fu">stocks</span>(t, agb0, delta, tau, lambda, alpha),</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">mort =</span> alpha <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> t) <span class="sc">+</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>      omega <span class="sc">*</span> <span class="fu">stocks</span>(t, agb0, delta, tau, lambda, alpha),</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">agb =</span> <span class="fu">stocks</span>(t, agb0, delta, tau, lambda, alpha)</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>t) <span class="sc">|&gt;</span></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(t, value)) <span class="sc">+</span></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> ann_segment, <span class="fu">aes</span>(<span class="at">xend =</span> tinf), <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name,</span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">nrow =</span> <span class="dv">3</span>,</span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">name =</span> facet_labs),</span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.position =</span> <span class="st">"left"</span></span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Recovery time [yr]"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.placement =</span> <span class="st">"outside"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="22_flux_model_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="576"></p>
-</figure>
-</div>
-</div>
-</div>
-<section id="integrating-flux-values-over-the-census-interval" class="level2">
-<h2 class="anchored" data-anchor-id="integrating-flux-values-over-the-census-interval">Integrating flux values over the census interval</h2>
-<p>When measuring productivity and mortality, we not measuring their instanteneous value but rather their value integrated over the census interval (typically 1-2 years).</p>
-<p>We thus integrate the productivity and mortality equations as follows:</p>
-<p><span class="math display">\[
-Prod(t, k)
-= \omega \int_{t-k}^t stocks(x)dx + \int_{t-k}^t STP_P \\
-= \omega \left( k\!\left(S_0 + \frac{\delta e^2 \tau}{4} - \frac{\alpha}{\lambda}\right)
-+ \frac{\alpha}{\lambda^2}\,e^{-\lambda t}\!\left(e^{\lambda k}-1\right) + \\ \frac{\delta}{8}
-\!\left[
-e^{2\!\left(1-\frac{t-k}{\tau}\right)}\!\left(2(t-k)^2 + 4(t-k)\tau + 3\tau^2\right)
-- e^{2\!\left(1-\frac{t}{\tau}\right)}\!\left(2t^2 + 4t\tau + 3\tau^2\right)
-\right]  \right) + \\
-\frac{\delta}{8}
-\Bigg[
-e^{2\!\left(1 - \frac{t - k}{\tau}\right)}\!
-\left(2(t - k)^{2} + 4(t - k)\tau + 3\tau^{2}\right)
-- e^{2\!\left(1 - \frac{t}{\tau}\right)}\!
-\left(2t^{2} + 4t\tau + 3\tau^{2}\right)
-\Bigg]
-\]</span></p>
-<p>Current version of the model is as follows (06/05/2026):</p>
-<p>Productivity: <span class="math inline">\(OverProd_{p,t} = \omega_s \cdot AGB_{p,t} + \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa_s}\)</span></p>
-<p>Mortality: <span class="math inline">\(OverMort_{p,t} = \omega_s \cdot AGB_{p,t} + \alpha_p \cdot exp(-\lambda_s \cdot t)\)</span></p>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

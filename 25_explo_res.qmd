@@ -15,8 +15,8 @@ library(kableExtra)
 environ <- readr::read_tsv("data/raw_data/environment.tsv")
 params <- read_csv("data/derived_data/params_flux_all.csv")
 
-site_info <- read.csv("data/derived_data/sites_to_keep.csv") %>%
-  filter(ncensus >= 10) %>%
+site_info <- read.csv("data/derived_data/sites_to_keep.csv") |>
+  filter(ncensus >= 10) |>
   mutate(
     continent =
       case_when(
@@ -27,29 +27,29 @@ site_info <- read.csv("data/derived_data/sites_to_keep.csv") %>%
         Site %in% c("Mbaiki")
         ~ "Africa"
       )
-  ) %>%
+  ) |>
   left_join(environ, by = c("Site" = "site"))
 
-plot_info_raw <- read.csv("data/raw_data/bioforest-plot-information.csv") %>%
+plot_info_raw <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
 
-plot_info <- read_csv("data/derived_data/aggregated_data_v9.csv") %>%
-  filter(Site %in% site_info$Site & variable %in% c("ba", "agb")) %>%
-  mutate(plot_new = Plot) %>%
-  separate(Plot, "Plot", "_") %>%
+plot_info <- read_csv("data/derived_data/aggregated_data_v10.csv") |>
+  filter(Site %in% site_info$Site & variable %in% c("ba", "agb")) |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
   pivot_wider(
     names_from = "variable",
     values_from = "value"
-  ) %>%
-  left_join(plot_info_raw, by = join_by(Site == site, Plot == plot)) %>%
-  group_by(Site, plot_new, Treatment, Year_of_harvest) %>%
+  ) |>
+  left_join(plot_info_raw, by = join_by(Site == site, Plot == plot)) |>
+  group_by(Site, plot_new, Treatment, Year_of_harvest) |>
   summarise(
     census1 = min(Year),
     ba_0 = ba[Year == min(Year)],
     ba_min = min(ba[Year > Year_of_harvest &
-      Year <= Year_of_harvest + 5]),
+                      Year <= Year_of_harvest + 5]),
     agb_0 = agb[Year == min(Year)]
-  ) %>%
+  ) |>
   mutate(
     ba_0 = if_else(census1 < Year_of_harvest, ba_0, NA),
     agb_0 = if_else(census1 < Year_of_harvest, agb_0, NA),
@@ -57,8 +57,8 @@ plot_info <- read_csv("data/derived_data/aggregated_data_v9.csv") %>%
   )
 
 
-data_explo <- params %>%
-  left_join(site_info) %>%
+data_explo <- params |>
+  left_join(site_info) |>
   left_join(plot_info)
 ```
 
@@ -67,8 +67,8 @@ data_explo <- params %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "omega") %>%
+data_explo |>
+  filter(variable == "omega") |>
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
@@ -81,14 +81,14 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "omega") %>%
+data_explo |>
+  filter(variable == "omega") |>
   select(
     Site, median, q5, q95,
     continent,
     et, cwd, pr, tmax, vpd, soil, dsl, dsi
-  ) %>%
-  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
+  ) |>
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") |>
   mutate(var_clim = fct_recode(var_clim,
     "Evapotranspiration, mm" = "et",
     "Climate water deficit, mm" = "cwd",
@@ -98,7 +98,7 @@ data_explo %>%
     "Soil humidity, mm" = "soil",
     "Dry season length, days" = "dsl",
     "Dry season intensity, mm" = "dsi"
-  )) %>%
+  )) |>
   ggplot(aes(x = value, y = median)) +
   geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
   geom_smooth(
@@ -117,14 +117,14 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "omega") %>%
+data_explo |>
+  filter(variable == "omega") |>
   select(
     Site, median, q5, q95,
     continent,
     bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
-  ) %>%
-  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
+  ) |>
+  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") |>
   mutate(var_soil = fct_recode(var_soil,
     "Bulk density, kg dm³" = "bdod",
     "CEC, cmolC kg-1" = "cec",
@@ -136,7 +136,7 @@ data_explo %>%
     "Soil pH" = "phh2o",
     "Soil organic carbon, g kg-1" = "soc",
     "Organic carbon density, kg dm³" = "ocd"
-  )) %>%
+  )) |>
   ggplot(aes(x = value, y = median)) +
   geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
   geom_smooth(
@@ -161,8 +161,8 @@ We expect it to occur within the first few years after logging =\> confirmed, ov
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "t90_m") %>%
+data_explo |>
+  filter(variable == "t90m") |>
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
@@ -177,15 +177,15 @@ We expect it to be quite consistent between sites =\> confirmed, although some d
 ```{r}
 #| message: false
 #| warning: false
-read_csv("data/derived_data/aggregated_data_v9.csv") %>%
-  filter(Site %in% site_info$Site & variable == "ba") %>%
-  mutate(plot_new = Plot) %>%
-  separate(Plot, "Plot", "_") %>%
-  left_join(plot_info) %>%
-  mutate(trec = Year - Year_of_harvest) %>%
-  filter(trec > 0 & trec < 6) %>%
-  group_by(Site) %>%
-  summarise(trec = paste(unique(trec), collapse = ", ")) %>%
+read_csv("data/derived_data/aggregated_data_v10.csv") |>
+  filter(Site %in% site_info$Site & variable == "ba") |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
+  left_join(plot_info) |>
+  mutate(trec = Year - Year_of_harvest) |>
+  filter(trec > 0 & trec < 6) |>
+  group_by(Site) |>
+  summarise(trec = paste(unique(trec), collapse = ", ")) |>
   kable()
 ```
 
@@ -198,8 +198,8 @@ Over-productivity is due to the opening of the canopy cover that increases the g
 We expect it to last several decades as post-logging canopy closure takes several decades =\> confirmed.
 
 ```{r}
-data_explo %>%
-  filter(variable == "t90_p") %>%
+data_explo |>
+  filter(variable == "t90p") |>
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
@@ -220,14 +220,14 @@ We expect the variability of the duration of over-productivity to depends on:
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "t90_p") %>%
+data_explo |>
+  filter(variable == "t90p") |>
   select(
     Site, median, q5, q95,
     continent,
     et, cwd, pr, tmax, vpd, soil, dsl, dsi
-  ) %>%
-  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
+  ) |>
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") |>
   mutate(var_clim = fct_recode(var_clim,
     "Evapotranspiration, mm" = "et",
     "Climate water deficit, mm" = "cwd",
@@ -237,7 +237,7 @@ data_explo %>%
     "Soil humidity, mm" = "soil",
     "Dry season length, days" = "dsl",
     "Dry season intensity, mm" = "dsi"
-  )) %>%
+  )) |>
   ggplot(aes(x = value, y = median)) +
   geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
   geom_smooth(
@@ -258,14 +258,14 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "t90_p") %>%
+data_explo |>
+  filter(variable == "t90p") |>
   select(
     Site, median, q5, q95,
     continent,
     bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
-  ) %>%
-  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
+  ) |>
+  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") |>
   mutate(var_soil = fct_recode(var_soil,
     "Bulk density, kg dm³" = "bdod",
     "CEC, cmolC kg-1" = "cec",
@@ -277,7 +277,7 @@ data_explo %>%
     "Soil pH" = "phh2o",
     "Soil organic carbon, g kg-1" = "soc",
     "Organic carbon density, kg dm³" = "ocd"
-  )) %>%
+  )) |>
   ggplot(aes(x = value, y = median)) +
   geom_pointrange(aes(ymin = q5, ymax = q95, col = continent)) +
   geom_smooth(
@@ -298,16 +298,16 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable %in% c("omega", "t90_p")) %>%
-  select(Site, variable, median, q5, q95, continent) %>%
+data_explo |>
+  filter(variable %in% c("omega", "t90p")) |>
+  select(Site, variable, median, q5, q95, continent) |>
   pivot_wider(
     names_from = variable,
     values_from = c(median, q5, q95)
-  ) %>%
-  ggplot(aes(x = median_omega, y = median_t90_p)) +
+  ) |>
+  ggplot(aes(x = median_omega, y = median_t90p)) +
   geom_errorbar(aes(
-    ymin = q5_t90_p, ymax = q95_t90_p,
+    ymin = q5_t90p, ymax = q95_t90p,
     col = continent,
     width = 0
   )) +
@@ -343,9 +343,9 @@ The graph below show that there is a lot of variability in the relative AGB over
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "int_m" & !(is.na(agb_0))) %>%
-  mutate(site_plot = paste(Site, plot_new)) %>%
+data_explo |>
+  filter(variable == "stpm" & !(is.na(agb_0))) |>
+  mutate(site_plot = paste(Site, plot_new)) |>
   ggplot(aes(median * 100 / agb_0,
     reorder(site_plot, median * 100 / agb_0),
     col = Site,
@@ -367,9 +367,9 @@ We expect that this variability would be partly explained by logging intensity, 
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "int_m" & !(is.na(agb_0))) %>%
-  mutate(Site = fct_drop(as.factor(Site))) %>%
+data_explo |>
+  filter(variable == "stpm" & !(is.na(agb_0))) |>
+  mutate(Site = fct_drop(as.factor(Site))) |>
   ggplot(aes(
     x = intensity * 100,
     y = median * 100 / agb_0
@@ -399,14 +399,14 @@ I have no real hypothesis on the effect of environmental variables on the relati
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "int_m" & !(is.na(agb_0))) %>%
+data_explo |>
+  filter(variable == "stpm" & !(is.na(agb_0))) |>
   select(
     Site, plot_new, median, q5, q95, agb_0,
     continent,
     et, cwd, pr, tmax, vpd, soil, dsl, dsi
-  ) %>%
-  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
+  ) |>
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") |>
   mutate(var_clim = fct_recode(var_clim,
     "Evapotranspiration, mm" = "et",
     "Climate water deficit, mm" = "cwd",
@@ -416,7 +416,7 @@ data_explo %>%
     "Soil humidity, mm" = "soil",
     "Dry season length, days" = "dsl",
     "Dry season intensity, mm" = "dsi"
-  )) %>%
+  )) |>
   ggplot(aes(x = value, y = median * 100 / agb_0)) +
   geom_pointrange(aes(
     ymin = q5 * 100 / agb_0,
@@ -442,14 +442,14 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "int_m" & !(is.na(agb_0))) %>%
+data_explo |>
+  filter(variable == "stpm" & !(is.na(agb_0))) |>
   select(
     Site, median, q5, q95, agb_0,
     continent,
     bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
-  ) %>%
-  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
+  ) |>
+  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") |>
   mutate(var_soil = fct_recode(var_soil,
     "Bulk density, kg dm³" = "bdod",
     "CEC, cmolC kg-1" = "cec",
@@ -461,7 +461,7 @@ data_explo %>%
     "Soil pH" = "phh2o",
     "Soil organic carbon, g kg-1" = "soc",
     "Organic carbon density, kg dm³" = "ocd"
-  )) %>%
+  )) |>
   ggplot(aes(x = value, y = median * 100 / agb_0)) +
   geom_pointrange(aes(
     ymin = q5 * 100 / agb_0,
@@ -487,19 +487,19 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-dt_omega <- data_explo %>%
-  filter(variable == "omega") %>%
-  select(Site, median, q5, q95) %>%
+dt_omega <- data_explo |>
+  filter(variable == "omega") |>
+  select(Site, median, q5, q95) |>
   rename(
     median_omega = median,
     q5_omega = q5,
     q95_omega = q95
   )
 
-data_explo %>%
-  filter(variable == "int_m" & !(is.na(agb_0))) %>%
-  select(Site, variable, median, q5, q95, agb_0, continent) %>%
-  left_join(dt_omega) %>%
+data_explo |>
+  filter(variable == "stpm" & !(is.na(agb_0))) |>
+  select(Site, variable, median, q5, q95, agb_0, continent) |>
+  left_join(dt_omega) |>
   ggplot(aes(x = median_omega, y = median * 100 / agb_0)) +
   geom_errorbar(
     aes(
@@ -542,9 +542,9 @@ The graph below show that there is a lot of variability in the relative AGB over
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "int_p" & !(is.na(agb_0))) %>%
-  mutate(site_plot = paste(Site, plot_new)) %>%
+data_explo |>
+  filter(variable == "stpp" & !(is.na(agb_0))) |>
+  mutate(site_plot = paste(Site, plot_new)) |>
   ggplot(aes(median * 100 / agb_0,
     reorder(site_plot, median * 100 / agb_0),
     col = Site,
@@ -566,9 +566,9 @@ We expect that this variability would be partly explained by logging intensity, 
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "int_p" & !(is.na(agb_0))) %>%
-  mutate(Site = fct_drop(as.factor(Site))) %>%
+data_explo |>
+  filter(variable == "stpp" & !(is.na(agb_0))) |>
+  mutate(Site = fct_drop(as.factor(Site))) |>
   ggplot(aes(
     x = intensity * 100,
     y = median * 100 / agb_0
@@ -598,14 +598,14 @@ I have no real hypothesis on the effect of environmental variables on the relati
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "int_p" & !(is.na(agb_0))) %>%
+data_explo |>
+  filter(variable == "stpp" & !(is.na(agb_0))) |>
   select(
     Site, plot_new, median, q5, q95, agb_0,
     continent,
     et, cwd, pr, tmax, vpd, soil, dsl, dsi
-  ) %>%
-  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") %>%
+  ) |>
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") |>
   mutate(var_clim = fct_recode(var_clim,
     "Evapotranspiration, mm" = "et",
     "Climate water deficit, mm" = "cwd",
@@ -615,7 +615,7 @@ data_explo %>%
     "Soil humidity, mm" = "soil",
     "Dry season length, days" = "dsl",
     "Dry season intensity, mm" = "dsi"
-  )) %>%
+  )) |>
   ggplot(aes(x = value, y = median * 100 / agb_0)) +
   geom_pointrange(aes(
     ymin = q5 * 100 / agb_0,
@@ -641,14 +641,14 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "int_p" & !(is.na(agb_0))) %>%
+data_explo |>
+  filter(variable == "stpp" & !(is.na(agb_0))) |>
   select(
     Site, median, q5, q95, agb_0,
     continent,
     bdod, cec, cfvo, clay, sand, silt, nitrogen, phh2o, soc, ocd
-  ) %>%
-  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") %>%
+  ) |>
+  pivot_longer(bdod:ocd, names_to = "var_soil", values_to = "value") |>
   mutate(var_soil = fct_recode(var_soil,
     "Bulk density, kg dm³" = "bdod",
     "CEC, cmolC kg-1" = "cec",
@@ -660,7 +660,7 @@ data_explo %>%
     "Soil pH" = "phh2o",
     "Soil organic carbon, g kg-1" = "soc",
     "Organic carbon density, kg dm³" = "ocd"
-  )) %>%
+  )) |>
   ggplot(aes(x = value, y = median * 100 / agb_0)) +
   geom_pointrange(aes(
     ymin = q5 * 100 / agb_0,
@@ -686,10 +686,10 @@ data_explo %>%
 ```{r}
 #| message: false
 #| warning: false
-data_explo %>%
-  filter(variable == "int_p" & !(is.na(agb_0))) %>%
-  select(Site, variable, median, q5, q95, agb_0, continent) %>%
-  left_join(dt_omega) %>%
+data_explo |>
+  filter(variable == "stpp" & !(is.na(agb_0))) |>
+  select(Site, variable, median, q5, q95, agb_0, continent) |>
+  left_join(dt_omega) |>
   ggplot(aes(x = median_omega, y = median * 100 / agb_0)) +
   geom_errorbar(
     aes(
