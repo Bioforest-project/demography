@@ -15,19 +15,19 @@ Done for the model with a fitted kurtosis per site without hyperlaw.
 
 We chose the following summary statistics:
 
-- the turnover rate $\omega$;
+-   the turnover rate $\omega$;
 
-- the total over-productivity and over-mortality are estimated as the area under the curve of the short-term process:
+-   the total over-productivity and over-mortality are estimated as the area under the curve of the short-term process:
 
-- $\frac{\delta e^2 \tau}{4}$ for productivity;
+-   $\frac{\delta e^2 \tau}{4}$ for productivity;
 
-- $\frac{\alpha}{\lambda}$ for mortality;
+-   $\frac{\alpha}{\lambda}$ for mortality;
 
-- the time taken to reach 95% of the total over-productivity and mortality (i.e. the duration of the change in fluxes):
+-   the time taken to reach 95% of the total over-productivity and mortality (i.e. the duration of the change in fluxes):
 
-- the numerical solution to the equation: $e^{-\frac{2}{\tau} t_{95}}(\frac{t_{95}^2}{2\tau}+\frac{t_{95}}{2}+\frac{\tau}{4})=\frac{\tau}{80}$ for productivity;
+-   the numerical solution to the equation: $e^{-\frac{2}{\tau} t_{95}}(\frac{t_{95}^2}{2\tau}+\frac{t_{95}}{2}+\frac{\tau}{4})=\frac{\tau}{80}$ for productivity;
 
-- $t_{95} = \frac{ln(20)}{\lambda}$ for mortality.
+-   $t_{95} = \frac{ln(20)}{\lambda}$ for mortality.
 
 ```{r}
 #| message: false
@@ -36,7 +36,7 @@ plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
 sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
   filter(ncensus >= 10)
-data <- read.csv("data/derived_data/aggregated_data_v9.csv") |>
+data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
   mutate(plot_new = Plot) |>
   separate(Plot, "Plot", "_") |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
