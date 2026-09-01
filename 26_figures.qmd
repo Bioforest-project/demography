@@ -13,11 +13,155 @@ list.files("r", full.names = TRUE, pattern = ".R") |>
 
 This is just the template - not finished.
 
+```{r}
+#| message: false
+#| warning: false
+environ <- readr::read_tsv("data/raw_data/environment.tsv")
+params <- read_csv("data/derived_data/params_flux_all.csv")
+
+site_info <- read.csv("data/derived_data/sites_to_keep.csv") |>
+  filter(ncensus >= 10) |>
+  mutate(
+    continent =
+      case_when(
+        Site %in% c("Corinto", "Paracou", "Tapajos Km67")
+        ~ "America",
+        Site %in% c("Lesong", "SUAS", "Sungai Lalang", "Ulu Muda")
+        ~ "Asia",
+        Site %in% c("Mbaiki")
+        ~ "Africa"
+      )
+  ) |>
+  left_join(environ, by = c("Site" = "site"))
+
+plot_info_raw <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  select(site, plot, Year_of_harvest, Treatment)
+
+plot_info <- read_csv("data/derived_data/aggregated_data_v10.csv") |>
+  filter(Site %in% site_info$Site & variable %in% c("ba", "agb")) |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
+  pivot_wider(
+    names_from = "variable",
+    values_from = "value"
+  ) |>
+  left_join(plot_info_raw, by = join_by(Site == site, Plot == plot)) |>
+  group_by(Site, plot_new, Treatment, Year_of_harvest) |>
+  summarise(
+    census1 = min(Year),
+    ba_0 = ba[Year == min(Year)],
+    ba_min = min(ba[Year > Year_of_harvest &
+                      Year <= Year_of_harvest + 5]),
+    agb_0 = agb[Year == min(Year)]
+  ) |>
+  mutate(
+    ba_0 = if_else(census1 < Year_of_harvest, ba_0, NA),
+    agb_0 = if_else(census1 < Year_of_harvest, agb_0, NA),
+    intensity = (ba_0 - ba_min) / ba_0
+  )
+
+
+data_explo <- params |>
+  left_join(site_info) |>
+  left_join(plot_info)
+```
+
 ## Modelled trajectories
+### Productivity
+### Mortality
+
 
 ## Magnitude of AGB changes associated with demographic processes (how much?)
+```{r}
+#| message: false
+#| warning: false
+
+tmp <- data.table::setDT(data_explo)[!is.na(agb_0)]
+tmp$site_plot <- paste(tmp$Site, tmp$plot_new)
+data.table::setnames(tmp, c("continent"), "Continent")
+
+
+pp1 <- 
+  ggplot(
+    tmp[variable == "stpp"], 
+    aes(median * 100 / agb_0,
+        reorder(site_plot, median * 100 / agb_0),
+        col = Site,
+        shape = Continent
+    ),
+    show.legend = F
+  )+
+  geom_pointrange(
+    aes(
+      xmin = q5 * 100 / agb_0,
+      xmax = q95 * 100 / agb_0
+    ),
+    show.legend = F
+  )+
+  geom_vline(
+    xintercept = median(tmp[variable == "stpp"]$median / tmp[variable == "stpp"]$agb_0 * 100),
+    linetype = 2
+  )+
+  labs(
+    x = "AGB over-productivity\n[% prelogging AGB]",
+    y = "Permanent plot"
+  )+
+  scale_colour_discrete(palette = c("#C0C000", "#A25100", "#008000",  "#4151B0"))+
+  theme_minimal()+
+  theme(
+    axis.text.y = element_blank()
+  )
+
+
+pm2 <- 
+  ggplot(
+    tmp[variable == "stpm"], 
+    aes(median * 100 / agb_0,
+        reorder(site_plot, median * 100 / agb_0),
+        col = Site,
+        shape = Continent
+    )
+  )+
+  geom_pointrange(
+    aes(
+      xmin = q5 * 100 / agb_0,
+      xmax = q95 * 100 / agb_0
+    )
+  ) +
+  geom_vline(
+    xintercept = median(tmp[variable == "stpm"]$median / tmp[variable == "stpm"]$agb_0 * 100),
+    linetype = 2
+  )+
+  labs(
+    x = "AGB over-mortality\n[% prelogging AGB]",
+    y = "Permanent plot"
+  ) +
+  scale_colour_discrete(palette = c("#C0C000", "#A25100", "#008000",  "#4151B0"))+
+  theme_minimal()+
+  theme(
+    axis.text.y = element_blank()
+  )
+
+library("patchwork")
+(pp1|pm2)+
+  plot_annotation(tag_levels = "A")
+```
 
 ## Persistence of disturbance effects on AGB changes associated with demographic processes (how long?)
+
+```{r}
+#| message: false
+#| warning: false
+data_explo |>
+  filter(variable == "t90m") |>
+  ggplot(aes(median, reorder(Site, median), col = continent)) +
+  geom_pointrange(aes(xmin = q5, xmax = q95)) +
+  labs(
+    x = "Duration of over-mortality (t90, in years)",
+    y = ""
+  ) +
+  theme_classic()
+```
 
 ## Effect of explanatory variables (why?)
 
