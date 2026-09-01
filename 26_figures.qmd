@@ -86,8 +86,8 @@ pp1 <-
     tmp[variable == "stpp"], 
     aes(median * 100 / agb_0,
         reorder(site_plot, median * 100 / agb_0),
-        col = Site,
-        shape = Continent
+        col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
+        shape = factor(Continent, c("America", "Africa", "Asia"))
     ),
     show.legend = F
   )+
@@ -106,20 +106,22 @@ pp1 <-
     x = "AGB over-productivity\n[% prelogging AGB]",
     y = "Permanent plot"
   )+
-  scale_colour_discrete(palette = c("#C0C000", "#A25100", "#008000",  "#4151B0"))+
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
   theme_minimal()+
   theme(
-    axis.text.y = element_blank()
+    axis.text.y = element_blank(),
+    text = element_text(size = 18)
   )
 
 
-pm2 <- 
+pm1 <- 
   ggplot(
     tmp[variable == "stpm"], 
     aes(median * 100 / agb_0,
         reorder(site_plot, median * 100 / agb_0),
-        col = Site,
-        shape = Continent
+        col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
+        shape = factor(Continent, c("America", "Africa", "Asia"))
     )
   )+
   geom_pointrange(
@@ -127,24 +129,30 @@ pm2 <-
       xmin = q5 * 100 / agb_0,
       xmax = q95 * 100 / agb_0
     )
-  ) +
+  )+
   geom_vline(
     xintercept = median(tmp[variable == "stpm"]$median / tmp[variable == "stpm"]$agb_0 * 100),
     linetype = 2
   )+
   labs(
     x = "AGB over-mortality\n[% prelogging AGB]",
-    y = "Permanent plot"
-  ) +
-  scale_colour_discrete(palette = c("#C0C000", "#A25100", "#008000",  "#4151B0"))+
+    y = "Permanent plot",
+    size = "Continent"
+  )+
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
   theme_minimal()+
   theme(
-    axis.text.y = element_blank()
+    axis.text.y = element_blank(),
+    text = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16)
   )
 
 library("patchwork")
-(pp1|pm2)+
+(pp1|pm1)+
   plot_annotation(tag_levels = "A")
+ggsave(file = "figures/magnitude.pdf", height = 9.5, width = 11)
 ```
 
 ## Persistence of disturbance effects on AGB changes associated with demographic processes (how long?)
