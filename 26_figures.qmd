@@ -67,21 +67,23 @@ data_explo <- params |>
 ```
 
 ## Modelled trajectories
+
 ### Productivity
+
 ### Mortality
 
-
 ## Magnitude of AGB changes associated with demographic processes (how much?)
+
 ```{r}
 #| message: false
 #| warning: false
 
-tmp <- data.table::setDT(data_explo)[!is.na(agb_0)]
+tmp <- data.table::as.data.table(data_explo)[!is.na(agb_0)]
 tmp$site_plot <- paste(tmp$Site, tmp$plot_new)
 data.table::setnames(tmp, c("continent"), "Continent")
 
 
-pp1 <- 
+p_p1 <- 
   ggplot(
     tmp[variable == "stpp"], 
     aes(median * 100 / agb_0,
@@ -109,13 +111,21 @@ pp1 <-
   guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
   scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
   theme_minimal()+
+  theme_classic()+
   theme(
+    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    axis.ticks.y = element_blank(),
     axis.text.y = element_blank(),
-    text = element_text(size = 18)
+    text = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16)
   )
 
 
-pm1 <- 
+p_m1 <- 
   ggplot(
     tmp[variable == "stpm"], 
     aes(median * 100 / agb_0,
@@ -136,23 +146,30 @@ pm1 <-
   )+
   labs(
     x = "AGB over-mortality\n[% prelogging AGB]",
-    y = "Permanent plot",
+    y = "",
     size = "Continent"
   )+
   guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
   scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
   theme_minimal()+
+  theme_classic()+
   theme(
+    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    axis.ticks.y = element_blank(),
     axis.text.y = element_blank(),
     text = element_text(size = 18),
     legend.title = element_text(size = 18),
     legend.text = element_text(size = 16)
   )
 
-library("patchwork")
-(pp1|pm1)+
+library(patchwork)
+(p_p1|p_m1)+
   plot_annotation(tag_levels = "A")
 ggsave(file = "figures/magnitude.pdf", height = 9.5, width = 11)
+rm(tmp, p_p1, p_m1)
 ```
 
 ## Persistence of disturbance effects on AGB changes associated with demographic processes (how long?)
@@ -160,15 +177,74 @@ ggsave(file = "figures/magnitude.pdf", height = 9.5, width = 11)
 ```{r}
 #| message: false
 #| warning: false
-data_explo |>
-  filter(variable == "t90m") |>
-  ggplot(aes(median, reorder(Site, median), col = continent)) +
-  geom_pointrange(aes(xmin = q5, xmax = q95)) +
+
+tmp <- data.table::as.data.table(data_explo)
+data.table::setnames(tmp, c("continent"), "Continent")
+tmp[Site=="Tapajos Km67"]$Site <- "Tapajos"
+
+p_p2 <- 
+  ggplot(
+    tmp[variable == "t90p"], 
+    aes(
+      median, 
+      reorder(Site, median), 
+      colour = factor(Continent, c("America", "Africa", "Asia")),
+      shape = factor(Continent, c("America", "Africa", "Asia"))
+      ),
+    show.legend = F
+    )+
+  geom_pointrange(aes(xmin = q5, xmax = q95), show.legend = F)+
   labs(
-    x = "Duration of over-mortality (t90, in years)",
+    x = "Duration of over-productivity\n(years)",
     y = ""
-  ) +
-  theme_classic()
+  )+
+  scale_colour_discrete(name = "Continent", palette = c("#279D00", "#915B11", "#1E90FF"))+
+  scale_shape_discrete(name = "Continent")+
+  theme_classic()+
+  theme(
+    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    text = element_text(size = 18),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 16)
+  )
+
+
+p_m2 <- 
+  ggplot(
+    tmp[variable == "t90m"], 
+    aes(
+      median, 
+      reorder(Site, median), 
+      colour = factor(Continent, c("America", "Africa", "Asia")),
+      shape = factor(Continent, c("America", "Africa", "Asia"))
+      )
+    )+
+  geom_pointrange(aes(xmin = q5, xmax = q95))+
+  labs(
+    x = "Duration of over-mortality\n(years)",
+    y = ""
+  )+
+  scale_colour_discrete(name = "Continent", palette = c("#279D00", "#915B11", "#1E90FF"))+
+  scale_shape_discrete(name = "Continent")+
+  theme_classic()+
+  theme(
+    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    text = element_text(size = 18),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 16)
+  )
+
+library(patchwork)
+(p_p2|p_m2)+
+  plot_annotation(tag_levels = "A")
+ggsave(file = "figures/duration.pdf", height = 5, width = 11)
+rm(tmp, p_p2, p_m2)
 ```
 
 ## Effect of explanatory variables (why?)
