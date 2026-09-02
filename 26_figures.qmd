@@ -66,14 +66,19 @@ data_explo <- params |>
   left_join(plot_info)
 ```
 
-## Modelled trajectories
 
+
+## Modelled trajectories
 ### Productivity
+```{r}
+
+```
 
 ### Mortality
 
-## Magnitude of AGB changes associated with demographic processes (how much?)
 
+
+## Magnitude of AGB changes associated with demographic processes (how much?)
 ```{r}
 #| message: false
 #| warning: false
@@ -110,7 +115,6 @@ p_p1 <-
   )+
   guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
   scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
-  theme_minimal()+
   theme_classic()+
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -151,7 +155,6 @@ p_m1 <-
   )+
   guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
   scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
-  theme_minimal()+
   theme_classic()+
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -172,8 +175,9 @@ ggsave(file = "figures/magnitude.pdf", height = 9.5, width = 11)
 rm(tmp, p_p1, p_m1)
 ```
 
-## Persistence of disturbance effects on AGB changes associated with demographic processes (how long?)
 
+
+## Persistence of disturbance effects on AGB changes associated with demographic processes (how long?)
 ```{r}
 #| message: false
 #| warning: false
@@ -247,8 +251,262 @@ ggsave(file = "figures/duration.pdf", height = 5, width = 11)
 rm(tmp, p_p2, p_m2)
 ```
 
-## Effect of explanatory variables (why?)
 
+
+## Effect of explanatory variables (why?)
 ### Disturbance intensity
+#### Over-productivity
+```{r}
+tmp_p <- 
+  data_explo |> 
+  filter(variable == "stpp" & !(is.na(agb_0))) |> 
+  mutate(Site = fct_drop(as.factor(Site)))
+
+p_p3 <- 
+  ggplot(
+  tmp_p,
+  aes(
+    x = intensity * 100,
+    y = median * 100 / agb_0
+  )
+)+
+  geom_pointrange(aes(
+    ymin = q5 * 100 / agb_0,
+    ymax = q95 * 100 / agb_0,
+    col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
+    shape = factor(continent, c("America", "Africa", "Asia"))
+  )
+  )+
+  geom_smooth(
+    method = "lm", 
+    se = FALSE,
+    linewidth = 0.5, 
+    col = alpha("darkgrey", .7),
+    linetype = "dashed"
+  )+
+  labs(
+    x = "Logging intensity [% BA loss]",
+    y = "AGB over-productivity\n[% prelogging AGB]"
+  )+
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
+  theme_classic()+
+  theme(
+    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank(),
+    text = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.position = "right"
+  )
+
+
+
+tmp_m <- 
+  data_explo |> 
+  filter(variable == "stpm" & !(is.na(agb_0))) |> 
+  mutate(Site = fct_drop(as.factor(Site)))
+
+p_m3 <- 
+ggplot(
+  tmp_m,
+  aes(
+    x = intensity * 100,
+    y = median * 100 / agb_0
+  )
+)+
+  geom_pointrange(aes(
+    ymin = q5 * 100 / agb_0,
+    ymax = q95 * 100 / agb_0,
+    col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
+    shape = factor(continent, c("America", "Africa", "Asia"))
+  )
+  )+
+  geom_smooth(
+    method = "lm", 
+    se = FALSE,
+    linewidth = 0.5, 
+    col = alpha("darkgrey", .7),
+    linetype = "dashed"
+  )+
+  labs(
+    x = "Logging intensity [% BA loss]",
+    y = "AGB over-mortality\n[% prelogging AGB]"
+  )+
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
+  theme_classic()+
+  theme(
+    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank(),
+    text = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.position = "right"
+  )
+
+
+library(patchwork)
+(p_p3/p_m3)+
+  plot_annotation(tag_levels = "A")
+ggsave(file = "figures/intensity.pdf", height = 10, width = 10)
+rm(tmp, p_m3, p_p3)
+```
+
 
 ### Climate
+#### Over-productivity
+```{r}
+tmp <- 
+  data_explo  |> 
+  filter(variable == "stpp" & !(is.na(agb_0))) |>
+  select(
+    Site, plot_new, median, q5, q95, agb_0,
+    continent,
+    et, cwd, pr, tmax, vpd, soil, dsl, dsi
+  ) |>
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") |>
+  mutate(
+    var_clim = 
+      fct_recode(
+        var_clim,
+        "Evapotranspiration, mm" = "et",
+        "Climate water deficit, mm" = "cwd",
+        "Precipitation, mm" = "pr",
+        "Maximum temperature, °C" = "tmax",
+        "Vapour Pressure Deficit, kPa" = "vpd",
+        "Soil humidity, mm" = "soil",
+        "Dry season length, days" = "dsl",
+        "Dry season intensity, mm" = "dsi"
+      )
+  )
+
+
+ggplot(
+  tmp,
+  aes(
+    x = value, 
+    y = median * 100 / agb_0
+  )
+)+
+  geom_pointrange(
+    aes(
+      ymin = q5 * 100 / agb_0,
+      ymax = q95 * 100 / agb_0,
+      col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
+      shape = factor(continent, c("America", "Africa", "Asia"))
+    )
+  )+
+  geom_smooth(
+    method = "lm", se = FALSE,
+    linewidth = 0.5, col = alpha("darkgrey", 0.7), linetype = "dashed"
+  ) +
+  labs(
+    x = "",
+    y = "AGB over-productivity [% prelogging AGB]"
+  ) +
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
+  theme_classic()+
+  theme(
+    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    text = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.position = "bottom",
+    panel.spacing = unit(1, "lines"),
+    strip.background = element_blank(),
+    strip.placement = "outside"
+  )+
+  facet_wrap(~var_clim, scales = "free_x", strip.position = "bottom")
+
+ggsave(file = "figures/environment_prod.pdf", height = 8, width = 10)
+rm(tmp)
+```
+
+
+#### Over-mortality
+```{r}
+tmp <- 
+  data_explo  |> 
+  filter(variable == "stpm" & !(is.na(agb_0))) |>
+  select(
+    Site, plot_new, median, q5, q95, agb_0,
+    continent,
+    et, cwd, pr, tmax, vpd, soil, dsl, dsi
+  ) |>
+  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") |>
+  mutate(
+    var_clim = 
+      fct_recode(
+        var_clim,
+        "Evapotranspiration, mm" = "et",
+        "Climate water deficit, mm" = "cwd",
+        "Precipitation, mm" = "pr",
+        "Maximum temperature, °C" = "tmax",
+        "Vapour Pressure Deficit, kPa" = "vpd",
+        "Soil humidity, mm" = "soil",
+        "Dry season length, days" = "dsl",
+        "Dry season intensity, mm" = "dsi"
+      )
+  )
+
+
+ggplot(
+  tmp,
+  aes(
+    x = value, 
+    y = median * 100 / agb_0
+  )
+)+
+  geom_pointrange(
+    aes(
+      ymin = q5 * 100 / agb_0,
+      ymax = q95 * 100 / agb_0,
+      col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
+      shape = factor(continent, c("America", "Africa", "Asia"))
+    )
+  )+
+  geom_smooth(
+    method = "lm", se = FALSE,
+    linewidth = 0.5, col = alpha("darkgrey", 0.7), linetype = "dashed"
+  ) +
+  labs(
+    x = "",
+    y = "AGB over-mortality [% prelogging AGB]"
+  ) +
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
+  theme_classic()+
+  theme(
+    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    text = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.position = "bottom",
+    panel.spacing = unit(1, "lines"),
+    strip.background = element_blank(),
+    strip.placement = "outside"
+  )+
+  facet_wrap(~var_clim, scales = "free_x", strip.position = "bottom")
+
+ggsave(file = "figures/environment_mort.pdf", height = 8, width = 10)
+rm(tmp)
+```
