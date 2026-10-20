@@ -66,8 +66,8 @@ data_explo <- params |>
   left_join(plot_info)
 ```
 
-
 ## Modelled trajectories
+
 ```{r}
 #| message: false
 #| warning: false
@@ -162,19 +162,15 @@ obs_data <- data_rec |>
 pov_data <- rbind(pred_data, obs_data) |>
   pivot_longer(cols = c(prod, mort), names_to = "variable") |>
   pivot_wider(names_from = val, values_from = value)
-
-df_rmse <- pov_data |>
-  group_by(variable) |>
-  summarise(rmse = sqrt(mean((pred - obs)^2)))
 ```
 
-
 ### Productivity
+
 ```{r}
 #| message: false
 #| warning: false
 #| fig-width: 10
-#| fig-height: 8
+#| fig-height: 12
 #| fig-cap: "Predicted trajectories."
 
 controls <- 
@@ -188,6 +184,52 @@ controls <-
 
 pov_data |>
   subset(variable == "prod") |>
+  mutate(Plot = plot_new) |>
+  mutate(across(c(Plot), factor)) |> 
+  filter(type == "rec") |>
+  ggplot(aes(trec, y = obs)) +
+  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
+  geom_point(aes(group = Plot, col = Plot, alpha = .5)) +
+  geom_line(aes(group = Plot, col = Plot, alpha = .5)) +
+  geom_boxplot(data = controls, aes(group = Treatment), width = 2) +
+  xlab("Recovery time (years)") +
+  ylab(expression("AGB productivity ("~Mg ~ ha^-1 ~ yr^-1~")")) +
+  scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps, times = 10)) +
+  theme_classic()+
+  theme(
+    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    text = element_text(size = 18),
+    legend.position = "none",
+    strip.background = element_blank(),
+    strip.placement = "outside")+
+  facet_wrap(~Site, scales = "free", ncol = 2)
+
+ggsave(file = "figures/traj_prod.png", height = 12, width = 10)
+```
+
+### Mortality
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-width: 6
+#| fig-height: 6
+#| fig-cap: "Predicted trajectories."
+
+controls <- 
+  pov_data |>
+  subset(variable == "mort") |>
+  mutate(Plot = plot_new) |>
+  group_by(Site) |>
+  mutate(tmin = min(trec[type == "rec"]), tmax = max(trec[type == "rec"])) |>
+  filter(type == "equ") |>
+  mutate(trec = ifelse(Treatment == "Logging", tmin - 2, tmax + 2))
+
+pov_data |>
+  subset(variable == "mort") |>
   mutate(Plot = plot_new) |>
   filter(type == "rec") |>
   ggplot(aes(trec, y = obs)) +
@@ -196,7 +238,8 @@ pov_data |>
   geom_line(aes(group = Plot, col = Plot, alpha = .5)) +
   geom_boxplot(data = controls, aes(group = Treatment), width = 2) +
   xlab("Recovery time (years)") +
-  ylab(expression("AGB productivity (" ~ Mg ~ ha^-1 ~ yr^-1 ~ ")")) +
+  ylab(expression("AGB mortality ("~Mg ~ ha^-1 ~ yr^-1~")")) +
+  scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps, times = 10)) +
   theme_classic()+
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -207,63 +250,25 @@ pov_data |>
     legend.position = "none",
     strip.background = element_blank(),
     strip.placement = "outside")+
-  facet_wrap(~Site, scales = "free")
-```
+  facet_wrap(~Site, scales = "free", ncol = 2)
 
+ggsave(file = "figures/traj_mort.png", height = 12, width = 10)
 
-### Mortality
-```{r}
-#| message: false
-#| warning: false
-#| fig-width: 10
-#| fig-height: 8
-#| fig-cap: "Predicted trajectories."
-
-controls <- 
-  pov_data |>
-  subset(variable == "mort") |>
-  mutate(Plot = plot_new) |>
-  group_by(Site) |>
-  mutate(tmin = min(trec[type == "rec"]), tmax = max(trec[type == "rec"])) |>
-  filter(type == "equ") |>
-  mutate(trec = ifelse(Treatment == "Logging", tmin - 2, tmax + 2))
-
+data.table::setDT(controls)
+controls[trec>0]$trec <- 40
 pov_data |>
   subset(variable == "mort") |>
   mutate(Plot = plot_new) |>
+  mutate(across(c(Plot), factor)) |> 
   filter(type == "rec") |>
   ggplot(aes(trec, y = obs)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
-  geom_point(aes(group = Plot, col = Plot, alpha = .5)) +
-  geom_line(aes(group = Plot, col = Plot, alpha = .5)) +
+  geom_point(aes(group = Plot, col = Plot, alpha = .1)) +
+  geom_line(aes(group = Plot, col = Plot, alpha = .1)) +
+    geom_line(aes(group = interaction(Site, Plot), col = Plot, y = pred), size = 1.2, alpha = 0.3) +
   geom_boxplot(data = controls, aes(group = Treatment), width = 2) +
-  xlab("Recovery time [yr]") +
-  ylab(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]")) +
-  theme_classic()+
-  theme(
-    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    text = element_text(size = 18),
-    legend.position = "none",
-    strip.background = element_blank(),
-    strip.placement = "outside")+
-  facet_wrap(~Site, scales = "free")
-
-
-
-pov_data |>
-  subset(variable == "mort") |>
-  mutate(Plot = plot_new) |>
-  filter(type == "rec") |>
-  ggplot(aes(trec, y = obs)) +
-  geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
-  geom_point(aes(group = Plot, col = Plot, alpha = .5)) +
-  geom_line(aes(group = Plot, col = Plot, alpha = .5)) +
-  geom_boxplot(data = controls, aes(group = Treatment), width = 2) +
-  xlab("Recovery time [yr]") +
-  ylab(expression("AGB mortality [" ~ Mg ~ ha^-1 ~ yr^-1 ~ "]")) +
+  xlab("Recovery time (years)") +
+  ylab(expression("AGB mortality ("~Mg ~ ha^-1 ~ yr^-1~")")) +
+    scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps, times = 10)) +
   theme_classic()+
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -275,8 +280,8 @@ pov_data |>
     )
 ```
 
-
 ## Magnitude of AGB changes associated with demographic processes (how much?)
+
 ```{r}
 #| message: false
 #| warning: false
