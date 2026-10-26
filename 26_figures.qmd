@@ -240,6 +240,7 @@ pov_data |>
   xlab("Recovery time (years)") +
   ylab(expression("AGB mortality ("~Mg ~ ha^-1 ~ yr^-1~")")) +
   scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps, times = 10)) +
+  scale_y_sqrt()+
   theme_classic()+
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -252,7 +253,7 @@ pov_data |>
     strip.placement = "outside")+
   facet_wrap(~Site, scales = "free", ncol = 2)
 
-ggsave(file = "figures/traj_mort.png", height = 12, width = 10)
+ggsave(file = "figures/traj_mort_ysqrt.png", height = 12, width = 10)
 
 data.table::setDT(controls)
 controls[trec>0]$trec <- 40
@@ -502,8 +503,6 @@ p_p3 <-
     axis.title.x = element_blank(),
     axis.text.x = element_blank(),
     axis.ticks.x = element_blank(),
-    axis.ticks.y = element_blank(),
-    axis.text.y = element_blank(),
     text = element_text(size = 18),
     legend.title = element_text(size = 18),
     legend.text = element_text(size = 16),
@@ -551,8 +550,6 @@ ggplot(
     panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    axis.ticks.y = element_blank(),
-    axis.text.y = element_blank(),
     text = element_text(size = 18),
     legend.title = element_text(size = 18),
     legend.text = element_text(size = 16),
