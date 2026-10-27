@@ -4,6 +4,7 @@
 .RData
 .Ruserdata
 *_cache/
+temp/
 /.quarto/
 .snakemake
 report.html

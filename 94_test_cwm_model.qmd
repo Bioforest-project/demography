@@ -1,0 +1,341 @@
+```{r setup}
+#| message: false
+#| warning: false
+#| include: false
+
+library(tidyverse)
+library(cmdstanr)
+library(bayesplot)
+list.files("r", full.names = TRUE, pattern = ".R") |>
+  lapply(source)
+```
+
+# Alternative models for CWM changes {.unnumbered}
+
+```{r open_data}
+#| message: false
+#| warning: false
+plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  select(site, plot, Year_of_harvest, Treatment)
+data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(grepl("cwmdiff", variable)) |>
+  separate(variable, c("trait", NA, "cohort", "flux"), sep = "_") |>
+  mutate(flux = ifelse(is.na(flux), "all", flux)) |>
+  mutate(t0 = case_when(
+    Site == "Paracou" & cohort == "s" ~ 1990,
+    Site == "Paracou" & cohort != "s" ~ 1987,
+    Site == "Mbaiki" & cohort == "s" ~ 1989,
+    Site == "Mbaiki" & cohort != "s" ~ 1986,
+    Site == "SUAS" ~ 1993
+  )) |>
+  filter(Year > t0)
+data_sd <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
+  mutate(plot_new = Plot) |>
+  separate(Plot, "Plot", "_") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(grepl("_cwm_ba$", variable)) |>
+  mutate(trait = gsub("_cwm_ba", "", variable)) |>
+  group_by(Site, trait) |>
+  summarise(sd_trait = sd(value))
+# standardize by standard deviation of trait value in control plots
+data <- data |>
+  left_join(data_sd) |>
+  mutate(value = value / sd_trait)
+data_rec <- data |>
+  filter(Treatment == "Logging" & cohort != "all") |>
+  mutate(group = paste0(cohort, "_", flux)) |>
+  mutate(sitenum = as.numeric(as.factor(Site))) |>
+  mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new)))) |>
+  mutate(traitnum = as.numeric(as.factor(trait))) |>
+  mutate(trec = Year - Year_of_harvest) |>
+  mutate(t0 = t0 - Year_of_harvest) |>
+  # cumulative changes
+  group_by(Site, plot_new, trait, group) |>
+  arrange(Year) |>
+  mutate(cum_y = cumsum(value)) |>
+  ungroup() |>
+  # temp
+  filter(Site != "SUAS")
+```
+
+::: panel-tabset
+
+## Intercensus change - iid error process
+
+We modelled intercensus contributions to changes in CWM as the sum of a constant rate and a Gaussian bump:
+
+$$dCWM_{i,p,s} = \delta_{s,k,g} + \alpha_{p,k,g} \cdot exp\left(-\frac{1}{2}\left(\frac{t_i - \tau_{s,g}}{\gamma_{s,g}}\right)^2\right) + \epsilon_i$$
+```{r fit_cwm_bump_annual}
+#| message: false
+#| warning: false
+#| eval: false
+groups <- unique(data_rec$group)
+for (gr in groups) {
+  data_group <- data_rec |>
+    filter(group == gr) |>
+    arrange(traitnum, plotnum, trec)
+  blocks <- data_group |>
+    group_by(plotnum, traitnum) |>
+    summarise(size = n(), .groups = "drop")
+  mdata_cwd <- list(
+    N = nrow(data_group),
+    S = max(data_group$sitenum),
+    P = max(data_group$plotnum),
+    K = max(data_group$traitnum),
+    B = nrow(blocks),
+    cum_y = data_group$cum_y,
+    trec = data_group$trec,
+    t0 = data_group$t0,
+    site = data_group$sitenum,
+    plot = data_group$plotnum,
+    trait = data_group$traitnum,
+    block_start = c(1, head(cumsum(blocks$size) + 1, -1)),
+    block_size = blocks$size,
+    tau_range = c(5, 25),
+    gamma_range = c(1, 10)
+  )
+  sample_model("annual_bump", mdata_cwd, paste0("annual_bump_", gr))
+}
+# save parameter table
+df_index <- list(
+  "delta" = c("traitnum", "sitenum"),
+  "alpha" = c("traitnum", "plotnum"),
+  "gamma" = "sitenum", "tau" = "sitenum"
+) |>
+  lapply(function(v) {
+    unique(data_rec[, v]) |>
+      arrange(across(all_of(v))) |>
+      mutate(index = as.character(row_number())) |>
+      inner_join(unique(data_rec[, c("sitenum", "plotnum", "traitnum")])) |>
+      select(index, sitenum, plotnum, traitnum)
+  }) |>
+  data.table::rbindlist(idcol = "param")
+lapply(groups[1], function(gr) {
+  chains <- list.files(paste0("chains/annual_bump_", gr), full.names = TRUE)
+  fit_flux <- as_cmdstan_fit(chains)
+  bayesplot::mcmc_trace(fit_flux$draws(variables = c("lp__", "tau", "gamma")))
+  ggsave(paste0("figures/chains_annual_", gr, ".pdf"), height = 3, width = 6)
+  samples <- sample(fit_flux$metadata()$iter_sampling * length(chains), 200)
+  extract_var <- function(var) {
+    df <- extract_draws(fit_flux, var) |>
+      filter(iter %in% samples) |>
+      separate(variable, c("param", "index"))
+  }
+  lapply(c("delta", "alpha", "gamma", "tau"), extract_var) |>
+    data.table::rbindlist() |>
+    left_join(df_index) |>
+    select(-index) |>
+    mutate(
+      cohort = strsplit(gr, "_")[[1]][1],
+      flux = strsplit(gr, "_")[[1]][2]
+    )
+}) |>
+  bind_rows() |>
+  write.csv("data/derived_data/params_annual_bump.csv", row.names = FALSE)
+```
+
+```{r}
+#| message: false
+#| warning: false
+data_pars <- read.csv("data/derived_data/params_annual_bump.csv")
+data_pred <- data_rec |>
+  cross_join(unique(select(data_pars, iter))) |>
+  inner_join(pivot_wider(data_pars, names_from = param)) |>
+  mutate(
+    pred = delta + alpha * exp(-0.5 * ((trec - tau) / gamma)^2),
+    predc = delta * (trec - t0) + alpha * gamma * sqrt(2 * pi) *
+      (pnorm(trec, tau, gamma) - pnorm(t0, tau, gamma))
+  ) |>
+  group_by(across(all_of(colnames(data_rec)))) |>
+  summarise(
+    pred_med = median(pred),
+    pred_q5 = quantile(pred, 0.05),
+    pred_q95 = quantile(pred, 0.95),
+    predc_med = median(predc),
+    predc_q5 = quantile(predc, 0.05),
+    predc_q95 = quantile(predc, 0.95)
+  )
+```
+
+::: panel-tabset
+```{r}
+#| message: false
+#| warning: false
+#| fig.height: 7
+#| fig.width: 10
+labs_flux <- c(
+  all_all = "Change in CWM",
+  s_gba = "Survivors' growth",
+  s_mba = "Survivors' mortality",
+  n_rba = "Recruitment",
+  n_gba = "Recruits' growth",
+  n_mba = "Recruits' mortality"
+)
+sites <- unique(data_rec$Site)
+purrr::walk(
+  sites,
+  \(s) {
+    cat("#### ", s, "\n\n")
+    print(
+      data_pred |>
+        mutate(flux = paste0(cohort, "_", flux)) |>
+        filter(Site == s) |>
+        ggplot(aes(x = Year, group = plot_new, col = plot_new)) +
+        geom_line(aes(y = pred_med)) +
+        geom_point(aes(y = value)) +
+        facet_grid(trait ~ flux,
+          scales = "free",
+          labeller = labeller(flux = labs_flux)
+        ) +
+        labs(y = NULL, x = NULL) +
+        theme_minimal() +
+        theme(legend.position = "none")
+    )
+    cat("\n\n")
+  }
+)
+```
+:::
+
+
+## Cumulative change - temporally structured errors
+
+Here we model the cumulative change but account for the accumulated error in the cumulative sum. We treat the residual process within each plot × trait as a Wiener process started at the initial census $t0$. The covariance between any two observations i, j from the same plot × trait is then: $Cov(resid_i, resid_j) = \sigma^2\cdot(min(t_i, t_j) − t0)$. We replace the independent-normal likelihood with a multivariate normal (via Cholesky decomposition) over each plot x trait block.
+
+```{r fit_cwm_bump_cum}
+#| message: false
+#| warning: false
+#| eval: false
+groups <- unique(data_rec$group)
+for (gr in groups) {
+  data_group <- data_rec |>
+    filter(group == gr) |>
+    arrange(traitnum, plotnum, trec)
+  blocks <- data_group |>
+    group_by(plotnum, traitnum) |>
+    summarise(size = n(), .groups = "drop")
+  mdata_cwd <- list(
+    N = nrow(data_group),
+    S = max(data_group$sitenum),
+    P = max(data_group$plotnum),
+    K = max(data_group$traitnum),
+    B = nrow(blocks),
+    cum_y = data_group$cum_y,
+    trec = data_group$trec,
+    t0 = data_group$t0,
+    site = data_group$sitenum,
+    plot = data_group$plotnum,
+    trait = data_group$traitnum,
+    block_start = c(1, head(cumsum(blocks$size) + 1, -1)),
+    block_size = blocks$size,
+    tau_range = c(5, 25),
+    gamma_range = c(1, 10)
+  )
+  sample_model("cumulative_bump", mdata_cwd, paste0("cumulative_bump_", gr))
+}
+# save parameter table
+df_index <- list(
+  "delta" = c("traitnum", "sitenum"),
+  "alpha" = c("traitnum", "plotnum"),
+  "gamma" = "sitenum", "tau" = "sitenum"
+) |>
+  lapply(function(v) {
+    unique(data_rec[, v]) |>
+      arrange(across(all_of(v))) |>
+      mutate(index = as.character(row_number())) |>
+      inner_join(unique(data_rec[, c("sitenum", "plotnum", "traitnum")])) |>
+      select(index, sitenum, plotnum, traitnum)
+  }) |>
+  data.table::rbindlist(idcol = "param")
+lapply(groups, function(gr) {
+  chains <- list.files(paste0("chains/cumulative_bump_", gr), full.names = TRUE)
+  fit_flux <- as_cmdstan_fit(chains)
+  bayesplot::mcmc_trace(fit_flux$draws(variables = c("lp__", "tau", "gamma")))
+  ggsave(paste0("figures/chains_cumulative_", gr, ".pdf"), height = 3, width = 6)
+  samples <- sample(fit_flux$metadata()$iter_sampling * length(chains), 200)
+  extract_var <- function(var) {
+    df <- extract_draws(fit_flux, var) |>
+      filter(iter %in% samples) |>
+      separate(variable, c("param", "index"))
+  }
+  lapply(c("delta", "alpha", "gamma", "tau"), extract_var) |>
+    data.table::rbindlist() |>
+    left_join(df_index) |>
+    select(-index) |>
+    mutate(
+      cohort = strsplit(gr, "_")[[1]][1],
+      flux = strsplit(gr, "_")[[1]][2]
+    )
+}) |>
+  bind_rows() |>
+  write.csv("data/derived_data/params_cumulative_bump.csv", row.names = FALSE)
+```
+
+```{r}
+#| message: false
+#| warning: false
+data_pars <- read.csv("data/derived_data/params_cumulative_bump.csv")
+data_pred <- data_rec |>
+  cross_join(unique(select(data_pars, iter))) |>
+  inner_join(pivot_wider(data_pars, names_from = param)) |>
+  mutate(
+    pred = delta + alpha * exp(-0.5 * ((trec - tau) / gamma)^2),
+    predc = delta * (trec - t0) + alpha * gamma * sqrt(2 * pi) *
+      (pnorm(trec, tau, gamma) - pnorm(t0, tau, gamma))
+  ) |>
+  group_by(across(all_of(colnames(data_rec)))) |>
+  summarise(
+    pred_med = median(pred),
+    pred_q5 = quantile(pred, 0.05),
+    pred_q95 = quantile(pred, 0.95),
+    predc_med = median(predc),
+    predc_q5 = quantile(predc, 0.05),
+    predc_q95 = quantile(predc, 0.95)
+  )
+```
+
+::: panel-tabset
+```{r}
+#| results: asis
+#| message: false
+#| warning: false
+#| fig.height: 7
+#| fig.width: 10
+labs_flux <- c(
+  all_all = "Change in CWM",
+  s_gba = "Survivors' growth",
+  s_mba = "Survivors' mortality",
+  n_rba = "Recruitment",
+  n_gba = "Recruits' growth",
+  n_mba = "Recruits' mortality"
+)
+sites <- unique(data_rec$Site)
+purrr::walk(
+  sites,
+  \(s) {
+    cat("#### ", s, "\n\n")
+    print(
+      data_pred |>
+        filter(Site == s) |>
+        mutate(flux = paste0(cohort, "_", flux)) |>
+        ggplot(aes(x = trec, group = plot_new, col = plot_new)) +
+        geom_line(aes(y = predc_med)) +
+        geom_point(aes(y = cum_y)) +
+        facet_grid(trait ~ flux,
+          scales = "free",
+          labeller = labeller(flux = labs_flux)
+        ) +
+        labs(y = NULL, x = NULL) +
+        theme_minimal() +
+        theme(legend.position = "none")
+    )
+    cat("\n\n")
+  }
+)
+```
+:::
+
+:::
