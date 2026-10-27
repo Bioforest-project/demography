@@ -46,7 +46,7 @@ plot_info <- read_csv("data/derived_data/aggregated_data_v10.csv") |>
     ba_control = mean(ba[Treatment == "Control"]),
     agb_control = mean(agb[Treatment == "Control"])
   ) |>
-  group_by(Site, plot_new, Treatment) |>
+  group_by(Site, plot_new, Treatment, Year_of_harvest) |>
   summarise(agb_0 = ifelse(Year_of_harvest <= min(Year),
                            agb_control, agb[Year == min(Year)]),
             agb_min = min(agb[Year > Year_of_harvest &

@@ -364,24 +364,28 @@ window.Quarto = {
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> <span class="st">"value"</span></span>
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
 <span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info_raw, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, plot_new, Treatment, Year_of_harvest) <span class="sc">|&gt;</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">census1 =</span> <span class="fu">min</span>(Year),</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_0 =</span> ba[Year <span class="sc">==</span> <span class="fu">min</span>(Year)],</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_min =</span> <span class="fu">min</span>(ba[Year <span class="sc">&gt;</span> Year_of_harvest <span class="sc">&amp;</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>                      Year <span class="sc">&lt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">5</span>]),</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">agb_0 =</span> agb[Year <span class="sc">==</span> <span class="fu">min</span>(Year)]</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_0 =</span> <span class="fu">if_else</span>(census1 <span class="sc">&lt;</span> Year_of_harvest, ba_0, <span class="cn">NA</span>),</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">agb_0 =</span> <span class="fu">if_else</span>(census1 <span class="sc">&lt;</span> Year_of_harvest, agb_0, <span class="cn">NA</span>),</span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">intensity =</span> (ba_0 <span class="sc">-</span> ba_min) <span class="sc">/</span> ba_0</span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>data_explo <span class="ot">&lt;-</span> params <span class="sc">|&gt;</span></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(site_info) <span class="sc">|&gt;</span></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site) <span class="sc">|&gt;</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_control =</span> <span class="fu">mean</span>(ba[Treatment <span class="sc">==</span> <span class="st">"Control"</span>]),</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">agb_control =</span> <span class="fu">mean</span>(agb[Treatment <span class="sc">==</span> <span class="st">"Control"</span>])</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, plot_new, Treatment, Year_of_harvest) <span class="sc">|&gt;</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">agb_0 =</span> <span class="fu">ifelse</span>(Year_of_harvest <span class="sc">&lt;=</span> <span class="fu">min</span>(Year),</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>      agb_control, agb[Year <span class="sc">==</span> <span class="fu">min</span>(Year)]</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">agb_min =</span> <span class="fu">min</span>(agb[Year <span class="sc">&gt;</span> Year_of_harvest <span class="sc">&amp;</span> Year <span class="sc">&lt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">5</span>]),</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_0 =</span> <span class="fu">ifelse</span>(Year_of_harvest <span class="sc">&lt;=</span> <span class="fu">min</span>(Year),</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>      ba_control, ba[Year <span class="sc">==</span> <span class="fu">min</span>(Year)]</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">ba_min =</span> <span class="fu">min</span>(ba[Year <span class="sc">&gt;</span> Year_of_harvest <span class="sc">&amp;</span> Year <span class="sc">&lt;=</span> Year_of_harvest <span class="sc">+</span> <span class="dv">5</span>]),</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">pre =</span> <span class="fu">ifelse</span>(Year_of_harvest <span class="sc">&lt;=</span> <span class="fu">min</span>(Year), <span class="st">"no"</span>, <span class="st">"yes"</span>),</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">intensity =</span> (ba_0 <span class="sc">-</span> ba_min) <span class="sc">/</span> ba_0)</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>data_explo <span class="ot">&lt;-</span> params <span class="sc">|&gt;</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(site_info) <span class="sc">|&gt;</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <section id="turnover-rate-omega" class="level2">
@@ -393,11 +397,8 @@ window.Quarto = {
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable <span class="sc">==</span> <span class="st">"omega"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(median, <span class="fu">reorder</span>(Site, median), <span class="at">col =</span> continent)) <span class="sc">+</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">xmin =</span> q5, <span class="at">xmax =</span> q95)) <span class="sc">+</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Turvover rate (omega)"</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">""</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Turvover rate (omega)"</span>, <span class="at">y =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -750,9 +751,9 @@ window.Quarto = {
 </section>
 <section id="relative-over-mortality" class="level2">
 <h2 class="anchored" data-anchor-id="relative-over-mortality">Relative over-mortality</h2>
-<p>We consider relative over-mortality, being the AGB of total over-mortality expressed as a percentage of pre-logging AGB. For this, we need pre-logging censuses, which are not available for the site of Lesong, Sungai Lalang, Tapajos and Ulu Muda. This analyis is therefore limited to 4 sites for the time being.</p>
+<p>We consider relative over-mortality, being the AGB of total over-mortality expressed as a percentage of pre-logging AGB. In sites where there are no pre-logging censuses (Lesong, Sungai Lalang, Tapajos and Ulu Muda), we used the average control AGB as a proxy for pre-logging AGB, under the assumption that control and logged plots were similar enough prior to logging.</p>
 <blockquote class="blockquote">
-<p>We could consider another way to standardise over-mortality, for exemple by using the stock estimated at infinite time by the model (but we first need to check how well it matches pre-logging AGB), or by considering the AGB of control plots (but we first need to check how much intrasite variability the is).</p>
+<p>we need to check how much intrasite variability the is in sites without pre-logging censuses.</p>
 </blockquote>
 <p>The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 5% to more than 15%.</p>
 <blockquote class="blockquote">

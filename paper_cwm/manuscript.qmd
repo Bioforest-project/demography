@@ -1,0 +1,112 @@
+---
+title: "Logging has long-term effects on carbon productivity but not on mortality in tropical forests"
+format:
+  docx:
+    toc: false
+    number-sections: false
+execute:
+  echo: false
+  warning: false
+bibliography: references.bib
+---
+
+```{r}
+library(tidyverse)
+library(knitr)
+```
+
+# Introduction
+
+Selective logging is one of the most widespread forms of disturbance in the tropics, affecting an estimated 20% of tropical forests worldwide [@Putz2022]. Unlike clear-cutting, selective logging removes only a subset of large trees, but its effects on forest structure, biodiversity and composition can persist for decades [@Cazzolla2015; @Rutishauser2015; @Brown2004]. In the short term, logging causes a pulse of damage-related mortality among residual trees, driven by the physical impact of felling and skidding operations. Over the longer term, the removal of large canopy trees reduces competition for light and other resources, creating a more heterogeneous understory environment with elevated light availability compared to unlogged forest [@Fauset2017].
+
+These shifts in the local environment do not affect all species equally. Species differ in their demographic responses to light and resource availability, and these differences are often linked to functional traits: species with low wood density and large leaf area, for instance, tend to grow faster under high-light conditions, while denser-wooded, smaller-leaved species are typically more shade-tolerant and slower-growing [@Ruger2012]. As a result, logging is expected to reshape the functional composition of forests, favoring light-demanding, acquisitive strategies over conservative ones.
+
+This compositional shift could arise through at least three distinct demographic pathways. First, logging gaps may promote the recruitment of light-demanding species with characteristic trait signatures, as new individuals establish under high-light conditions [e.g., @Carreno2012]. Second, surviving trees may show differential growth responses depending on their functional traits, with light-demanding species growing disproportionately faster once competition is released [@Herault2010]. Third, differential mortality among survivors, whether trait-mediated or driven by logging damage, could filter the community toward particular trait values.
+
+# Methods
+
+## Study sites
+
+Our study includes data from three long-term experimental forest sites, each of which is located on a different continent: Paracou in French Guiana, Mbaiki in the Central African Republic and SUAS in Malaysian Borneo (Table 1). All sites have control plots, and some plots have been subjected to experimental logging. In Mbaiki et Paracou, some of the logged plots were also subjected to further silvicultural treatments in the form of tree thinning two to three years after logging. All sites were censused prior to logging, with three yearly pre-logging censuses being conducted in Paracou and Mbaiki before logging began, and one pre-logging census being conducted in SUAS. Plots were then censused again every one to two years for 24 to 37 years. During each census, all stems with a diameter of at least 10 cm at breast height (DBH) were measured and identified to the lowest possible taxonomic level (Table 1).
+
+```{r}
+#| results: 'asis'
+dec_to_deg <- function(x) {
+  deg <- floor(abs(x))
+  min <- floor(60 * (abs(x) - deg))
+  sec <- floor(3600 * (abs(x) - deg - min / 60))
+  paste0(deg, "°", min, "'", sec, "''")
+}
+data_cov <- read.csv("D:/github/Bioforest-project/demography/data/derived_data/aggregated_data_v10.csv") |>
+  filter(grepl("coverage", variable) | variable == "nstem") |>
+  pivot_wider(
+    id_cols = c("Site", "Plot", "Year"),
+    names_from = "variable"
+  ) |>
+  group_by(site = Site) |>
+  summarise(
+    inv_years = paste(range(Year, na.rm = TRUE), collapse = "-"),
+    gen_cov = round(100 * weighted.mean(coverage_gen, nstem, na.rm = TRUE)),
+    sp_cov = round(100 * weighted.mean(coverage_sp, nstem, na.rm = TRUE))
+  )
+df_site <-
+  read.csv("D:/github/Bioforest-project/demography/data/raw_data/bioforest-plot-information.csv") |>
+  filter(site %in% c("Paracou", "Mbaiki", "SUAS")) |>
+  group_by(site) |>
+  summarise(
+    latitude = mean(latitude), longitude = mean(longitude),
+    controls = sum(Treatment == "Control"),
+    logged = sum(Treatment == "Logging")
+  ) |>
+  mutate(
+    silv = ifelse(site != "SUAS", logged - 3, 0),
+    logged = ifelse(site != "SUAS", 3, logged)
+  ) |>
+  mutate(coords = paste0(
+    dec_to_deg(latitude), ifelse(latitude < 0, "S ", "N "),
+    dec_to_deg(longitude), ifelse(longitude < 0, "W", "E")
+  )) |>
+  mutate(plot_size = case_when(site == "Paracou" ~ 6.25, site == "Mbaiki" ~ 4, site == "SUAS" ~ 1)) |>
+  left_join(data_cov) |>
+  select(site, coords, inv_years, plot_size, controls, logged, silv, gen_cov, sp_cov)
+kable(df_site,
+  col.names = c(
+    "Site", "Coordinates", "Inventory period",
+    "Plot size (ha)", "Nb control plots",
+    "Nb logged-only plots", "Nb plots logged and treated",
+    "Genus ID level (%)", "Species ID level (%)"
+  ),
+  caption = "Site description"
+)
+```
+
+## Data preparation
+
+### Inventory data cleaning
+
+### Functional traits
+
+### Changes in community weighted mean trait
+
+Let $i$ represent a tree that was measured between censuses $t_0$ and $t$. We defined its individual contribution to the change in the community-weighted mean of a given trait as follows:
+
+$$C_{i,t} =  \left(\frac{w_{i,t}}{\sum_j w_{j,t}} - \frac{w_{i,t_0}}{\sum_j w_{j,t_0}}\right)\left(f_{i} - \frac{\sum_j (f_j \cdot w_{j,t_0})}{\sum_j w_{j,t_0}} \right)$$
+
+where $f_{i}$ is the functional trait value of tree $i$ and $w_{i,t}$ is its weighting variable (used for the community-weighted mean, e.g. basal area) at time $t$. The weighting variable is set to zero at $t_0$ if the tree was recruited between $t_0$ and $t$, and is set to zero at $t$ if the tree died between $t_0$ and $t$.
+
+This definition has two interesting properties: **additivity** and **directionality.** Additivity arises from the fact that the sum of the contributions of all the trees in the community equals the total change in the CWM trait value. The directionality comes from the fact that the sign of a given tree's contribution is the same as the sign of the difference between its trait value and that of the community, multiplied by the sign of its change in the weighting variable. In essence, if a tree has a higher trait value than the community average and grows (or is recruited), its contribution will be positive; if it dies, its contribution will be negative. The opposite is true for trees with trait values lower than the community average.
+
+We then divided the trees into two cohorts [similar to @Piponiot2016]: 'recruits', which are trees that were recruited after the logging event; and 'survivors', which are trees that were measured before logging began and survived the event. For each census interval, we further divided these trees into three demographic categories: recruitment (defined only for recruits), represented by trees recruited between the two censuses; growth, represented by trees measured in both censuses; and mortality, represented by trees that died between the two censuses. We therefore had five groups of trees for each census interval, and for each group, we calculated the sum of the contributions of the trees to the change in CWM of all traits (as defined above).
+
+To visualise the trajectory of post-logging changes in CWM trait values, as well as the contributions of the aforementioned groups (i.e. demographic rates of survivors and recruits), we calculated the cumulative sum of these changes over time. This enabled us to identify general trends while minimising the impact of inter-census noise.
+
+# Results
+
+![Path of survivors and recruits' cumulative fluxes. Each path is the cumulative contribution of the flux of one cohort to changes in CWM (y axis) and BA (x axis).](figures/flux_cwm.pdf)
+
+![Path of survivors and recruits' cumulative contribution to BA and CWM changes. Each path is the cumulative contribution of the flux of one cohort to changes in CWM (y axis) and BA (x axis).](figures/cohort_cwm.pdf)
+
+# Discussion
+
+> in SUAS: survivors contribute the opposite to recruits. Dipterocarp effect? 
+

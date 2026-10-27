@@ -1,0 +1,147 @@
+---
+title: "Logging has long-term effects on carbon productivity but not on mortality in tropical forests"
+format:
+  docx:
+    toc: false
+    number-sections: false
+execute:
+  echo: false
+  warning: false
+bibliography: references.bib
+---
+
+```{r}
+library(tidyverse)
+library(ggmap)
+library(ggrepel)
+library(knitr)
+```
+
+# Methods
+
+## Study sites
+
+Our study includes data from eight long-term experimental forest sites located in tropical regions (see Figure XX). Plots ranging in area from 0.25 to 6.25 hectares have been installed in these sites and repeatedly measured after logging. In each site, at least ten inventories have been conducted over a period ranging from 25 to 40 years. Some plots were left unlogged (control plots), while others were selectively logged. In some sites, additional post-logging thinning was applied to some logged plots (Table XX).
+
+```{r}
+#| fig-height: 3
+#| fig-width: 8
+#| fig-cap: "Map of study sites. Each dot represents the location of a study site; the dot's size is proportional to the total area censused; and its colour represents the duration of the post-logging monitoring period (in years). Sites with an asterisk have plots that have undergone additional silvicultural treatments."
+path <- "D:/github/Bioforest-project/demography/"
+site_info <-
+  read.csv(paste0(path, "data/raw_data/bioforest-plot-information.csv")) |>
+  left_join(read.csv(paste0(path, "data/raw_data/plot_correspondance.csv"))) |>
+  left_join(read.csv(paste0(path, "data/derived_data/plot_area_v10.csv")),
+    by = join_by(site == Site, plot == Plot)
+  ) |>
+  mutate(area = ifelse(is.na(PlotArea), new_plot_area, PlotArea)) |>
+  group_by(site) |>
+  summarise(lat = mean(latitude), lon = mean(longitude), area = sum(area))
+sites_keep <- read.csv(paste0(path, "data/derived_data/sites_to_keep.csv")) |>
+  rename(site = Site)
+
+register_stadiamaps(key = "58592694-cca0-4f51-8e39-b215d7e3f341")
+
+sites <- left_join(site_info, sites_keep) |>
+  filter(ncensus >= 10) |>
+  mutate(site = ifelse(site %in% c("Paracou", "Mbaiki", "Corinto"),
+    paste0(site, "*"), site
+  ))
+base_map <- get_stadiamap(
+  bbox = c(left = -90, right = 120, bottom = -15, top = 20),
+  zoom = 4, maptype = "stamen_terrain_background"
+)
+
+ggmap(base_map) +
+  geom_point(data = sites, aes(x = lon, y = lat, col = tcensus, size = area)) +
+  geom_text_repel(data = sites, aes(x = lon, y = lat, label = site)) +
+  labs(x = NULL, y = NULL, size = "Area (ha)", col = "Post-logging monitoring period (yr)") +
+  scale_color_viridis_c(option = "A", direction = -1) +
+  scale_size_continuous(range = c(2, 8)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+site_info <-
+  read.csv(paste0(path, "data/raw_data/bioforest-plot-information.csv")) |>
+  left_join(read.csv(paste0(path, "data/raw_data/plot_correspondance.csv"))) |>
+  left_join(read.csv(paste0(path, "data/derived_data/plot_area_v10.csv")),
+    by = join_by(site == Site, plot == Plot)
+  ) |>
+  mutate(area = ifelse(is.na(PlotArea), new_plot_area, PlotArea)) |>
+  mutate(treat = ifelse(Treatment_original != Treatment &
+    Treatment != "Control" & !is.na(Treatment_original),
+  "Logging + Thinning", Treatment
+  )) |>
+  group_by(site, treat) |>
+  summarise(area = sum(area))
+left_join(site_info, sites_keep) |>
+  filter(ncensus >= 10) |>
+  pivot_wider(
+    id_cols = c("site", "ncensus", "tcensus"),
+    names_from = "treat", values_from = "area"
+  ) |>
+  mutate(`Logging + Thinning` = ifelse(is.na(`Logging + Thinning`), 0, `Logging + Thinning`)) |>
+  kable(col.names = c(
+    "Site", "Number of censuses",
+    "Post-logging monitoring period (yrs)",
+    "Total area of control plots (ha)",
+    "Total area of logged only plots (ha)",
+    "Total area of logged and thinned plots (ha)"
+  ))
+```
+
+```{r}
+cov_data <-
+  read.csv(paste0(path, "data/derived_data/aggregated_data_v10.csv")) |>
+  left_join(sites_keep, by = join_by(Site == site)) |>
+  filter(ncensus >= 10) |>
+  filter(grepl("coverage", variable) | variable == "nstem") |>
+  pivot_wider(
+    id_cols = c("Site", "Plot", "Year"),
+    names_from = "variable"
+  )
+gen_cov <- weighted.mean(cov_data$coverage_gen, cov_data$nstem, na.rm = TRUE)
+sp_cov <- weighted.mean(cov_data$coverage_sp, cov_data$nstem, na.rm = TRUE)
+```
+
+At each of these sites, all stems with a diameter of at least 10 cm at breast height (DBH) have been measured and identified to the lowest possible taxonomic level: `r round(sp_cov*100)`% to species; `r round((gen_cov - sp_cov)*100)`% to genus; `r round((1 - gen_cov)*100)`% unidentified.
+
+## Data preparation
+
+Within each site, we standardised the area of each plot to create a similar area close to one hectare. This was done to minimise the impact of small plots on the analysis. To achieve this, we grouped the 0.25 ha plots in the Tapajós site into groups of three, ensuring that plots located within the same blocs remained together. Conversely, we divided the 4 and 6.24 ha plots (MBaiki and Paracou) into four smaller plots.
+
+We computed aboveground biomass (AGB) values for each tree based on equation 7 described in @Chave2014, using the R package BIOMASS [@Rejou-Mechain2017]. This equation estimates AGB based on a tree's DBH and wood density. Wood density values were assigned at the species or genus level and extracted from the Global Wood Density Database [@Zanne2009].
+
+Plot-level AGB densities were estimated as the sum of the AGB of all trees with a DBH of at least 10 cm in a plot at a given census, standardised by the plot area. The aboveground wood mortality (AWM) of a given census interval was estimated as the sum of the AGB of all trees that died during that interval, divided by its duration and by the plot area. Aboveground woody productivity for a given census interval was estimated as the sum of the AGB of all recruited trees, plus the AGB change of surviving trees, divided by the census interval duration and the plot area. We corrected excessive changes in DBH in some trees (often due to the presence of buttresses) to avoid absurd productivity values; the correction method is described in the supplementary material. Both productivity and mortality were assigned to the year in the middle of the census interval.
+
+## Modelling framework
+
+We modelled post-logging aboveground biomass (AGB) fluxes in a Bayesian framework. The AWP and AWM at census $c$ in plot $p$ and site $s$ were modelled using log-normal distributions:
+
+$$ log(AWP_{c,p,s})  \sim \mathcal{N} (log(prod_{c,p,s}), \sigma_p)$$
+
+$$ log(AWM_{c,p,s})  \sim \mathcal{N} (log(mort_{c,p,s}), \sigma_m)$$ $prod_{c,p,s}$ and $mort_{c,p,s}$ represent the median AWP and AWM predictions for census $c$, plot $p$ and site $s$, and where the standard deviations of the log-normal distributions are represented by the symbols $\sigma_p$ and $\sigma_m$.
+
+We further expressed the median AWP and AWM predictions as follows:
+
+$$prod_{c,p,s} = \omega_s\cdot AGB_{c,p,s} + \delta_p \left( \frac{t_{c,p,s}}{\tau_s} exp\left(1 - \frac{t_{c,p,s}}{\tau_s}\right)\right)^{\kappa_s}$$
+
+$$mort_{c,p,s} = \omega_s\cdot AGB_{c,p,s} + \alpha_p \cdot exp(- \lambda_s\cdot t_{c,p,s})$$ where $AGB_{c,p,s}$ is the AGB of plot $p$ at census $c$ in site $s$ and $t_{c,p,s}$ is the time since logging (in years) in plot $p$ and site $s$ at census $c$. Both AWP and AWM are modelled as the sum of a base process proportional to AGB (with a proportionality coefficient of $\omega_s$) and a short-term process tending towards zero as $t_{c,p,s}$ increases, representing extra productivity or mortality after logging. Therefore, the AWP and AWM are modelled to reach an equilibrium state when $t$ tends towards infinity, whereby they are both proportional to the stable AGB (i.e. the fluxes in equal the fluxes out).
+
+This post-logging overproductivity is described by a hump-shaped function that peaks at $t_{c,p,s} = \tau_s$, taking its maximum value of $\delta_p$. The parameter $\kappa_s > 0$ is a kurtosis parameter: values close to zero result in a flatter prod = f(t) curve, whereas larger values result in a curve that is more peaked around $\tau_s$. As we expect disturbance intensity (which varies between plots) to have a strong effect on the values of $\delta$ (the total height of the hump), we decided to infer one value per plot. However, for identifiability reasons, we only inferred one value for the parameters $\tau$ and $\kappa$ per site.
+
+Post-logging overmortality is described by a negative exponential function, which is monotonically decreasing. It takes a value of $\alpha$ just after logging and then decreases at a rate of $\lambda$. As we also expect the value of $\alpha$ to be strongly affected by disturbance intensity, we inferred one value per plot but only one value of $\lambda$ per site.
+
+We performed partial pooling of parameters $\omega_s$, $\delta_p$, $\tau_s$, $\alpha_p$, $\lambda_s$ by using the following hyperdistributions:
+
+$$\omega_s \sim \mathcal{N}(\bar{\omega}, \sigma_{\omega})$$ $$\delta_s \sim \mathcal{N}(\bar{\delta}, \sigma_{\delta})$$ $$\tau_s \sim \mathcal{N}(\bar{\tau}, \sigma_{\tau})$$ $$\alpha_s \sim \mathcal{N}(\bar{\alpha}, \sigma_{\alpha})$$
+
+$$\lambda_s \sim \mathcal{N}(\bar{\lambda}, \sigma_{\lambda})$$
+
+We did not add a hyperdistribution for the parameter $\kappa_s$ because the site with the most data was coincidentally predicted to have a very low $\kappa_s$. Adding a hyperdistribution influenced the results to such an extent that it produced a strong bias in all the other sites (see Supplementary Material).
+
+- priors
+
+## Key indicators / explanatory variables
