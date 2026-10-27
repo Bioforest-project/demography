@@ -1,6 +1,4 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
 
 library(tidyverse)
@@ -28,8 +26,6 @@ $$CWM_t= CWM_{t-1} + CF_{G,t} + CF_{R,t}+CF_{M,t}$$
 ## Data
 
 ```{r}
-#| message: false
-#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
 data_ba <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
@@ -63,8 +59,6 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
 ::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 
@@ -105,8 +99,6 @@ purrr::walk(
 ::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 
@@ -150,8 +142,6 @@ purrr::walk(
 ::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 
@@ -193,8 +183,6 @@ purrr::walk(
 ::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 
@@ -238,8 +226,6 @@ purrr::walk(
 
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 12
 #| fig.width: 12
 sites <- c("Paracou", "Mbaiki", "SUAS")
@@ -274,7 +260,7 @@ gmain <- data |>
   geom_point() +
   facet_grid(trait ~ Site, scales = "free_y") +
   scale_color_manual(values = RColorBrewer::brewer.pal(10, "Paired")
-                     [c(1:4, 9:10, 7:8, 5:6)]) +
+  [c(1:4, 9:10, 7:8, 5:6)]) +
   labs(
     x = "Cumulative change in BA (% of initial BA)", col = NULL,
     y = "Cumulative contribution to CWM change (% of initial CWM)"
@@ -299,7 +285,7 @@ legend <- data.frame(
   annotate(geom = "text", x = 0.5, y = 0.5, label = "Control", size = 3) +
   annotate(geom = "text", x = 0.75, y = 0.5, label = "Logging", size = 3) +
   scale_colour_manual(values = RColorBrewer::brewer.pal(10, "Paired")
-                      [c(3:4, 7:8, 9:10, 5:6, 1:2)]) +
+  [c(3:4, 7:8, 9:10, 5:6, 1:2)]) +
   geom_segment(x = 0.375, y = 0.6, yend = 3.2) +
   geom_segment(x = 0.125, y = 0.6, yend = 3.2, lty = 2) +
   geom_segment(x = 0.625, y = 0.6, yend = 3.2, lty = 2) +
@@ -322,8 +308,6 @@ ggsave("paper_cwm/figures/flux_cwm.png", height = 10, width = 8)
 
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 10
 #| fig.width: 8
 
@@ -347,7 +331,7 @@ gmain <- data |>
   geom_point() +
   facet_grid(trait ~ Site, scales = "free") +
   scale_color_manual(values = RColorBrewer::brewer.pal(10, "Paired")
-                     [c(1:2, 5:6)]) +
+  [c(1:2, 5:6)]) +
   theme_minimal() +
   theme(legend.position = "none") +
   labs(
@@ -361,7 +345,7 @@ legend <- data.frame(
   ggplot(aes(cohort, treat)) +
   geom_point(aes(col = paste(cohort, treat)), size = 5) +
   scale_colour_manual(values = RColorBrewer::brewer.pal(10, "Paired")
-                      [c(1:2, 5:6)]) +
+  [c(1:2, 5:6)]) +
   labs(x = NULL, y = NULL) +
   theme_minimal() +
   theme(legend.position = "none", panel.grid = element_blank())

@@ -1,6 +1,4 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
 
 library(tidyverse)
@@ -23,8 +21,6 @@ To account for differences in the scale of CWM values between traits, we standar
 Cumulative changes in the CWM trait were obtained by summing the contributions of a given group since the beginning of the recovery period. This period was defined as the year of logging for recruits and the year after the last silvicultural intervention (including thinning) for survivors.
 
 ```{r open_data}
-#| message: false
-#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
 data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
@@ -78,8 +74,6 @@ We modelled intercensus contributions to changes in CWM as the sum of a constant
 $$dCWM_{i,p,s} = \delta_{s,k,g} + \alpha_{p,k,g} \cdot exp\left(-\frac{1}{2}\left(\frac{t_i - \tau_{s,g}}{\gamma_{s,g}}\right)^2\right) + \epsilon_i$$
 
 ```{r fit_cwm_bump}
-#| message: false
-#| warning: false
 #| eval: false
 groups <- unique(data_rec$group)
 for (gr in groups) {
@@ -139,8 +133,6 @@ lapply(groups, function(gr) {
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 data_pars <- read.csv("data/derived_data/params_bump_model.csv")
 data_pred <- data_rec |>
   cross_join(unique(select(data_pars, iter))) |>
@@ -168,8 +160,6 @@ data_pred <- data_rec |>
 ::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 labs_flux <- c(
@@ -210,8 +200,6 @@ purrr::walk(
 
 ::: panel-tabset
 ```{r}
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 purrr::walk(
@@ -244,8 +232,6 @@ purrr::walk(
 ::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 purrr::walk(
@@ -281,8 +267,6 @@ purrr::walk(
 ### $\delta$
 
 ```{r}
-#| message: false
-#| warning: false
 #| fig.height: 2.5
 #| fig.width: 10
 cols <- c("Site", "trait", "sitenum", "traitnum", "Plot", "plotnum")
@@ -310,8 +294,6 @@ data_pars |>
 ### $\alpha$
 
 ```{r}
-#| message: false
-#| warning: false
 #| fig.height: 10
 #| fig.width: 10
 labs_flux <- c(
@@ -359,8 +341,6 @@ data_pars |>
 ### $\gamma$ and $\tau$
 
 ```{r}
-#| message: false
-#| warning: false
 #| fig.height: 2.5
 #| fig.width: 10
 data_pars |>

@@ -1,8 +1,5 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
-
 library(tidyverse)
 library(cmdstanr)
 list.files("r", full.names = TRUE, pattern = ".R") |>
@@ -14,8 +11,6 @@ list.files("r", full.names = TRUE, pattern = ".R") |>
 This is just the template - not finished.
 
 ```{r}
-#| message: false
-#| warning: false
 environ <- readr::read_tsv("data/raw_data/environment.tsv")
 params <- read_csv("data/derived_data/params_flux_all.csv")
 
@@ -46,20 +41,22 @@ plot_info <- read_csv("data/derived_data/aggregated_data_v10.csv") |>
     values_from = "value"
   ) |>
   left_join(plot_info_raw, by = join_by(Site == site, Plot == plot)) |>
-  group_by(Site, plot_new, Treatment, Year_of_harvest) |>
-  summarise(
-    census1 = min(Year),
-    ba_0 = ba[Year == min(Year)],
-    ba_min = min(ba[Year > Year_of_harvest &
-                      Year <= Year_of_harvest + 5]),
-    agb_0 = agb[Year == min(Year)]
-  ) |>
+  group_by(Site) |>
   mutate(
-    ba_0 = if_else(census1 < Year_of_harvest, ba_0, NA),
-    agb_0 = if_else(census1 < Year_of_harvest, agb_0, NA),
-    intensity = (ba_0 - ba_min) / ba_0
-  )
-
+    ba_control = mean(ba[Treatment == "Control"]),
+    agb_control = mean(agb[Treatment == "Control"])
+  ) |>
+  group_by(Site, plot_new, Treatment) |>
+  summarise(agb_0 = ifelse(Year_of_harvest <= min(Year),
+                           agb_control, agb[Year == min(Year)]),
+            agb_min = min(agb[Year > Year_of_harvest &
+                                Year <= Year_of_harvest + 5]),
+            ba_0 = ifelse(Year_of_harvest <= min(Year),
+                          ba_control, ba[Year == min(Year)]),
+            ba_min = min(ba[Year > Year_of_harvest &
+                              Year <= Year_of_harvest + 5]),
+            pre = ifelse(Year_of_harvest <= min(Year), "no", "yes")) |>
+  mutate(intensity = (ba_0 - ba_min) / ba_0)
 
 data_explo <- params |>
   left_join(site_info) |>
@@ -69,14 +66,10 @@ data_explo <- params |>
 ## Modelled trajectories
 
 ```{r}
-#| message: false
-#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
   select(site, plot = new_plot, Year_of_harvest, Treatment) |>
   unique()
-
-
 data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   filter(grepl("^agb", variable) & !grepl("]$", variable)) |>
@@ -89,11 +82,9 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
   ungroup() |>
   pivot_longer(cols = c("stocks", "prod", "mort"), names_to = "variable") |>
   mutate(Year_of_harvest = ifelse(Site == "Mbaiki" & Treatment == "Logging",
-    1985, Year_of_harvest
-  )) |>
+                                  1985, Year_of_harvest)) |>
   mutate(Year_of_harvest = ifelse(Site == "Paracou" & Treatment == "Logging",
-    1987, Year_of_harvest
-  )) |>
+                                  1987, Year_of_harvest)) |>
   mutate(trec = Year - Year_of_harvest) |>
   filter(!(Site == "Tapajos Km67" &
              grepl("loggedtwice", Plot) & Year > 2014)) |>
@@ -123,7 +114,7 @@ data_old <- data |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort))
 
-  
+
 fit_flux_all <- as_cmdstan_fit(
   list.files("chains/flux_all_simpl_Ksite_nohyper/", full.names = TRUE)
 )
@@ -167,13 +158,11 @@ pov_data <- rbind(pred_data, obs_data) |>
 ### Productivity
 
 ```{r}
-#| message: false
-#| warning: false
 #| fig-width: 10
 #| fig-height: 12
 #| fig-cap: "Predicted trajectories."
 
-controls <- 
+controls <-
   pov_data |>
   subset(variable == "prod") |>
   mutate(Plot = plot_new) |>
@@ -185,7 +174,7 @@ controls <-
 pov_data |>
   subset(variable == "prod") |>
   mutate(Plot = plot_new) |>
-  mutate(across(c(Plot), factor)) |> 
+  mutate(across(c(Plot), factor)) |>
   filter(type == "rec") |>
   ggplot(aes(trec, y = obs)) +
   geom_line(aes(group = Plot, col = Plot, y = pred), size = 1.2) +
@@ -193,18 +182,17 @@ pov_data |>
   geom_line(aes(group = Plot, col = Plot, alpha = .5)) +
   geom_boxplot(data = controls, aes(group = Treatment), width = 2) +
   xlab("Recovery time (years)") +
-  ylab(expression("AGB productivity ("~Mg ~ ha^-1 ~ yr^-1~")")) +
-  scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps, times = 10)) +
-  theme_classic()+
+  ylab(expression("AGB productivity (" ~ Mg ~ ha^-1 ~ yr^-1 ~ ")")) +
+  scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps,
+                                      times = 10)) +
+  theme_classic() +
   theme(
-    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     text = element_text(size = 18),
     legend.position = "none",
     strip.background = element_blank(),
-    strip.placement = "outside")+
+    strip.placement = "outside"
+  ) +
   facet_wrap(~Site, scales = "free", ncol = 2)
 
 ggsave(file = "figures/traj_prod.png", height = 12, width = 10)
@@ -219,7 +207,7 @@ ggsave(file = "figures/traj_prod.png", height = 12, width = 10)
 #| fig-height: 6
 #| fig-cap: "Predicted trajectories."
 
-controls <- 
+controls <-
   pov_data |>
   subset(variable == "mort") |>
   mutate(Plot = plot_new) |>
@@ -238,47 +226,47 @@ pov_data |>
   geom_line(aes(group = Plot, col = Plot, alpha = .5)) +
   geom_boxplot(data = controls, aes(group = Treatment), width = 2) +
   xlab("Recovery time (years)") +
-  ylab(expression("AGB mortality ("~Mg ~ ha^-1 ~ yr^-1~")")) +
-  scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps, times = 10)) +
-  scale_y_sqrt()+
-  theme_classic()+
+  ylab(expression("AGB mortality (" ~ Mg ~ ha^-1 ~ yr^-1 ~ ")")) +
+  scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps,
+                                      times = 10)) +
+  scale_y_sqrt() +
+  theme_classic() +
   theme(
-    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     text = element_text(size = 18),
     legend.position = "none",
     strip.background = element_blank(),
-    strip.placement = "outside")+
+    strip.placement = "outside"
+  ) +
   facet_wrap(~Site, scales = "free", ncol = 2)
 
 ggsave(file = "figures/traj_mort_ysqrt.png", height = 12, width = 10)
 
 data.table::setDT(controls)
-controls[trec>0]$trec <- 40
+controls[trec > 0]$trec <- 40
 pov_data |>
   subset(variable == "mort") |>
   mutate(Plot = plot_new) |>
-  mutate(across(c(Plot), factor)) |> 
+  mutate(across(c(Plot), factor)) |>
   filter(type == "rec") |>
   ggplot(aes(trec, y = obs)) +
   geom_point(aes(group = Plot, col = Plot, alpha = .1)) +
   geom_line(aes(group = Plot, col = Plot, alpha = .1)) +
-    geom_line(aes(group = interaction(Site, Plot), col = Plot, y = pred), size = 1.2, alpha = 0.3) +
+  geom_line(aes(group = interaction(Site, Plot), col = Plot, y = pred),
+            size = 1.2, alpha = 0.3
+  ) +
   geom_boxplot(data = controls, aes(group = Treatment), width = 2) +
   xlab("Recovery time (years)") +
-  ylab(expression("AGB mortality ("~Mg ~ ha^-1 ~ yr^-1~")")) +
-    scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps, times = 10)) +
-  theme_classic()+
+  ylab(expression("AGB mortality (" ~ Mg ~ ha^-1 ~ yr^-1 ~ ")")) +
+  scale_colour_discrete(palette = rep(colorBlindness::SteppedSequential5Steps,
+                                      times = 10
+  )) +
+  theme_classic() +
   theme(
-    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
+    panel.grid = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     text = element_text(size = 18),
     legend.position = "none"
-    )
+  )
 ```
 
 ## Magnitude of AGB changes associated with demographic processes (how much?)
@@ -292,34 +280,35 @@ tmp$site_plot <- paste(tmp$Site, tmp$plot_new)
 data.table::setnames(tmp, c("continent"), "Continent")
 
 
-p_p1 <- 
+p_p1 <-
   ggplot(
-    tmp[variable == "stpp"], 
+    tmp[variable == "stpp"],
     aes(median * 100 / agb_0,
         reorder(site_plot, median * 100 / agb_0),
         col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
         shape = factor(Continent, c("America", "Africa", "Asia"))
     ),
     show.legend = F
-  )+
+  ) +
   geom_pointrange(
     aes(
       xmin = q5 * 100 / agb_0,
       xmax = q95 * 100 / agb_0
     ),
     show.legend = F
-  )+
+  ) +
   geom_vline(
     xintercept = median(tmp[variable == "stpp"]$median / tmp[variable == "stpp"]$agb_0 * 100),
     linetype = 2
-  )+
+  ) +
   labs(
     x = "AGB over-productivity\n[% prelogging AGB]",
     y = "Permanent plot"
-  )+
-  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
-  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
-  theme_classic()+
+  ) +
+  guides(shape = guide_legend(title = "Continent", order = 1), 
+         colour = guide_legend(order = 2)) +
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0")) +
+  theme_classic() +
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -333,33 +322,33 @@ p_p1 <-
   )
 
 
-p_m1 <- 
+p_m1 <-
   ggplot(
-    tmp[variable == "stpm"], 
+    tmp[variable == "stpm"],
     aes(median * 100 / agb_0,
         reorder(site_plot, median * 100 / agb_0),
         col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
         shape = factor(Continent, c("America", "Africa", "Asia"))
     )
-  )+
+  ) +
   geom_pointrange(
     aes(
       xmin = q5 * 100 / agb_0,
       xmax = q95 * 100 / agb_0
     )
-  )+
+  ) +
   geom_vline(
     xintercept = median(tmp[variable == "stpm"]$median / tmp[variable == "stpm"]$agb_0 * 100),
     linetype = 2
-  )+
+  ) +
   labs(
     x = "AGB over-mortality\n[% prelogging AGB]",
     y = "",
     size = "Continent"
-  )+
-  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
-  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
-  theme_classic()+
+  ) +
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2)) +
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0")) +
+  theme_classic() +
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -373,7 +362,7 @@ p_m1 <-
   )
 
 library(patchwork)
-(p_p1|p_m1)+
+(p_p1 | p_m1) +
   plot_annotation(tag_levels = "A")
 ggsave(file = "figures/magnitude.pdf", height = 9.5, width = 11)
 rm(tmp, p_p1, p_m1)
@@ -387,27 +376,27 @@ rm(tmp, p_p1, p_m1)
 
 tmp <- data.table::as.data.table(data_explo)
 data.table::setnames(tmp, c("continent"), "Continent")
-tmp[Site=="Tapajos Km67"]$Site <- "Tapajos"
+tmp[Site == "Tapajos Km67"]$Site <- "Tapajos"
 
-p_p2 <- 
+p_p2 <-
   ggplot(
-    tmp[variable == "t90p"], 
+    tmp[variable == "t90p"],
     aes(
-      median, 
-      reorder(Site, median), 
+      median,
+      reorder(Site, median),
       colour = factor(Continent, c("America", "Africa", "Asia")),
       shape = factor(Continent, c("America", "Africa", "Asia"))
-      ),
+    ),
     show.legend = F
-    )+
-  geom_pointrange(aes(xmin = q5, xmax = q95), show.legend = F)+
+  ) +
+  geom_pointrange(aes(xmin = q5, xmax = q95), show.legend = F) +
   labs(
     x = "Duration of over-productivity\n(years)",
     y = ""
-  )+
-  scale_colour_discrete(name = "Continent", palette = c("#279D00", "#915B11", "#1E90FF"))+
-  scale_shape_discrete(name = "Continent")+
-  theme_classic()+
+  ) +
+  scale_colour_discrete(name = "Continent", palette = c("#279D00", "#915B11", "#1E90FF")) +
+  scale_shape_discrete(name = "Continent") +
+  theme_classic() +
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.minor.x = element_blank(),
@@ -419,24 +408,24 @@ p_p2 <-
   )
 
 
-p_m2 <- 
+p_m2 <-
   ggplot(
-    tmp[variable == "t90m"], 
+    tmp[variable == "t90m"],
     aes(
-      median, 
-      reorder(Site, median), 
+      median,
+      reorder(Site, median),
       colour = factor(Continent, c("America", "Africa", "Asia")),
       shape = factor(Continent, c("America", "Africa", "Asia"))
-      )
-    )+
-  geom_pointrange(aes(xmin = q5, xmax = q95))+
+    )
+  ) +
+  geom_pointrange(aes(xmin = q5, xmax = q95)) +
   labs(
     x = "Duration of over-mortality\n(years)",
     y = ""
-  )+
-  scale_colour_discrete(name = "Continent", palette = c("#279D00", "#915B11", "#1E90FF"))+
-  scale_shape_discrete(name = "Continent")+
-  theme_classic()+
+  ) +
+  scale_colour_discrete(name = "Continent", palette = c("#279D00", "#915B11", "#1E90FF")) +
+  scale_shape_discrete(name = "Continent") +
+  theme_classic() +
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.minor.x = element_blank(),
@@ -448,7 +437,7 @@ p_m2 <-
   )
 
 library(patchwork)
-(p_p2|p_m2)+
+(p_p2 | p_m2) +
   plot_annotation(tag_levels = "A")
 ggsave(file = "figures/duration.pdf", height = 5, width = 11)
 rm(tmp, p_p2, p_m2)
@@ -461,40 +450,39 @@ rm(tmp, p_p2, p_m2)
 #### Over-productivity
 
 ```{r}
-tmp_p <- 
-  data_explo |> 
-  filter(variable == "stpp" & !(is.na(agb_0))) |> 
+tmp_p <-
+  data_explo |>
+  filter(variable == "stpp" & !(is.na(agb_0))) |>
   mutate(Site = fct_drop(as.factor(Site)))
 
-p_p3 <- 
+p_p3 <-
   ggplot(
-  tmp_p,
-  aes(
-    x = intensity * 100,
-    y = median * 100 / agb_0
-  )
-)+
+    tmp_p,
+    aes(
+      x = intensity * 100,
+      y = median * 100 / agb_0
+    )
+  ) +
   geom_pointrange(aes(
     ymin = q5 * 100 / agb_0,
     ymax = q95 * 100 / agb_0,
     col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
     shape = factor(continent, c("America", "Africa", "Asia"))
-  )
-  )+
+  )) +
   geom_smooth(
-    method = "lm", 
+    method = "lm",
     se = FALSE,
-    linewidth = 0.5, 
+    linewidth = 0.5,
     col = alpha("darkgrey", .7),
     linetype = "dashed"
-  )+
+  ) +
   labs(
     x = "Logging intensity [% BA loss]",
     y = "AGB over-productivity\n[% prelogging AGB]"
-  )+
-  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
-  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
-  theme_classic()+
+  ) +
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2)) +
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0")) +
+  theme_classic() +
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -510,41 +498,39 @@ p_p3 <-
   )
 
 
-
-tmp_m <- 
-  data_explo |> 
-  filter(variable == "stpm" & !(is.na(agb_0))) |> 
+tmp_m <-
+  data_explo |>
+  filter(variable == "stpm" & !(is.na(agb_0))) |>
   mutate(Site = fct_drop(as.factor(Site)))
 
-p_m3 <- 
-ggplot(
-  tmp_m,
-  aes(
-    x = intensity * 100,
-    y = median * 100 / agb_0
-  )
-)+
+p_m3 <-
+  ggplot(
+    tmp_m,
+    aes(
+      x = intensity * 100,
+      y = median * 100 / agb_0
+    )
+  ) +
   geom_pointrange(aes(
     ymin = q5 * 100 / agb_0,
     ymax = q95 * 100 / agb_0,
     col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
     shape = factor(continent, c("America", "Africa", "Asia"))
-  )
-  )+
+  )) +
   geom_smooth(
-    method = "lm", 
+    method = "lm",
     se = FALSE,
-    linewidth = 0.5, 
+    linewidth = 0.5,
     col = alpha("darkgrey", .7),
     linetype = "dashed"
-  )+
+  ) +
   labs(
     x = "Logging intensity [% BA loss]",
     y = "AGB over-mortality\n[% prelogging AGB]"
-  )+
-  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
-  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
-  theme_classic()+
+  ) +
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2)) +
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0")) +
+  theme_classic() +
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -558,7 +544,7 @@ ggplot(
 
 
 library(patchwork)
-(p_p3/p_m3)+
+(p_p3 / p_m3) +
   plot_annotation(tag_levels = "A")
 ggsave(file = "figures/intensity.pdf", height = 10, width = 10)
 rm(tmp, p_m3, p_p3)
@@ -569,8 +555,8 @@ rm(tmp, p_m3, p_p3)
 #### Over-productivity
 
 ```{r}
-tmp <- 
-  data_explo  |> 
+tmp <-
+  data_explo |>
   filter(variable == "stpp" & !(is.na(agb_0))) |>
   select(
     Site, plot_new, median, q5, q95, agb_0,
@@ -579,7 +565,7 @@ tmp <-
   ) |>
   pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") |>
   mutate(
-    var_clim = 
+    var_clim =
       fct_recode(
         var_clim,
         "Evapotranspiration, mm" = "et",
@@ -597,10 +583,10 @@ tmp <-
 ggplot(
   tmp,
   aes(
-    x = value, 
+    x = value,
     y = median * 100 / agb_0
   )
-)+
+) +
   geom_pointrange(
     aes(
       ymin = q5 * 100 / agb_0,
@@ -608,7 +594,7 @@ ggplot(
       col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
       shape = factor(continent, c("America", "Africa", "Asia"))
     )
-  )+
+  ) +
   geom_smooth(
     method = "lm", se = FALSE,
     linewidth = 0.5, col = alpha("darkgrey", 0.7), linetype = "dashed"
@@ -617,9 +603,9 @@ ggplot(
     x = "",
     y = "AGB over-productivity [% prelogging AGB]"
   ) +
-  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
-  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
-  theme_classic()+
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2)) +
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0")) +
+  theme_classic() +
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -632,7 +618,7 @@ ggplot(
     panel.spacing = unit(1, "lines"),
     strip.background = element_blank(),
     strip.placement = "outside"
-  )+
+  ) +
   facet_wrap(~var_clim, scales = "free_x", strip.position = "bottom")
 
 ggsave(file = "figures/environment_prod.pdf", height = 8, width = 10)
@@ -642,8 +628,8 @@ rm(tmp)
 #### Over-mortality
 
 ```{r}
-tmp <- 
-  data_explo  |> 
+tmp <-
+  data_explo |>
   filter(variable == "stpm" & !(is.na(agb_0))) |>
   select(
     Site, plot_new, median, q5, q95, agb_0,
@@ -652,7 +638,7 @@ tmp <-
   ) |>
   pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") |>
   mutate(
-    var_clim = 
+    var_clim =
       fct_recode(
         var_clim,
         "Evapotranspiration, mm" = "et",
@@ -670,10 +656,10 @@ tmp <-
 ggplot(
   tmp,
   aes(
-    x = value, 
+    x = value,
     y = median * 100 / agb_0
   )
-)+
+) +
   geom_pointrange(
     aes(
       ymin = q5 * 100 / agb_0,
@@ -681,7 +667,7 @@ ggplot(
       col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
       shape = factor(continent, c("America", "Africa", "Asia"))
     )
-  )+
+  ) +
   geom_smooth(
     method = "lm", se = FALSE,
     linewidth = 0.5, col = alpha("darkgrey", 0.7), linetype = "dashed"
@@ -690,9 +676,9 @@ ggplot(
     x = "",
     y = "AGB over-mortality [% prelogging AGB]"
   ) +
-  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
-  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
-  theme_classic()+
+  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2)) +
+  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0")) +
+  theme_classic() +
   theme(
     panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
     panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
@@ -705,7 +691,7 @@ ggplot(
     panel.spacing = unit(1, "lines"),
     strip.background = element_blank(),
     strip.placement = "outside"
-  )+
+  ) +
   facet_wrap(~var_clim, scales = "free_x", strip.position = "bottom")
 
 ggsave(file = "figures/environment_mort.pdf", height = 8, width = 10)

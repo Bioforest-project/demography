@@ -1,6 +1,4 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
 
 library(tidyverse)
@@ -13,8 +11,6 @@ list.files("r", full.names = TRUE, pattern = ".R") |>
 # Alternative models for CWM changes {.unnumbered}
 
 ```{r open_data}
-#| message: false
-#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
 data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
@@ -69,8 +65,6 @@ We modelled intercensus contributions to changes in CWM as the sum of a constant
 
 $$dCWM_{i,p,s} = \delta_{s,k,g} + \alpha_{p,k,g} \cdot exp\left(-\frac{1}{2}\left(\frac{t_i - \tau_{s,g}}{\gamma_{s,g}}\right)^2\right) + \epsilon_i$$
 ```{r fit_cwm_bump_annual}
-#| message: false
-#| warning: false
 #| eval: false
 groups <- unique(data_rec$group)
 for (gr in groups) {
@@ -138,8 +132,6 @@ lapply(groups[1], function(gr) {
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 data_pars <- read.csv("data/derived_data/params_annual_bump.csv")
 data_pred <- data_rec |>
   cross_join(unique(select(data_pars, iter))) |>
@@ -162,8 +154,6 @@ data_pred <- data_rec |>
 
 ::: panel-tabset
 ```{r}
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 labs_flux <- c(
@@ -206,8 +196,6 @@ purrr::walk(
 Here we model the cumulative change but account for the accumulated error in the cumulative sum. We treat the residual process within each plot × trait as a Wiener process started at the initial census $t0$. The covariance between any two observations i, j from the same plot × trait is then: $Cov(resid_i, resid_j) = \sigma^2\cdot(min(t_i, t_j) − t0)$. We replace the independent-normal likelihood with a multivariate normal (via Cholesky decomposition) over each plot x trait block.
 
 ```{r fit_cwm_bump_cum}
-#| message: false
-#| warning: false
 #| eval: false
 groups <- unique(data_rec$group)
 for (gr in groups) {
@@ -275,8 +263,6 @@ lapply(groups, function(gr) {
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 data_pars <- read.csv("data/derived_data/params_cumulative_bump.csv")
 data_pred <- data_rec |>
   cross_join(unique(select(data_pars, iter))) |>
@@ -300,8 +286,6 @@ data_pred <- data_rec |>
 ::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 labs_flux <- c(

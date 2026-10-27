@@ -1,8 +1,5 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
-
 library(tidyverse)
 library(kableExtra)
 ```
@@ -10,8 +7,6 @@ library(kableExtra)
 # Exploration of summary statistics {.unnumbered}
 
 ```{r}
-#| message: false
-#| warning: false
 environ <- readr::read_tsv("data/raw_data/environment.tsv")
 params <- read_csv("data/derived_data/params_flux_all.csv")
 
@@ -42,20 +37,24 @@ plot_info <- read_csv("data/derived_data/aggregated_data_v10.csv") |>
     values_from = "value"
   ) |>
   left_join(plot_info_raw, by = join_by(Site == site, Plot == plot)) |>
-  group_by(Site, plot_new, Treatment, Year_of_harvest) |>
-  summarise(
-    census1 = min(Year),
-    ba_0 = ba[Year == min(Year)],
-    ba_min = min(ba[Year > Year_of_harvest &
-                      Year <= Year_of_harvest + 5]),
-    agb_0 = agb[Year == min(Year)]
-  ) |>
+  group_by(Site) |>
   mutate(
-    ba_0 = if_else(census1 < Year_of_harvest, ba_0, NA),
-    agb_0 = if_else(census1 < Year_of_harvest, agb_0, NA),
-    intensity = (ba_0 - ba_min) / ba_0
-  )
-
+    ba_control = mean(ba[Treatment == "Control"]),
+    agb_control = mean(agb[Treatment == "Control"])
+  ) |>
+  group_by(Site, plot_new, Treatment) |>
+  summarise(
+    agb_0 = ifelse(Year_of_harvest <= min(Year),
+      agb_control, agb[Year == min(Year)]
+    ),
+    agb_min = min(agb[Year > Year_of_harvest & Year <= Year_of_harvest + 5]),
+    ba_0 = ifelse(Year_of_harvest <= min(Year),
+      ba_control, ba[Year == min(Year)]
+    ),
+    ba_min = min(ba[Year > Year_of_harvest & Year <= Year_of_harvest + 5]),
+    pre = ifelse(Year_of_harvest <= min(Year), "no", "yes"),
+  ) |>
+  mutate(intensity = (ba_0 - ba_min) / ba_0)
 
 data_explo <- params |>
   left_join(site_info) |>
@@ -65,22 +64,15 @@ data_explo <- params |>
 ## Turnover rate omega
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "omega") |>
   ggplot(aes(median, reorder(Site, median), col = continent)) +
   geom_pointrange(aes(xmin = q5, xmax = q95)) +
-  labs(
-    x = "Turvover rate (omega)",
-    y = ""
-  ) +
+  labs(x = "Turvover rate (omega)", y = "") +
   theme_minimal()
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "omega") |>
   select(
@@ -115,8 +107,6 @@ data_explo |>
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "omega") |>
   select(
@@ -159,8 +149,6 @@ We expect over-mortality to be due to the delayed mortality of damaged trees and
 We expect it to occur within the first few years after logging =\> confirmed, over-mortality ends after less than 5 years.
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "t90m") |>
   ggplot(aes(median, reorder(Site, median), col = continent)) +
@@ -175,8 +163,6 @@ data_explo |>
 We expect it to be quite consistent between sites =\> confirmed, although some differences between sites have in duration of over-mortality. This is not due to the timing of the censuses after logging (trec):
 
 ```{r}
-#| message: false
-#| warning: false
 read_csv("data/derived_data/aggregated_data_v10.csv") |>
   filter(Site %in% site_info$Site & variable == "ba") |>
   mutate(plot_new = Plot) |>
@@ -218,8 +204,6 @@ We expect the variability of the duration of over-productivity to depends on:
 - climatic variables related to productivity =\> we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) but the trend is quite weak, and this is not suported by evapotranspiration and precipitation. The pattern with soil humidity is also counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "t90p") |>
   select(
@@ -256,8 +240,6 @@ data_explo |>
 - soil variables related to productivity =\> we see below that higher bulk density is (weakly) related to to longer duration of over-productivity, and over-productivity last less time in soil with higher clay content. This could support the hypotheses that over-productivity lasts longer in less fertile soils. But there is no pattern with SOC...
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "t90p") |>
   select(
@@ -296,8 +278,6 @@ data_explo |>
 - forest dynamism (turnover rate) =\> we see below that more dynamic sites (higher turnover rate $\omega$) have a lower duration of over-productivity.
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable %in% c("omega", "t90p")) |>
   select(Site, variable, median, q5, q95, continent) |>
@@ -332,17 +312,15 @@ data_explo |>
 
 ## Relative over-mortality
 
-We consider relative over-mortality, being the AGB of total over-mortality expressed as a percentage of pre-logging AGB. For this, we need pre-logging censuses, which are not available for the site of Lesong, Sungai Lalang, Tapajos and Ulu Muda. This analyis is therefore limited to 4 sites for the time being.
+We consider relative over-mortality, being the AGB of total over-mortality expressed as a percentage of pre-logging AGB. In sites where there are no pre-logging censuses (Lesong, Sungai Lalang, Tapajos and Ulu Muda), we used the average control AGB as a proxy for pre-logging AGB, under the assumption that control and logged plots were similar enough prior to logging.
 
-> We could consider another way to standardise over-mortality, for exemple by using the stock estimated at infinite time by the model (but we first need to check how well it matches pre-logging AGB), or by considering the AGB of control plots (but we first need to check how much intrasite variability the is).
+> we need to check how much intrasite variability the is in sites without pre-logging censuses.
 
 The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 5% to more than 15%.
 
 > The values of over-mortality are much more consistent than the ones from the previous version of the model.
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "stpm" & !(is.na(agb_0))) |>
   mutate(site_plot = paste(Site, plot_new)) |>
@@ -365,8 +343,6 @@ data_explo |>
 We expect that this variability would be partly explained by logging intensity, with a higher over-mortality when logging intensity is higher =\> this is not confirmed, as the graph below shows a weal opposite effect, or no effect...
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "stpm" & !(is.na(agb_0))) |>
   mutate(Site = fct_drop(as.factor(Site))) |>
@@ -397,8 +373,6 @@ I have no real hypothesis on the effect of environmental variables on the relati
 - Climate variables: no clear trend...
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "stpm" & !(is.na(agb_0))) |>
   select(
@@ -440,8 +414,6 @@ data_explo |>
 - Soil variables: no clear trend...
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "stpm" & !(is.na(agb_0))) |>
   select(
@@ -485,8 +457,6 @@ data_explo |>
 - Forest dynamism (turnover rate $\omega$): the graph below shows that over-mortality decreases with increasing turnover rate.
 
 ```{r}
-#| message: false
-#| warning: false
 dt_omega <- data_explo |>
   filter(variable == "omega") |>
   select(Site, median, q5, q95) |>
@@ -540,8 +510,6 @@ We consider relative over-productivity, being the AGB of total over-productivity
 The graph below show that there is a lot of variability in the relative AGB over-mortality, with values going from less than 10% to more than 50%.
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "stpp" & !(is.na(agb_0))) |>
   mutate(site_plot = paste(Site, plot_new)) |>
@@ -564,8 +532,6 @@ data_explo |>
 We expect that this variability would be partly explained by logging intensity, with a higher over-productivity when logging intensity is higher =\> this is confirmed by the graph below (but see the Mbaiki plots).
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "stpp" & !(is.na(agb_0))) |>
   mutate(Site = fct_drop(as.factor(Site))) |>
@@ -596,8 +562,6 @@ I have no real hypothesis on the effect of environmental variables on the relati
 - Climate variables: *the graphs below suggest that relative over-productivity is higher in drier sites.*
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "stpp" & !(is.na(agb_0))) |>
   select(
@@ -639,8 +603,6 @@ data_explo |>
 - Soil variables: *the graphs below suggest that relative over-productivity is higher in less fertile soils.*
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "stpp" & !(is.na(agb_0))) |>
   select(
@@ -684,8 +646,6 @@ data_explo |>
 - Forest dynamism (turnover rate $\omega$): the graph below shows that over-productivity decreases with increasing turnover rate.
 
 ```{r}
-#| message: false
-#| warning: false
 data_explo |>
   filter(variable == "stpp" & !(is.na(agb_0))) |>
   select(Site, variable, median, q5, q95, agb_0, continent) |>

@@ -1,6 +1,4 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
 
 library(tidyverse)
@@ -15,25 +13,24 @@ Done for the model with a fitted kurtosis per site without hyperlaw.
 
 We chose the following summary statistics:
 
--   the turnover rate $\omega$;
+- the turnover rate $\omega$;
 
--   the total over-productivity and over-mortality are estimated as the area under the curve of the short-term process:
+- the total over-productivity and over-mortality are estimated as the area under the curve of the short-term process:
 
--   $\frac{\delta e^2 \tau}{4}$ for productivity;
+- $\frac{\delta e^2 \tau}{4}$ for productivity;
 
--   $\frac{\alpha}{\lambda}$ for mortality;
+- $\frac{\alpha}{\lambda}$ for mortality;
 
--   the time taken to reach 95% of the total over-productivity and mortality (i.e. the duration of the change in fluxes):
+- the time taken to reach 95% of the total over-productivity and mortality (i.e. the duration of the change in fluxes):
 
--   the numerical solution to the equation: $e^{-\frac{2}{\tau} t_{95}}(\frac{t_{95}^2}{2\tau}+\frac{t_{95}}{2}+\frac{\tau}{4})=\frac{\tau}{80}$ for productivity;
+- the numerical solution to the equation: $e^{-\frac{2}{\tau} t_{95}}(\frac{t_{95}^2}{2\tau}+\frac{t_{95}}{2}+\frac{\tau}{4})=\frac{\tau}{80}$ for productivity;
 
--   $t_{95} = \frac{ln(20)}{\lambda}$ for mortality.
+- $t_{95} = \frac{ln(20)}{\lambda}$ for mortality.
 
 ```{r}
-#| message: false
-#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
-  select(site, plot, Year_of_harvest, Treatment)
+  left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
+  select(site, plot, new_plot, Year_of_harvest, Treatment)
 sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
   filter(ncensus >= 10)
 data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
@@ -55,15 +52,11 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
 ## Effect of environmental variables
 
 ```{r}
-#| message: false
-#| warning: false
 environ <- readr::read_tsv("data/raw_data/environment.tsv")
 params <- read.csv("data/derived_data/params_flux_all.csv")
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 environ |>
   group_by(site) |>
   summarise(pr = mean(dsi)) |>
@@ -75,8 +68,6 @@ environ |>
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 environ |>
   group_by(site) |>
   summarise(pr = mean(pr)) |>
@@ -93,57 +84,57 @@ environ |>
 ## Effect of logging intensity
 
 ```{r}
-#| message: false
-#| warning: false
 read.csv("data/derived_data/aggregated_data_v10.csv") |>
-  filter(Site %in% sites$Site & variable == "ba") |>
-  mutate(plot_new = Plot) |>
-  separate(Plot, "Plot", "_") |>
-  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(Site %in% sites$Site & variable == "agb") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == new_plot)) |>
+  rename(plot_new = Plot) |>
   group_by(Site) |>
-  mutate(ba_control = mean(value[Treatment == "Control"])) |>
+  mutate(agb_control = mean(value[Treatment == "Control"])) |>
   group_by(Site, plot_new, Treatment) |>
   summarise(
-    ba_0 = ifelse(Year_of_harvest <= min(Year),
-      ba_control, value[Year == min(Year)]
+    agb_0 = ifelse(Year_of_harvest <= min(Year),
+      agb_control, value[Year == min(Year)]
     ),
-    ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
+    pre = ifelse(Year_of_harvest <= min(Year), "no", "yes"),
+    agb_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
   ) |>
-  mutate(intensity = (ba_0 - ba_min) / ba_0) |>
+  mutate(intensity = (agb_0 - agb_min) / agb_0) |>
   inner_join(filter(params, variable == "stpp")) |>
-  ggplot(aes(intensity * 100, median, col = Site)) +
-  geom_pointrange(aes(ymin = q5, ymax = q95)) +
+  ggplot(aes(intensity * 100, median / agb_0 * 100, col = Site, shape = pre)) +
+  geom_abline(intercept = 0, slope = 1, lty = 2) +
+  geom_pointrange(aes(ymin = q5 / agb_0 * 100, ymax = q95 / agb_0 * 100)) +
   labs(
-    x = "Logging intensity [% BA loss]",
-    y = "AGB total overproductivity [Mg/ha]"
+    x = "Logging intensity [% initial AGB]",
+    y = "AGB total overproductivity [% initial AGB]",
+    shape = "Has pre-logging inventory?"
   ) +
   theme_minimal()
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 read.csv("data/derived_data/aggregated_data_v10.csv") |>
-  filter(Site %in% sites$Site & variable == "ba") |>
-  mutate(plot_new = Plot) |>
-  separate(Plot, "Plot", "_") |>
-  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
+  filter(Site %in% sites$Site & variable == "agb") |>
+  left_join(plot_info, by = join_by(Site == site, Plot == new_plot)) |>
+  rename(plot_new = Plot) |>
   group_by(Site) |>
-  mutate(ba_control = mean(value[Treatment == "Control"])) |>
+  mutate(agb_control = mean(value[Treatment == "Control"])) |>
   group_by(Site, plot_new, Treatment) |>
   summarise(
-    ba_0 = ifelse(Year_of_harvest <= min(Year),
-      ba_control, value[Year == min(Year)]
+    agb_0 = ifelse(Year_of_harvest <= min(Year),
+      agb_control, value[Year == min(Year)]
     ),
-    ba_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
+    pre = ifelse(Year_of_harvest <= min(Year), "no", "yes"),
+    agb_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
   ) |>
-  mutate(intensity = (ba_0 - ba_min) / ba_0) |>
+  mutate(intensity = (agb_0 - agb_min) / agb_0) |>
   inner_join(filter(params, variable == "stpm")) |>
-  ggplot(aes(intensity * 100, median, col = Site)) +
-  geom_pointrange(aes(ymin = q5, ymax = q95)) +
+  ggplot(aes(intensity * 100, median / agb_0 * 100, col = Site, shape = pre)) +
+  geom_abline(intercept = 0, slope = 1, lty = 2) +
+  geom_pointrange(aes(ymin = q5 / agb_0 * 100, ymax = q95 / agb_0 * 100)) +
   labs(
-    x = "Logging intensity [% BA loss]",
-    y = "AGB total overmortality [Mg/ha]"
+    x = "Logging intensity [% initial AGB]",
+    y = "AGB total overmortality [% initial AGB]",
+    shape = "Has pre-logging inventory?"
   ) +
   theme_minimal()
 ```

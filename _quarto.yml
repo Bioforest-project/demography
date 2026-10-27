@@ -36,5 +36,7 @@ format:
 
 editor: visual
 
-# execute:
-#   cache: true
+execute:
+  warning: false
+  message: false
+  error: false
