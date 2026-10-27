@@ -39,9 +39,8 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
     1987, Year_of_harvest
   )) |>
   mutate(trec = Year - Year_of_harvest) |>
-  filter(!(Site == "Tapajos Km67" &
-             grepl("loggedtwice", Plot) & Year > 2014)) |>
-  filter(!(Site == "Tapajos Km67" & grepl("later", Plot)))
+  ## tapajos: second logging in 2014-2015
+  filter(!(Site == "Tapajos Km67" & (Year >= 2014 | grepl("later", Plot))))
 ```
 
 For now, we only calibrate the model with sites that meet all the criteria listed [here](https://bioforest-project.github.io/demography/21_flux_data.html), and that have at least 10 censuses.
@@ -72,7 +71,9 @@ bounds <- data.frame(
   "k_min" = 0.1,
   "k_max" = 5,
   "omega_min" = 1e-3,
-  "omega_max" = 0.5
+  "omega_max" = 0.5,
+  "y0_min" = 0,
+  "y0_max" = 1000
 )
 bounds |>
   pivot_longer(everything(), names_to = "parameter") |>
@@ -87,9 +88,6 @@ data_rec <- data |>
   subset(Treatment == "Logging" & trec > 0) |>
   # problem with first years in SUAS: excessive prod. because of  DBH increases
   filter(!(Site == "SUAS" & trec < 3 & variable == "prod")) |>
-  filter(!(Site == "Tapajos Km67" &
-             Plot %in% c(1:12, paste0(1:12, "E")) &
-             Year >= 2014)) |> # remove second logging event in Tapajos
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
   mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))
@@ -309,7 +307,7 @@ omega <- extract_draws(fit_flux_all, "omega_s") |>
   rename(omega = value) |>
   select(-variable)
 t90_p <- inner_join(tau, kappa) |>
-  group_by(Site, iter) |>
+  group_by(sitenum, iter) |>
   summarise(t90p = optimize(
     function(t) {
       abs(
@@ -381,5 +379,36 @@ read.csv("data/derived_data/params_flux_all.csv") |>
   labs(
     x = "Estimated AGB of unlogged plots (parameter theta)",
     y = "Estimated AGB of logged plots after recovery"
+  )
+```
+
+### Comparison of turnover rate in logged and unlogged plots
+
+```{r}
+omega <- read.csv("data/derived_data/params_flux_all.csv") |>
+  filter(variable == "omega") |>
+  select(Site, median, variable, q5, q95) |>
+  pivot_wider(names_from = variable, values_from = c(median, q5, q95))
+data |>
+  filter(Treatment == "Control") |>
+  pivot_wider(id_cols = c("Site", "Plot", "Year"), names_from = variable) |>
+  drop_na() |>
+  mutate(rate = prod / stocks) |>
+  group_by(Site) |>
+  summarise(
+    median_tor = quantile(rate, 0.5),
+    q5_tor = quantile(rate, 0.05),
+    q95_tor = quantile(rate, 0.95)
+  ) |>
+  inner_join(omega) |>
+  ggplot(aes(median_tor * 100, median_omega * 100, col = Site)) +
+  geom_abline(intercept = 0, slope = 1, lty = 2) +
+  geom_pointrange(aes(ymin = q5_omega * 100, ymax = q95_omega * 100)) +
+  geom_errorbar(aes(xmin = q5_tor * 100, xmax = q95_tor * 100),
+                orientation = "y") +
+  theme_minimal() +
+  labs(
+    x = "Turnover rate of unlogged plots (=AWP/AGB; %/yr)",
+    y = "Parameter omega (%/yr)"
   )
 ```

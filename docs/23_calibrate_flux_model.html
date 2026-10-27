@@ -311,6 +311,7 @@ window.Quarto = {
   <li><a href="#parameters-k-and-tau" id="toc-parameters-k-and-tau" class="nav-link" data-scroll-target="#parameters-k-and-tau">Parameters (k and tau)</a></li>
   <li><a href="#visualising-the-trajectories" id="toc-visualising-the-trajectories" class="nav-link" data-scroll-target="#visualising-the-trajectories">Visualising the trajectories</a></li>
   <li><a href="#predicted-agb-recovery" id="toc-predicted-agb-recovery" class="nav-link" data-scroll-target="#predicted-agb-recovery">Predicted AGB recovery</a></li>
+  <li><a href="#comparison-of-turnover-rate-in-logged-and-unlogged-plots" id="toc-comparison-of-turnover-rate-in-logged-and-unlogged-plots" class="nav-link" data-scroll-target="#comparison-of-turnover-rate-in-logged-and-unlogged-plots">Comparison of turnover rate in logged and unlogged plots</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -365,9 +366,8 @@ window.Quarto = {
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1987</span>, Year_of_harvest</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
 <span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trec =</span> Year <span class="sc">-</span> Year_of_harvest) <span class="sc">|&gt;</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(Site <span class="sc">==</span> <span class="st">"Tapajos Km67"</span> <span class="sc">&amp;</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>             <span class="fu">grepl</span>(<span class="st">"loggedtwice"</span>, Plot) <span class="sc">&amp;</span> Year <span class="sc">&gt;</span> <span class="dv">2014</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(Site <span class="sc">==</span> <span class="st">"Tapajos Km67"</span> <span class="sc">&amp;</span> <span class="fu">grepl</span>(<span class="st">"later"</span>, Plot)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="do">## tapajos: second logging in 2014-2015</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(Site <span class="sc">==</span> <span class="st">"Tapajos Km67"</span> <span class="sc">&amp;</span> (Year <span class="sc">&gt;=</span> <span class="dv">2014</span> <span class="sc">|</span> <span class="fu">grepl</span>(<span class="st">"later"</span>, Plot))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>For now, we only calibrate the model with sites that meet all the criteria listed <a href="https://bioforest-project.github.io/demography/21_flux_data.html">here</a>, and that have at least 10 censuses.</p>
@@ -401,16 +401,18 @@ window.Quarto = {
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"k_min"</span> <span class="ot">=</span> <span class="fl">0.1</span>,</span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"k_max"</span> <span class="ot">=</span> <span class="dv">5</span>,</span>
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"omega_min"</span> <span class="ot">=</span> <span class="fl">1e-3</span>,</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"omega_max"</span> <span class="ot">=</span> <span class="fl">0.5</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>bounds <span class="sc">|&gt;</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"parameter"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(parameter, <span class="fu">c</span>(<span class="st">"parameter"</span>, <span class="st">"bound"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> bound) <span class="sc">|&gt;</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">flextable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"omega_max"</span> <span class="ot">=</span> <span class="fl">0.5</span>, </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"y0_min"</span> <span class="ot">=</span> <span class="dv">0</span>, </span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"y0_max"</span> <span class="ot">=</span> <span class="dv">1000</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>bounds <span class="sc">|&gt;</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"parameter"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(parameter, <span class="fu">c</span>(<span class="st">"parameter"</span>, <span class="st">"bound"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> bound) <span class="sc">|&gt;</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">flextable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div class="tabwid"><style>.cl-54fff62a{}.cl-54ed89ae{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-54f595e0{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-54f595ea{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-54f5f666{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-54f5f670{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-54f5f671{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-54f5f67a{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-54f5f67b{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-54f5f684{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-54fff62a"><thead><tr style="overflow-wrap:break-word;"><th class="cl-54f5f666"><p class="cl-54f595e0"><span class="cl-54ed89ae">parameter</span></p></th><th class="cl-54f5f670"><p class="cl-54f595ea"><span class="cl-54ed89ae">min</span></p></th><th class="cl-54f5f670"><p class="cl-54f595ea"><span class="cl-54ed89ae">max</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-54f5f671"><p class="cl-54f595e0"><span class="cl-54ed89ae">theta</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">50.000</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">1,000.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-54f5f671"><p class="cl-54f595e0"><span class="cl-54ed89ae">lambda</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">0.010</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-54f5f671"><p class="cl-54f595e0"><span class="cl-54ed89ae">alpha</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">0.000</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">200.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-54f5f671"><p class="cl-54f595e0"><span class="cl-54ed89ae">delta</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">0.000</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">20.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-54f5f671"><p class="cl-54f595e0"><span class="cl-54ed89ae">tau</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">2.000</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">30.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-54f5f671"><p class="cl-54f595e0"><span class="cl-54ed89ae">k</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">0.100</span></p></td><td class="cl-54f5f67a"><p class="cl-54f595ea"><span class="cl-54ed89ae">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-54f5f67b"><p class="cl-54f595e0"><span class="cl-54ed89ae">omega</span></p></td><td class="cl-54f5f684"><p class="cl-54f595ea"><span class="cl-54ed89ae">0.001</span></p></td><td class="cl-54f5f684"><p class="cl-54f595ea"><span class="cl-54ed89ae">0.5</span></p></td></tr></tbody></table></div>
+<div class="tabwid"><style>.cl-4e05f744{}.cl-4df8a88c{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-4dfe23e8{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-4dfe23fc{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-4dfe7bc2{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4dfe7bcc{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4dfe7bd6{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4dfe7bd7{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4dfe7bd8{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4dfe7be0{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-4e05f744"><thead><tr style="overflow-wrap:break-word;"><th class="cl-4dfe7bc2"><p class="cl-4dfe23e8"><span class="cl-4df8a88c">parameter</span></p></th><th class="cl-4dfe7bcc"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">min</span></p></th><th class="cl-4dfe7bcc"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">max</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-4dfe7bd6"><p class="cl-4dfe23e8"><span class="cl-4df8a88c">theta</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">50.000</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">1,000.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4dfe7bd6"><p class="cl-4dfe23e8"><span class="cl-4df8a88c">lambda</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">0.010</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4dfe7bd6"><p class="cl-4dfe23e8"><span class="cl-4df8a88c">alpha</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">0.000</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">200.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4dfe7bd6"><p class="cl-4dfe23e8"><span class="cl-4df8a88c">delta</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">0.000</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">20.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4dfe7bd6"><p class="cl-4dfe23e8"><span class="cl-4df8a88c">tau</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">2.000</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">30.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4dfe7bd6"><p class="cl-4dfe23e8"><span class="cl-4df8a88c">k</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">0.100</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">5.0</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4dfe7bd6"><p class="cl-4dfe23e8"><span class="cl-4df8a88c">omega</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">0.001</span></p></td><td class="cl-4dfe7bd7"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">0.5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4dfe7bd8"><p class="cl-4dfe23e8"><span class="cl-4df8a88c">y0</span></p></td><td class="cl-4dfe7be0"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">0.000</span></p></td><td class="cl-4dfe7be0"><p class="cl-4dfe23fc"><span class="cl-4df8a88c">1,000.0</span></p></td></tr></tbody></table></div>
 </div>
 </div>
 <div class="cell">
@@ -421,17 +423,14 @@ window.Quarto = {
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(Treatment <span class="sc">==</span> <span class="st">"Logging"</span> <span class="sc">&amp;</span> trec <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># problem with first years in SUAS: excessive prod. because of  DBH increases</span></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(Site <span class="sc">==</span> <span class="st">"SUAS"</span> <span class="sc">&amp;</span> trec <span class="sc">&lt;</span> <span class="dv">3</span> <span class="sc">&amp;</span> variable <span class="sc">==</span> <span class="st">"prod"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(Site <span class="sc">==</span> <span class="st">"Tapajos Km67"</span> <span class="sc">&amp;</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>             Plot <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="fu">paste0</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="st">"E"</span>)) <span class="sc">&amp;</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>             Year <span class="sc">&gt;=</span> <span class="dv">2014</span>)) <span class="sc">|&gt;</span> <span class="co"># remove second logging event in Tapajos</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">"variable"</span>, <span class="at">values_from =</span> <span class="st">"value"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="sc">!</span><span class="fu">is.na</span>(prod) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(mort)) <span class="sc">|&gt;</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">plotnum =</span> <span class="fu">as.numeric</span>(<span class="fu">as.factor</span>(<span class="fu">paste</span>(Site, plot_new))))</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>data_old <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sitenum =</span> <span class="fu">as.numeric</span>(<span class="fu">as.factor</span>(Site))) <span class="sc">|&gt;</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(Treatment <span class="sc">==</span> <span class="st">"Control"</span> <span class="sc">|</span> trec <span class="sc">&lt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">"variable"</span>, <span class="at">values_from =</span> <span class="st">"value"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="sc">!</span><span class="fu">is.na</span>(prod) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(mort))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">"variable"</span>, <span class="at">values_from =</span> <span class="st">"value"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="sc">!</span><span class="fu">is.na</span>(prod) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(mort)) <span class="sc">|&gt;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">plotnum =</span> <span class="fu">as.numeric</span>(<span class="fu">as.factor</span>(<span class="fu">paste</span>(Site, plot_new))))</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>data_old <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sitenum =</span> <span class="fu">as.numeric</span>(<span class="fu">as.factor</span>(Site))) <span class="sc">|&gt;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(Treatment <span class="sc">==</span> <span class="st">"Control"</span> <span class="sc">|</span> trec <span class="sc">&lt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">"variable"</span>, <span class="at">values_from =</span> <span class="st">"value"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="sc">!</span><span class="fu">is.na</span>(prod) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(mort))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="cell">
@@ -481,29 +480,29 @@ window.Quarto = {
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>     variable    mean  median    sd   mad      q5     q95 rhat ess_bulk
- lp__         4288.38 4289.15 77.90 83.73 4155.52 4411.75 1.62        6
- mu_lambda       1.55    1.52  0.29  0.26    1.14    2.08 1.20       16
- sigma_lambda    0.56    0.50  0.25  0.19    0.27    1.02 1.08       43
- lambda_s[1]     1.73    1.69  0.41  0.40    1.12    2.44 1.07       46
- lambda_s[2]     1.39    1.36  0.28  0.27    0.99    1.89 1.09       39
- lambda_s[3]     1.53    1.52  0.17  0.17    1.27    1.83 1.22       13
- lambda_s[4]     0.83    0.83  0.10  0.11    0.68    1.00 1.47        7
- lambda_s[5]     1.66    1.58  0.52  0.47    0.97    2.66 1.06       68
- lambda_s[6]     1.82    1.74  0.47  0.40    1.19    2.71 1.18       17
- lambda_s[7]     1.98    1.90  0.50  0.39    1.36    2.85 1.07       64
+ lp__         4205.72 4204.57 44.72 49.78 4136.06 4277.95 1.10       35
+ mu_lambda       1.59    1.58  0.28  0.22    1.20    2.06 1.06       77
+ sigma_lambda    0.53    0.48  0.24  0.19    0.26    0.99 1.04       93
+ lambda_s[1]     1.77    1.76  0.39  0.35    1.19    2.36 1.07       51
+ lambda_s[2]     1.40    1.39  0.27  0.24    1.00    1.82 1.05       68
+ lambda_s[3]     1.57    1.56  0.19  0.21    1.27    1.88 1.33       10
+ lambda_s[4]     0.86    0.85  0.12  0.12    0.68    1.07 1.68        6
+ lambda_s[5]     1.65    1.58  0.50  0.45    0.98    2.52 1.04      142
+ lambda_s[6]     1.82    1.79  0.38  0.38    1.24    2.48 1.03      193
+ lambda_s[7]     1.98    1.89  0.47  0.44    1.37    2.80 1.02      109
  ess_tail
-       26
-       99
-       71
-      433
-      311
+       34
+      174
+      232
+      229
+      347
+       76
+       36
+      204
+      347
       266
-       57
-      342
-      114
-      102
 
- # showing 10 of 6829 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)</code></pre>
+ # showing 10 of 6775 rows (change via 'max_rows' argument or 'cmdstanr_max_rows' option)</code></pre>
 </div>
 <details class="code-fold">
 <summary>Code</summary>
@@ -529,14 +528,14 @@ window.Quarto = {
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 × 2
-  variable      rhat
-  &lt;chr&gt;        &lt;dbl&gt;
-1 mu_alpha      2.96
-2 alpha_p[88]   2.77
-3 alpha_p[81]   2.72
-4 alpha_p[104]  2.71
-5 alpha_p[115]  2.70
-6 alpha_p[67]   2.70</code></pre>
+  variable     rhat
+  &lt;chr&gt;       &lt;dbl&gt;
+1 mu_alpha     3.64
+2 alpha_p[26]  3.15
+3 alpha_p[51]  3.14
+4 alpha_p[12]  3.12
+5 alpha_p[16]  3.11
+6 alpha_p[89]  3.10</code></pre>
 </div>
 </div>
 <p>The goodness of fit is satisfactory.</p>
@@ -624,14 +623,14 @@ window.Quarto = {
 <pre><code># A tibble: 8 × 8
   variable Site           mean median     sd    q5   q95  rhat
   &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-1 k_s      Corinto       3.94   4.07  0.782  2.52  4.92   1.03
-2 k_s      Lesong        0.554  0.525 0.166  0.329 0.864  1.08
-3 k_s      Mbaiki        0.632  0.632 0.0503 0.549 0.717  1.02
-4 k_s      Paracou       0.310  0.309 0.0439 0.240 0.387  1.01
-5 k_s      SUAS          0.882  0.849 0.309  0.441 1.46   1.03
-6 k_s      Sungai Lalang 0.676  0.662 0.161  0.432 0.956  1.04
-7 k_s      Tapajos Km67  0.168  0.151 0.0622 0.106 0.292  1.02
-8 k_s      Ulu Muda      0.946  0.933 0.251  0.558 1.37   1.01</code></pre>
+1 k_s      Corinto       4.01   4.24  0.896  2.19  4.94   1.36
+2 k_s      Lesong        0.616  0.612 0.163  0.340 0.868  1.06
+3 k_s      Mbaiki        0.641  0.640 0.0553 0.553 0.735  1.06
+4 k_s      Paracou       0.317  0.318 0.0423 0.244 0.383  1.03
+5 k_s      SUAS          0.869  0.806 0.337  0.434 1.52   1.36
+6 k_s      Sungai Lalang 0.672  0.673 0.176  0.360 0.953  1.10
+7 k_s      Tapajos Km67  0.209  0.176 0.109  0.106 0.428  1.29
+8 k_s      Ulu Muda      0.945  0.927 0.236  0.610 1.36   1.09</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -648,16 +647,16 @@ window.Quarto = {
 <pre><code># A tibble: 10 × 8
    variable  Site           mean median    sd    q5   q95  rhat
    &lt;chr&gt;     &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
- 1 mu_tau    &lt;NA&gt;           5.32   5.35 0.558 4.38   6.18  1.01
- 2 sigma_tau &lt;NA&gt;           1.35   1.31 0.352 0.837  1.99  1.02
- 3 tau_s     Corinto        5.97   5.96 0.538 5.09   6.84  1.01
- 4 tau_s     Lesong         3.28   3.28 0.475 2.49   4.07  1.05
- 5 tau_s     Mbaiki         6.10   6.11 0.232 5.70   6.48  1.00
- 6 tau_s     Paracou        7.35   7.35 0.482 6.53   8.11  1.02
- 7 tau_s     SUAS           5.30   5.35 0.729 3.99   6.45  1.03
- 8 tau_s     Sungai Lalang  4.61   4.61 0.471 3.82   5.39  1.03
- 9 tau_s     Tapajos Km67   5.12   5.14 1.05  3.42   6.91  1.04
-10 tau_s     Ulu Muda       4.88   4.92 0.501 4.02   5.60  1.02</code></pre>
+ 1 mu_tau    &lt;NA&gt;           5.23   5.25 0.543 4.33   6.04  1.04
+ 2 sigma_tau &lt;NA&gt;           1.39   1.37 0.347 0.856  2.01  1.14
+ 3 tau_s     Corinto        6.02   6.03 0.567 5.09   6.90  1.09
+ 4 tau_s     Lesong         3.46   3.48 0.486 2.56   4.19  1.08
+ 5 tau_s     Mbaiki         6.11   6.11 0.250 5.69   6.51  1.03
+ 6 tau_s     Paracou        7.40   7.41 0.456 6.62   8.14  1.04
+ 7 tau_s     SUAS           5.22   5.26 0.775 3.92   6.46  1.27
+ 8 tau_s     Sungai Lalang  4.55   4.65 0.567 3.47   5.38  1.10
+ 9 tau_s     Tapajos Km67   4.23   4.15 1.02  2.72   6.05  1.16
+10 tau_s     Ulu Muda       4.83   4.85 0.504 3.94   5.64  1.05</code></pre>
 </div>
 </div>
 </section>
@@ -749,7 +748,7 @@ window.Quarto = {
 <span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">omega =</span> value) <span class="sc">|&gt;</span></span>
 <span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>variable)</span>
 <span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>t90_p <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(tau, kappa) <span class="sc">|&gt;</span></span>
-<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, iter) <span class="sc">|&gt;</span></span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(sitenum, iter) <span class="sc">|&gt;</span></span>
 <span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">t90p =</span> <span class="fu">optimize</span>(</span>
 <span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">function</span>(t) {</span>
 <span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>      <span class="fu">abs</span>(</span>
@@ -827,6 +826,42 @@ window.Quarto = {
 <figure class="figure">
 <p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="480"></p>
 <figcaption>Predicted AGB at the end of the recovery trajectories (as the integral of fluxes + the initial AGB) vs the equilibrium biomass parameter theta.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="comparison-of-turnover-rate-in-logged-and-unlogged-plots" class="level3">
+<h3 class="anchored" data-anchor-id="comparison-of-turnover-rate-in-logged-and-unlogged-plots">Comparison of turnover rate in logged and unlogged plots</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>omega <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/derived_data/params_flux_all.csv"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable <span class="sc">==</span> <span class="st">"omega"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Site, median, variable, q5, q95) <span class="sc">|&gt;</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> variable, <span class="at">values_from =</span> <span class="fu">c</span>(median, q5, q95))</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Treatment <span class="sc">==</span> <span class="st">"Control"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> <span class="fu">c</span>(<span class="st">"Site"</span>, <span class="st">"Plot"</span>, <span class="st">"Year"</span>), <span class="at">names_from =</span> variable) <span class="sc">|&gt;</span> </span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>() <span class="sc">|&gt;</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rate =</span> prod<span class="sc">/</span>stocks) <span class="sc">|&gt;</span> </span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site) <span class="sc">|&gt;</span> </span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">median_tor =</span> <span class="fu">quantile</span>(rate, <span class="fl">0.5</span>), </span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">q5_tor =</span> <span class="fu">quantile</span>(rate, <span class="fl">0.05</span>), </span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>            <span class="at">q95_tor =</span> <span class="fu">quantile</span>(rate, <span class="fl">0.95</span>))<span class="sc">|&gt;</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(omega) <span class="sc">|&gt;</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(median_tor<span class="sc">*</span><span class="dv">100</span>, median_omega<span class="sc">*</span><span class="dv">100</span>, <span class="at">col =</span> Site)) <span class="sc">+</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> q5_omega<span class="sc">*</span><span class="dv">100</span>, <span class="at">ymax =</span> q95_omega<span class="sc">*</span><span class="dv">100</span>)) <span class="sc">+</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">xmin =</span> q5_tor<span class="sc">*</span><span class="dv">100</span>, <span class="at">xmax =</span> q95_tor<span class="sc">*</span><span class="dv">100</span>), <span class="at">orientation =</span> <span class="st">"y"</span>) <span class="sc">+</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Turnover rate of unlogged plots (=AWP/AGB; %/yr)"</span>,</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Parameter omega (%/yr)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="23_calibrate_flux_model_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>

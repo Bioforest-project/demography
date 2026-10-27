@@ -1,8 +1,5 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
-
 library(tidyverse)
 library(cmdstanr)
 library(bayesplot)
@@ -21,8 +18,6 @@ Here we tested different versions of the demographic rates model, with some chan
 ## Data
 
 ```{r}
-#| message: false
-#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
   select(site, plot = new_plot, Year_of_harvest, Treatment) |>
@@ -46,9 +41,7 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
     1987, Year_of_harvest
   )) |>
   mutate(trec = Year - Year_of_harvest) |>
-  filter(!(Site == "Tapajos Km67" &
-    grepl("loggedtwice", Plot) & Year > 2014)) |>
-  filter(!(Site == "Tapajos Km67" & grepl("later", Plot)))
+  filter(!(Site == "Tapajos Km67" & (Year >= 2014 | grepl("later", Plot))))
 
 sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
   filter(ncensus >= 10)
@@ -59,8 +52,6 @@ data <- data |>
 We used the following parameter bounds when calibrating the model.
 
 ```{r}
-#| message: false
-#| warning: false
 bounds <- data.frame(
   "theta_min" = 50,
   "theta_max" = 1000,
@@ -87,16 +78,14 @@ bounds |>
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 data_rec <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
   subset(Treatment == "Logging" & trec > 0) |>
   # problem with first years in SUAS: excessive prod. because of  DBH increases
   filter(!(Site == "SUAS" & trec < 3 & variable == "prod")) |>
   filter(!(Site == "Tapajos Km67" &
-    Plot %in% c(1:12, paste0(1:12, "E")) &
-    Year >= 2014)) |> # remove second logging event in Tapajos
+             Plot %in% c(1:12, paste0(1:12, "E")) &
+             Year >= 2014)) |> # remove second logging event in Tapajos
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
   mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))
@@ -116,8 +105,6 @@ In this version, the kurtosis parameter is set to $\kappa = 2$ and the productiv
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{2} $$
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -159,8 +146,6 @@ In this version, the kurtosis parameter $\kappa$ is fitted, with one value commo
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa} $$
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -203,8 +188,6 @@ In this version, the kurtosis parameter $\kappa$ is fitted, with one value per s
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa_s} $$
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -251,8 +234,6 @@ We also added a hyperdistribution to all parameters $\kappa_s$:
 $$\kappa_s \sim \mathcal{N}(\mu_{\kappa}, \sigma_{\kappa})$$
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -290,17 +271,15 @@ sample_model("flux_all_simpl_Ksite", mdata_all)
 
 ### AGB recovery
 
-Additionally, we wanted to incorporate into the model our expectation that the total recovered biomass at equilibrium would be close to the parameter $\theta$, i.e. the equilibrium biomass estimated using the biomass of the control plots. 
+Additionally, we wanted to incorporate into the model our expectation that the total recovered biomass at equilibrium would be close to the parameter $\theta$, i.e. the equilibrium biomass estimated using the biomass of the control plots.
 
 Starting from the best previous model (with one kurtosis value per site and no hyperdistribution), we added the following to the model likelihood:
 
 $$AGB0_p + \int_{t0_p}^{+\infty} (STPP_{t,p} -  STPM_{t,p}) \sim \mathcal{N}(\theta_s \cdot exp(\gamma_s), \sigma_{rec})$$
 
-Where: $AGB0_p$ is the biomass at $t0_p$ (the first post-logging census in plot $p$); $STPP_{t,p}$ and $STPM_{t,p}$ are the short-term productivity and mortality process terms, respectively; and the estimated equilibrium biomass in site $s$ is represented by the term $\theta_s$. The term $\gamma_s$ represents the expected deviation from this equilibrium biomass when the biomass recovery of the plots seems to exceed ($\gamma > 0$) or fall below ($\gamma < 0$) the value of biomass in the control plots. $\sigma_{rec}$ is the standard deviation of the biomass recovery. 
+Where: $AGB0_p$ is the biomass at $t0_p$ (the first post-logging census in plot $p$); $STPP_{t,p}$ and $STPM_{t,p}$ are the short-term productivity and mortality process terms, respectively; and the estimated equilibrium biomass in site $s$ is represented by the term $\theta_s$. The term $\gamma_s$ represents the expected deviation from this equilibrium biomass when the biomass recovery of the plots seems to exceed ($\gamma > 0$) or fall below ($\gamma < 0$) the value of biomass in the control plots. $\sigma_{rec}$ is the standard deviation of the biomass recovery.
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -342,8 +321,6 @@ sample_model("flux_all_simpl_recov", mdata_all)
 ## Results comparison
 
 ```{r}
-#| message: false
-#| warning: false
 fit_flux_all <- c(
   "flux_all_simpl",
   "flux_all_simpl_K",
@@ -359,8 +336,6 @@ fit_flux_all <- c(
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 obs_data <- data_rec |>
   mutate(
     val = "obs",
@@ -405,8 +380,6 @@ pov_data <- lapply(1:5, function(i) {
 ### Traceplots
 
 ```{r}
-#| message: false
-#| warning: false
 lapply(fit_flux_all, function(x) {
   mcmc_trace(x$draws(variables = c("lp__"))) +
     theme(legend.position = "none")
@@ -420,8 +393,6 @@ lapply(fit_flux_all, function(x) {
 ### Goodness of fit
 
 ```{r}
-#| message: false
-#| warning: false
 df_rmse <- pov_data |>
   group_by(variable, model) |>
   summarise(rmse = sqrt(mean((pred - obs)^2)))
@@ -451,8 +422,6 @@ pov_data |>
 The predicted productivity trajectories are presented below.
 
 ```{r}
-#| message: false
-#| warning: false
 #| fig-width: 10
 #| fig-height: 15
 df_rmse <- pov_data |>

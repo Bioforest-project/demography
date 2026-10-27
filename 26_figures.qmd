@@ -86,9 +86,7 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
   mutate(Year_of_harvest = ifelse(Site == "Paracou" & Treatment == "Logging",
                                   1987, Year_of_harvest)) |>
   mutate(trec = Year - Year_of_harvest) |>
-  filter(!(Site == "Tapajos Km67" &
-             grepl("loggedtwice", Plot) & Year > 2014)) |>
-  filter(!(Site == "Tapajos Km67" & grepl("later", Plot)))
+  filter(!(Site == "Tapajos Km67" & (Year >= 2014 | grepl("later", Plot))))
 
 
 sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
