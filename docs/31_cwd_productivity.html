@@ -68,7 +68,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./33_calibrate_cwd_model.html" rel="next">
+<link href="./32_calibrate_cwd_model.html" rel="next">
 <link href="./30_cwd_flux.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -225,6 +225,12 @@ window.Quarto = {
  <span class="menu-text">Exploration of summary statistics</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./26_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Figures for paper</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -244,8 +250,8 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./33_calibrate_cwd_model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Model calibration</span></a>
+  <a href="./32_calibrate_cwd_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Model CWM changes</span></a>
   </div>
 </li>
       </ul>
@@ -277,6 +283,12 @@ window.Quarto = {
  <span class="menu-text">Testing different versions of the productivity model</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./94_test_cwm_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Alternative models for CWM changes</span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -294,7 +306,10 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#annual-changes" id="toc-annual-changes" class="nav-link" data-scroll-target="#annual-changes">Annual changes</a></li>
   <li><a href="#cumulative-changes" id="toc-cumulative-changes" class="nav-link" data-scroll-target="#cumulative-changes">Cumulative changes</a></li>
+  <li><a href="#annual-changes---by-cohort" id="toc-annual-changes---by-cohort" class="nav-link" data-scroll-target="#annual-changes---by-cohort">Annual changes - by cohort</a></li>
   <li><a href="#cumulative-changes---by-cohort" id="toc-cumulative-changes---by-cohort" class="nav-link" data-scroll-target="#cumulative-changes---by-cohort">Cumulative changes - by cohort</a></li>
+  <li><a href="#contribution-to-cwm-change-vs-ba-change" id="toc-contribution-to-cwm-change-vs-ba-change" class="nav-link" data-scroll-target="#contribution-to-cwm-change-vs-ba-change">Contribution to CWM change vs BA change</a></li>
+  <li><a href="#contribution-to-cwm-change-vs-ba-change---by-cohort" id="toc-contribution-to-cwm-change-vs-ba-change---by-cohort" class="nav-link" data-scroll-target="#contribution-to-cwm-change-vs-ba-change---by-cohort">Contribution to CWM change vs BA change - by cohort</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -324,7 +339,8 @@ window.Quarto = {
 <section id="formula-for-the-contribution-of-fluxes" class="level2">
 <h2 class="anchored" data-anchor-id="formula-for-the-contribution-of-fluxes">Formula for the contribution of fluxes</h2>
 <p>The contribution of a given flux (recruitment, growth or mortality) at time <span class="math inline">\(t\)</span> can be written as:</p>
-<p><span class="math display">\[CF_{F,t} = \sum_{i\in F_t}\frac{ba_{i,t}  (ft_{i} - CWM_{t-1})}{BA_{t}}-\sum_{i\in F_t}\frac{ba_{i,t-1} (ft_{i} - CWM_{t-1})}{BA_{t-1}}\]</span> where <span class="math inline">\(F_t\)</span> is the set of trees contributing to a given flux between <span class="math inline">\(t-1\)</span> and <span class="math inline">\(t\)</span> (recruitment: trees recruited at <span class="math inline">\(t\)</span>; growth: trees that were measured and alive at <span class="math inline">\(t\)</span> and <span class="math inline">\(t-1\)</span>; mortality: trees that died between <span class="math inline">\(t-1\)</span> and <span class="math inline">\(t\)</span>).</p>
+<p><span class="math display">\[CF_{F,t} = \sum_{i\in F_t}\frac{ba_{i,t}  (ft_{i} - CWM_{t0})}{BA_{t}}-\sum_{i\in F_t}\frac{ba_{i,t0} (ft_{i} - CWM_{t0})}{BA_{t0}}\]</span></p>
+<p>where <span class="math inline">\(F_t\)</span> is the set of trees contributing to a given flux between <span class="math inline">\(t-1\)</span> and <span class="math inline">\(t\)</span> (recruitment: trees recruited at <span class="math inline">\(t\)</span>; growth: trees that were measured and alive at <span class="math inline">\(t\)</span> and <span class="math inline">\(t-1\)</span>; mortality: trees that died between <span class="math inline">\(t-1\)</span> and <span class="math inline">\(t\)</span>).</p>
 <p><span class="math inline">\(ba_{i,t}\)</span> is the basal area of a tree <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span>; <span class="math inline">\(ft_{i}\)</span> is the functional trait value of tree <span class="math inline">\(i\)</span>; <span class="math inline">\(BA_t\)</span> is the basal area of the entire community at <span class="math inline">\(t\)</span>; <span class="math inline">\(CWM_t\)</span> is the community weighted mean trait value at <span class="math inline">\(t\)</span>.</p>
 <p>We subtract <span class="math inline">\(CWM_{t-1}\)</span> to have negative contributions when the flux decreases the CWM between <span class="math inline">\(t-1\)</span> and <span class="math inline">\(t\)</span>; and positive contributions that increase the <span class="math inline">\(CWM\)</span>.</p>
 <p>As written, the contributions are additive:</p>
@@ -337,13 +353,30 @@ window.Quarto = {
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>plot_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/raw_data/bioforest-plot-information.csv"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(site, plot, Year_of_harvest, Treatment)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/derived_data/aggregated_data_v10.csv"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">plot_new =</span> Plot) <span class="sc">|&gt;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(Plot, <span class="st">"Plot"</span>, <span class="st">"_"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">grepl</span>(<span class="st">"cwmdiff"</span>, variable)) <span class="sc">|&gt;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(variable, <span class="fu">c</span>(<span class="st">"trait"</span>, <span class="cn">NA</span>, <span class="st">"cohort"</span>, <span class="st">"flux"</span>), <span class="at">sep =</span> <span class="st">"_"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">flux =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(flux), <span class="st">"all"</span>, flux))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>data_ba <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/derived_data/aggregated_data_v10.csv"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">grepl</span>(<span class="st">"badiff"</span>, variable)) <span class="sc">|&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(variable, <span class="fu">c</span>(<span class="cn">NA</span>, <span class="st">"cohort"</span>, <span class="st">"flux"</span>), <span class="at">sep =</span> <span class="st">"_"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">diffba =</span> value)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>data_ba_all <span class="ot">&lt;-</span> data_ba <span class="sc">|&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Plot, Year) <span class="sc">|&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">diffba =</span> <span class="fu">sum</span>(diffba), <span class="at">cohort =</span> <span class="st">"all"</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">flux =</span> <span class="st">"all"</span>, <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/derived_data/aggregated_data_v10.csv"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">grepl</span>(<span class="st">"cwmdiff"</span>, variable)) <span class="sc">|&gt;</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(plot_info, <span class="at">by =</span> <span class="fu">join_by</span>(Site <span class="sc">==</span> site, Plot <span class="sc">==</span> plot)) <span class="sc">|&gt;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(variable, <span class="fu">c</span>(<span class="st">"trait"</span>, <span class="cn">NA</span>, <span class="st">"cohort"</span>, <span class="st">"flux"</span>), <span class="at">sep =</span> <span class="st">"_"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">flux =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(flux), <span class="st">"all"</span>, flux)) <span class="sc">|&gt;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">bind_rows</span>(data_ba, data_ba_all)) <span class="sc">|&gt;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">t0 =</span> <span class="fu">case_when</span>(</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    Site <span class="sc">==</span> <span class="st">"Paracou"</span> <span class="sc">&amp;</span> cohort <span class="sc">==</span> <span class="st">"s"</span> <span class="sc">~</span> <span class="dv">1990</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    Site <span class="sc">==</span> <span class="st">"Paracou"</span> <span class="sc">&amp;</span> cohort <span class="sc">!=</span> <span class="st">"s"</span> <span class="sc">~</span> <span class="dv">1987</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    Site <span class="sc">==</span> <span class="st">"Mbaiki"</span> <span class="sc">&amp;</span> cohort <span class="sc">==</span> <span class="st">"s"</span> <span class="sc">~</span> <span class="dv">1989</span>,</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    Site <span class="sc">==</span> <span class="st">"Mbaiki"</span> <span class="sc">&amp;</span> cohort <span class="sc">!=</span> <span class="st">"s"</span> <span class="sc">~</span> <span class="dv">1986</span>,</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    Site <span class="sc">==</span> <span class="st">"SUAS"</span> <span class="sc">~</span> <span class="dv">1993</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Year <span class="sc">&gt;=</span> t0)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <section id="annual-changes" class="level3">
@@ -380,8 +413,8 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="cumulative-changes---by-cohort" class="level3">
-<h3 class="anchored" data-anchor-id="cumulative-changes---by-cohort">Cumulative changes - by cohort</h3>
+<section id="annual-changes---by-cohort" class="level3">
+<h3 class="anchored" data-anchor-id="annual-changes---by-cohort">Annual changes - by cohort</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">Paracou</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">Mbaiki</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false" href="">SUAS</a></li></ul>
 <div class="tab-content">
@@ -396,6 +429,160 @@ window.Quarto = {
 </div>
 </div>
 </div>
+</section>
+<section id="cumulative-changes---by-cohort" class="level3">
+<h3 class="anchored" data-anchor-id="cumulative-changes---by-cohort">Cumulative changes - by cohort</h3>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href="">Paracou</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href="">Mbaiki</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-3" role="tab" aria-controls="tabset-4-3" aria-selected="false" href="">SUAS</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<p><img src="31_cwd_productivity_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="960"></p>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<p><img src="31_cwd_productivity_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid" width="960"></p>
+</div>
+<div id="tabset-4-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-3-tab">
+<p><img src="31_cwd_productivity_files/figure-html/unnamed-chunk-5-3.png" class="img-fluid" width="960"></p>
+</div>
+</div>
+</div>
+</section>
+<section id="contribution-to-cwm-change-vs-ba-change" class="level3">
+<h3 class="anchored" data-anchor-id="contribution-to-cwm-change-vs-ba-change">Contribution to CWM change vs BA change</h3>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>sites <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Paracou"</span>, <span class="st">"Mbaiki"</span>, <span class="st">"SUAS"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data_cwm0 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/derived_data/aggregated_data_v10.csv"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">grepl</span>(<span class="st">"_cwm_ba$|^ba$"</span>, variable) <span class="sc">&amp;</span> Site <span class="sc">%in%</span> sites) <span class="sc">|&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">"variable"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">contains</span>(<span class="st">"cwm"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trait =</span> <span class="fu">gsub</span>(<span class="st">"_cwm_ba$"</span>, <span class="st">""</span>, name)) <span class="sc">|&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>name) <span class="sc">|&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Plot =</span> <span class="fu">gsub</span>(<span class="st">"_[0-9]+"</span>, <span class="st">""</span>, Plot)) <span class="sc">|&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Plot, trait, Year) <span class="sc">|&gt;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">cwm =</span> <span class="fu">weighted.mean</span>(value, ba), <span class="at">ba =</span> <span class="fu">mean</span>(ba)) <span class="sc">|&gt;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Plot, trait) <span class="sc">|&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">cwm =</span> cwm[Year <span class="sc">==</span> <span class="fu">min</span>(Year)], <span class="at">ba =</span> ba[Year <span class="sc">==</span> <span class="fu">min</span>(Year)])</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>gmain <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(cohort <span class="sc">!=</span> <span class="st">"all"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">group =</span> <span class="fu">paste</span>(cohort, flux, <span class="at">sep =</span> <span class="st">"_"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">data.frame</span>(<span class="at">lab =</span> labs_flux, <span class="at">group =</span> <span class="fu">names</span>(labs_flux))) <span class="sc">|&gt;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(data_cwm0) <span class="sc">|&gt;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Treatment, Plot, trait, <span class="at">group =</span> lab, Year) <span class="sc">|&gt;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">value =</span> <span class="fu">sum</span>(value <span class="sc">/</span> cwm) <span class="sc">*</span> <span class="dv">100</span>, <span class="at">diffba =</span> <span class="fu">sum</span>(diffba <span class="sc">/</span> ba) <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Plot, trait, group) <span class="sc">|&gt;</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(Year) <span class="sc">|&gt;</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">valuec =</span> <span class="fu">cumsum</span>(value), <span class="at">diffbac =</span> <span class="fu">cumsum</span>(diffba)) <span class="sc">|&gt;</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> diffbac, <span class="at">y =</span> valuec,</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">group =</span> <span class="fu">paste</span>(Plot, group), <span class="at">col =</span> <span class="fu">paste</span>(group, Treatment)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"grey"</span>) <span class="sc">+</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"grey"</span>) <span class="sc">+</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_path</span>() <span class="sc">+</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(trait <span class="sc">~</span> Site, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="dv">10</span>, <span class="st">"Paired"</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>                     [<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">9</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">7</span><span class="sc">:</span><span class="dv">8</span>, <span class="dv">5</span><span class="sc">:</span><span class="dv">6</span>)]) <span class="sc">+</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Cumulative change in BA (% of initial BA)"</span>, <span class="at">col =</span> <span class="cn">NULL</span>,</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Cumulative contribution to CWM change (% of initial CWM)"</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>, <span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>legend <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">treat =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"Logging"</span>, <span class="st">"Control"</span>), <span class="dv">5</span>),</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>  <span class="at">flux =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"Recruitment"</span>, <span class="st">"Growth"</span>, <span class="st">"Mortality"</span>, <span class="st">"Growth"</span>, <span class="st">"Mortality"</span>),</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">each =</span> <span class="dv">2</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>  <span class="at">cohort =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">"Recruits"</span>, <span class="dv">6</span>), <span class="fu">rep</span>(<span class="st">"Survivors"</span>, <span class="dv">4</span>))</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> (treat <span class="sc">==</span> <span class="st">"Logging"</span>) <span class="sc">*</span> <span class="fl">0.25</span> <span class="sc">+</span> (cohort <span class="sc">==</span> <span class="st">"Survivors"</span>) <span class="sc">*</span> <span class="fl">0.5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(x, flux)) <span class="sc">+</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">col =</span> <span class="fu">paste</span>(flux, cohort, treat)), <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.125</span>, <span class="at">y =</span> <span class="fl">3.5</span>, <span class="at">label =</span> <span class="st">"Recruits"</span>) <span class="sc">+</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.625</span>, <span class="at">y =</span> <span class="fl">3.5</span>, <span class="at">label =</span> <span class="st">"Survivors"</span>) <span class="sc">+</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> <span class="fl">0.5</span>, <span class="at">label =</span> <span class="st">"Control"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.25</span>, <span class="at">y =</span> <span class="fl">0.5</span>, <span class="at">label =</span> <span class="st">"Logging"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.5</span>, <span class="at">y =</span> <span class="fl">0.5</span>, <span class="at">label =</span> <span class="st">"Control"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.75</span>, <span class="at">y =</span> <span class="fl">0.5</span>, <span class="at">label =</span> <span class="st">"Logging"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="dv">10</span>, <span class="st">"Paired"</span>)</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>                      [<span class="fu">c</span>(<span class="dv">3</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">7</span><span class="sc">:</span><span class="dv">8</span>, <span class="dv">9</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">5</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)]) <span class="sc">+</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">x =</span> <span class="fl">0.375</span>, <span class="at">y =</span> <span class="fl">0.6</span>, <span class="at">yend =</span> <span class="fl">3.2</span>) <span class="sc">+</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">x =</span> <span class="fl">0.125</span>, <span class="at">y =</span> <span class="fl">0.6</span>, <span class="at">yend =</span> <span class="fl">3.2</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">x =</span> <span class="fl">0.625</span>, <span class="at">y =</span> <span class="fl">0.6</span>, <span class="at">yend =</span> <span class="fl">3.2</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">2.5</span>) <span class="sc">+</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lims</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.1</span>, <span class="fl">0.8</span>)) <span class="sc">+</span></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>, <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>ggpubr<span class="sc">::</span><span class="fu">ggarrange</span>(gmain, ggpubr<span class="sc">::</span><span class="fu">ggarrange</span>(<span class="cn">NULL</span>, legend, <span class="cn">NULL</span>, <span class="at">nrow =</span> <span class="dv">1</span>),</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>  <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">heights =</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">1</span>)</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<p><img src="31_cwd_productivity_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="1152"></p>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"paper_cwm/figures/flux_cwm.png"</span>, <span class="at">height =</span> <span class="dv">10</span>, <span class="at">width =</span> <span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</section>
+<section id="contribution-to-cwm-change-vs-ba-change---by-cohort" class="level3">
+<h3 class="anchored" data-anchor-id="contribution-to-cwm-change-vs-ba-change---by-cohort">Contribution to CWM change vs BA change - by cohort</h3>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>gmain <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">group =</span> <span class="fu">case_when</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    cohort <span class="sc">==</span> <span class="st">"n"</span> <span class="sc">~</span> <span class="st">"Recruits"</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    cohort <span class="sc">==</span> <span class="st">"s"</span> <span class="sc">~</span> <span class="st">"Survivors"</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(cohort <span class="sc">!=</span> <span class="st">"all"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(data_cwm0) <span class="sc">|&gt;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Treatment, Plot, trait, group, Year) <span class="sc">|&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">value =</span> <span class="fu">sum</span>(value <span class="sc">/</span> cwm) <span class="sc">*</span> <span class="dv">100</span>, <span class="at">diffba =</span> <span class="fu">sum</span>(diffba <span class="sc">/</span> ba) <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Plot, trait, group) <span class="sc">|&gt;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(Year) <span class="sc">|&gt;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">valuec =</span> <span class="fu">cumsum</span>(value), <span class="at">diffbac =</span> <span class="fu">cumsum</span>(diffba)) <span class="sc">|&gt;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> diffbac, <span class="at">y =</span> valuec,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">group =</span> <span class="fu">paste</span>(Plot, group), <span class="at">col =</span> <span class="fu">paste</span>(group, Treatment)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_path</span>() <span class="sc">+</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(trait <span class="sc">~</span> Site, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="dv">10</span>, <span class="st">"Paired"</span>)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>                     [<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="dv">5</span><span class="sc">:</span><span class="dv">6</span>)]) <span class="sc">+</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Cumulative change in BA (% of initial BA)"</span>, <span class="at">col =</span> <span class="cn">NULL</span>,</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Cumulative contribution to CWM change (% of initial CWM)"</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>legend <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">treat =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"Logging"</span>, <span class="st">"Control"</span>), <span class="dv">2</span>),</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">cohort =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">"Recruits"</span>, <span class="dv">2</span>), <span class="fu">rep</span>(<span class="st">"Survivors"</span>, <span class="dv">2</span>))</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(cohort, treat)) <span class="sc">+</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">col =</span> <span class="fu">paste</span>(cohort, treat)), <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="dv">10</span>, <span class="st">"Paired"</span>)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>                      [<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="dv">5</span><span class="sc">:</span><span class="dv">6</span>)]) <span class="sc">+</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>, <span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>ggpubr<span class="sc">::</span><span class="fu">ggarrange</span>(gmain, ggpubr<span class="sc">::</span><span class="fu">ggarrange</span>(<span class="cn">NULL</span>, legend, <span class="cn">NULL</span>, <span class="at">nrow =</span> <span class="dv">1</span>),</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">heights =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">1</span>)</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<p><img src="31_cwd_productivity_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="768"></p>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"paper_cwm/figures/cohort_cwm.png"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<p>:::</p>
 
 
 </section>
@@ -809,8 +996,8 @@ window.Quarto = {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./33_calibrate_cwd_model.html" class="pagination-link" aria-label="Model calibration">
-        <span class="nav-page-text">Model calibration</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./32_calibrate_cwd_model.html" class="pagination-link" aria-label="Model CWM changes">
+        <span class="nav-page-text">Model CWM changes</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
