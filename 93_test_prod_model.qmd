@@ -279,6 +279,8 @@ $$AGB0_p + \int_{t0_p}^{+\infty} (STPP_{t,p} -  STPM_{t,p}) \sim \mathcal{N}(\th
 
 Where: $AGB0_p$ is the biomass at $t0_p$ (the first post-logging census in plot $p$); $STPP_{t,p}$ and $STPM_{t,p}$ are the short-term productivity and mortality process terms, respectively; and the estimated equilibrium biomass in site $s$ is represented by the term $\theta_s$. The term $\gamma_s$ represents the expected deviation from this equilibrium biomass when the biomass recovery of the plots seems to exceed ($\gamma > 0$) or fall below ($\gamma < 0$) the value of biomass in the control plots. $\sigma_{rec}$ is the standard deviation of the biomass recovery.
 
+In this model, we allowed the kurtosis parameter $k$ to vary between plots, to allow for more flexibility in the productivity curve. We chose to leave $\tau$ defined at the site level, because it reflects pioneer species dynamics that we expect to be consistent within site (similar composition).  
+
 ```{r}
 #| eval: false
 ind_rec <- data_rec |>
@@ -307,6 +309,7 @@ mdata_all <- list(
   site_log = data_rec$sitenum,
   plot_log = data_rec$plotnum,
   site_plot = ind_rec$sitenum,
+  sd_eq = summarise(group_by(data_old, Site), sd = sd(stocks))$sd,
   theta_bounds = c(bounds$theta_min, bounds$theta_max),
   lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
   alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
@@ -315,7 +318,7 @@ mdata_all <- list(
   k_bounds = c(bounds$k_min, bounds$k_max),
   omega_bounds = c(bounds$omega_min, bounds$omega_max)
 )
-sample_model("flux_all_simpl_recov", mdata_all)
+sample_model("flux_recov_kp", mdata_all)
 ```
 
 ## Results comparison
@@ -326,7 +329,7 @@ fit_flux_all <- c(
   "flux_all_simpl_K",
   "flux_all_simpl_Ksite_nohyper",
   "flux_all_simpl_Ksite",
-  "flux_all_simpl_recov"
+  "flux_recov_kp"
 ) |>
   lapply(function(name) {
     as_cmdstan_fit(list.files(paste0("chains/", name),
@@ -432,6 +435,10 @@ ind_site <- data_rec |>
   select(Site, sitenum) |>
   unique() |>
   arrange(sitenum)
+ind_plot <- data_rec |>
+  select(Site, sitenum, plotnum) |>
+  unique() |>
+  arrange(sitenum, plotnum)
 df_k <- lapply(1:5, function(i) {
   if (i == 1) {
     ind_site |>
@@ -441,14 +448,14 @@ df_k <- lapply(1:5, function(i) {
     ind_site |>
       mutate(model = "One K", k = paste0(k$median, " [", k$q5, ",", k$q95, "]"))
   } else {
-    fit_flux_all[[i]]$summary(c("k_s")) |>
-      mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+    fit_flux_all[[i]]$summary(c("k_s", "k_p")[1 + (i > 4)]) |>
+      bind_cols(list(ind_site, ind_plot)[[1 + (i > 4)]]) |> # add site/plot info
+      group_by(Site, sitenum) |>
+      summarise(across(where(is.numeric), ~ round(mean(.x), 2))) |>
       mutate(k = paste0(median, " [", q5, ",", q95, "]")) |>
-      bind_cols(ind_site) |>
-      mutate(model = c(
-        "Site K", "Site K + Hyperdistribution",
-        "Recovery term"
-      )[i - 2]) |>
+      mutate(
+             model = c("Site K", "Site K + Hyperdistribution", "Recovery term")
+             [i - 2]) |>
       select(Site, sitenum, model, k)
   }
 }) |>
