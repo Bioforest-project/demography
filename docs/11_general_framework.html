@@ -235,6 +235,12 @@ window.Quarto = {
  <span class="menu-text">Exploration of summary statistics</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./26_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Figures for paper</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -254,8 +260,8 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./33_calibrate_cwd_model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Model calibration</span></a>
+  <a href="./32_calibrate_cwd_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Model CWM changes</span></a>
   </div>
 </li>
       </ul>
@@ -285,6 +291,12 @@ window.Quarto = {
   <div class="sidebar-item-container"> 
   <a href="./93_test_prod_model.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Testing different versions of the productivity model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./94_test_cwm_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Alternative models for CWM changes</span></a>
   </div>
 </li>
       </ul>
@@ -402,8 +414,8 @@ window.Quarto = {
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div class="grViz html-widget html-fill-item" id="htmlwidget-6a5305afd7826e7e58c9" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-6a5305afd7826e7e58c9">{"x":{"diagram":"\ndigraph {\n\n  rankdir=LR\n\n  graph [overlap = true, fontsize = 10]\n\n  subgraph cluster_ba{\n    label=\"Basal area\"; fontsize = 14;\n    node [shape = box, fillcolor=\"coral\", style=filled, fontsize=12]\n    ba_stock [label=\"Stock\"]\n    ba_in [label=\"Gain\"]\n    ba_out [label=\"Loss\"]\n  }\n\n  node [shape = box, fillcolor=\"coral\", style=filled]\n  {rank=same\n  cwm [label=\"Functional\ncomposition\"]\n  div [label=\"Functional\ndiversity\"]\n  }\n  node [fillcolor=\"powderblue\"]\n  env [label=\"Environmental\nvariables\"]\n  intensity [label=\"Logging\nintensity\"]\n\n  node [shape = ellipse, fillcolor=\"whitesmoke\"]\n  {rank=same\n  closure[label=\"Canopy\nclosure\"]\n  vmax[label=\"Equilibrium\nturnover\nrate\"]\n  }\n\n  intensity -> closure\n  closure -> {ba_in cwm}\n  vmax -> {ba_out ba_in}\n  env -> {cwm div vmax}\n  cwm -> {ba_in ba_out div}\n  ba_stock -> closure\n\n  edge [style = bold]\n  div -> ba_in\n\n  edge [style = dashed]\n  ba_in -> ba_stock\n  ba_out -> ba_stock\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-1e29517d6dc4db869526" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-1e29517d6dc4db869526">{"x":{"diagram":"\ndigraph {\n\n  rankdir=LR\n\n  graph [overlap = true, fontsize = 10]\n\n  subgraph cluster_ba{\n    label=\"Basal area\"; fontsize = 14;\n    node [shape = box, fillcolor=\"coral\", style=filled, fontsize=12]\n    ba_stock [label=\"Stock\"]\n    ba_in [label=\"Gain\"]\n    ba_out [label=\"Loss\"]\n  }\n\n  node [shape = box, fillcolor=\"coral\", style=filled]\n  {rank=same\n  cwm [label=\"Functional\ncomposition\"]\n  div [label=\"Functional\ndiversity\"]\n  }\n  node [fillcolor=\"powderblue\"]\n  env [label=\"Environmental\nvariables\"]\n  intensity [label=\"Logging\nintensity\"]\n\n  node [shape = ellipse, fillcolor=\"whitesmoke\"]\n  {rank=same\n  closure[label=\"Canopy\nclosure\"]\n  vmax[label=\"Equilibrium\nturnover\nrate\"]\n  }\n\n  intensity -> closure\n  closure -> {ba_in cwm}\n  vmax -> {ba_out ba_in}\n  env -> {cwm div vmax}\n  cwm -> {ba_in ba_out div}\n  ba_stock -> closure\n\n  edge [style = bold]\n  div -> ba_in\n\n  edge [style = dashed]\n  ba_in -> ba_stock\n  ba_out -> ba_stock\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section>

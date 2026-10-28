@@ -9,10 +9,8 @@ int_stocks <- function(x,
   k <- ba0 - thetainf / omega - ((theta0 - thetainf) * lambda) /
     (omega * lambda - 1) -
     (16 * exp(2) * delta * thetainf) / (tau^2 * (2 * omega - tau)^3)
-  return(
-    thetainf / omega + k * exp(-omega * x) + ((theta0 - thetainf) * lambda) /
-      (omega * lambda - 1) * exp(-lambda * x) + (exp(1 - x / tau))^2 *
-      (2 * delta * thetainf) / (tau^2 * (2 * omega - tau)) *
-      (x^2 - x * 4 / (2 * omega - tau) + 8 / (2 * omega - tau)^2)
-  )
+  thetainf / omega + k * exp(-omega * x) + ((theta0 - thetainf) * lambda) /
+    (omega * lambda - 1) * exp(-lambda * x) + (exp(1 - x / tau))^2 *
+    (2 * delta * thetainf) / (tau^2 * (2 * omega - tau)) *
+    (x^2 - x * 4 / (2 * omega - tau) + 8 / (2 * omega - tau)^2)
 }

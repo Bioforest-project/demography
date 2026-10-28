@@ -1,12 +1,8 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
 
 library(tidyverse)
 library(dplyr)
-list.files("r", full.names = TRUE, pattern = ".R") |>
-  lapply(source)
 ```
 
 # Composition change data {.unnumbered}
@@ -15,7 +11,9 @@ list.files("r", full.names = TRUE, pattern = ".R") |>
 
 The contribution of a given flux (recruitment, growth or mortality) at time $t$ can be written as:
 
-$$CF_{F,t} = \sum_{i\in F_t}\frac{ba_{i,t}  (ft_{i} - CWM_{t-1})}{BA_{t}}-\sum_{i\in F_t}\frac{ba_{i,t-1} (ft_{i} - CWM_{t-1})}{BA_{t-1}}$$ where $F_t$ is the set of trees contributing to a given flux between $t-1$ and $t$ (recruitment: trees recruited at $t$; growth: trees that were measured and alive at $t$ and $t-1$; mortality: trees that died between $t-1$ and $t$).
+$$CF_{F,t} = \sum_{i\in F_t}\frac{ba_{i,t}  (ft_{i} - CWM_{t0})}{BA_{t}}-\sum_{i\in F_t}\frac{ba_{i,t0} (ft_{i} - CWM_{t0})}{BA_{t0}}$$ 
+
+where $F_t$ is the set of trees contributing to a given flux between $t-1$ and $t$ (recruitment: trees recruited at $t$; growth: trees that were measured and alive at $t$ and $t-1$; mortality: trees that died between $t-1$ and $t$).
 
 $ba_{i,t}$ is the basal area of a tree $i$ at time $t$; $ft_{i}$ is the functional trait value of tree $i$; $BA_t$ is the basal area of the entire community at $t$; $CWM_t$ is the community weighted mean trait value at $t$.
 
@@ -28,17 +26,32 @@ $$CWM_t= CWM_{t-1} + CF_{G,t} + CF_{R,t}+CF_{M,t}$$
 ## Data
 
 ```{r}
-#| message: false
-#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
+data_ba <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
+  filter(grepl("badiff", variable)) |>
+  separate(variable, c(NA, "cohort", "flux"), sep = "_") |>
+  rename(diffba = value)
+data_ba_all <- data_ba |>
+  group_by(Site, Plot, Year) |>
+  summarise(
+    diffba = sum(diffba), cohort = "all",
+    flux = "all", .groups = "drop"
+  )
 data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
-  mutate(plot_new = Plot) |>
-  separate(Plot, "Plot", "_") |>
-  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   filter(grepl("cwmdiff", variable)) |>
+  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
   separate(variable, c("trait", NA, "cohort", "flux"), sep = "_") |>
-  mutate(flux = ifelse(is.na(flux), "all", flux))
+  mutate(flux = ifelse(is.na(flux), "all", flux)) |>
+  left_join(bind_rows(data_ba, data_ba_all)) |>
+  mutate(t0 = case_when(
+    Site == "Paracou" & cohort == "s" ~ 1990,
+    Site == "Paracou" & cohort != "s" ~ 1987,
+    Site == "Mbaiki" & cohort == "s" ~ 1989,
+    Site == "Mbaiki" & cohort != "s" ~ 1986,
+    Site == "SUAS" ~ 1993
+  )) |>
+  filter(Year >= t0)
 ```
 
 ### Annual changes
@@ -46,8 +59,6 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
 ::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 
@@ -65,9 +76,9 @@ purrr::walk(
     print(
       data |>
         filter(Site == s) |>
-        group_by(plot_new, Treatment, Year, trait, flux) |>
+        group_by(Plot, Treatment, Year, trait, flux) |>
         summarise(value = sum(value)) |>
-        ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
+        ggplot(aes(x = Year, y = value, group = Plot, col = Treatment)) +
         geom_line() +
         geom_point() +
         facet_grid(trait ~ flux,
@@ -88,8 +99,6 @@ purrr::walk(
 ::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
 #| fig.height: 7
 #| fig.width: 10
 
@@ -107,12 +116,96 @@ purrr::walk(
     print(
       data |>
         filter(Site == s) |>
-        group_by(plot_new, Treatment, Year, trait, flux) |>
+        group_by(Plot, Treatment, Year, trait, flux) |>
         summarise(value = sum(value)) |>
-        arrange(plot_new, Year) |>
-        group_by(plot_new, trait, flux) |>
+        arrange(Plot, Year) |>
+        group_by(Plot, trait, flux) |>
         mutate(value = cumsum(value)) |>
-        ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
+        ggplot(aes(x = Year, y = value, group = Plot, col = Treatment)) +
+        geom_line() +
+        geom_point() +
+        facet_grid(trait ~ flux,
+          scales = "free",
+          labeller = labeller(flux = labs_flux)
+        ) +
+        labs(y = NULL, x = NULL) +
+        theme_minimal()
+    )
+    cat("\n\n")
+  }
+)
+```
+:::
+
+### Annual changes - by cohort
+
+::: panel-tabset
+```{r}
+#| results: asis
+#| fig.height: 7
+#| fig.width: 10
+
+sites <- c("Paracou", "Mbaiki", "SUAS")
+labs_flux <- c(
+  all_all = "Change in CWM",
+  s_gba = "Survivors' growth",
+  s_mba = "Survivors' mortality",
+  n_rba = "Recruitment",
+  n_gba = "Recruits' growth",
+  n_mba = "Recruits' mortality"
+)
+purrr::walk(
+  sites,
+  \(s) {
+    cat("#### ", s, "\n\n")
+    print(
+      data |>
+        filter(Site == s) |>
+        mutate(flux = paste0(cohort, "_", flux)) |>
+        ggplot(aes(x = Year, y = value, group = Plot, col = Treatment)) +
+        geom_line() +
+        geom_point() +
+        facet_grid(trait ~ flux,
+          scales = "free",
+          labeller = labeller(flux = labs_flux)
+        ) +
+        labs(y = NULL, x = NULL) +
+        theme_minimal()
+    )
+    cat("\n\n")
+  }
+)
+```
+:::
+
+### Cumulative changes - by cohort
+
+::: panel-tabset
+```{r}
+#| results: asis
+#| fig.height: 7
+#| fig.width: 10
+
+sites <- c("Paracou", "Mbaiki", "SUAS")
+labs_flux <- c(
+  all_all = "Change in CWM",
+  s_gba = "Survivors' growth",
+  s_mba = "Survivors' mortality",
+  n_rba = "Recruitment",
+  n_gba = "Recruits' growth",
+  n_mba = "Recruits' mortality"
+)
+purrr::walk(
+  sites,
+  \(s) {
+    cat("#### ", s, "\n\n")
+    print(
+      data |>
+        filter(Site == s) |>
+        arrange(Plot, Year) |>
+        group_by(Plot, trait, flux = paste0(cohort, "_", flux)) |>
+        mutate(value = cumsum(value)) |>
+        ggplot(aes(x = Year, y = value, group = Plot, col = Treatment)) +
         geom_line() +
         geom_point() +
         facet_grid(trait ~ flux,
@@ -129,48 +222,136 @@ purrr::walk(
 :::
 
 
+### Contribution to CWM change vs BA change
 
-### Cumulative changes - by cohort
-
-::: panel-tabset
 ```{r}
 #| results: asis
-#| message: false
-#| warning: false
-#| fig.height: 7
-#| fig.width: 10
-
+#| fig.height: 12
+#| fig.width: 12
 sites <- c("Paracou", "Mbaiki", "SUAS")
-labs_flux <- c(
-  all_all = "Change in CWM",
-  s_gba = "Contribution of survivors' growth",
-  s_mba = "Contribution of survivors' mortality",
-  n_rba = "Contribution of recruitment",
-  n_gba = "Contribution of recruits' growth",
-  n_mba = "Contribution of recruits' mortality"
+data_cwm0 <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
+  filter(grepl("_cwm_ba$|^ba$", variable) & Site %in% sites) |>
+  pivot_wider(names_from = "variable") |>
+  pivot_longer(cols = contains("cwm")) |>
+  mutate(trait = gsub("_cwm_ba$", "", name)) |>
+  select(-name) |>
+  mutate(Plot = gsub("_[0-9]+", "", Plot)) |>
+  group_by(Site, Plot, trait, Year) |>
+  summarise(cwm = weighted.mean(value, ba), ba = mean(ba)) |>
+  group_by(Site, Plot, trait) |>
+  summarise(cwm = cwm[Year == min(Year)], ba = ba[Year == min(Year)])
+gmain <- data |>
+  filter(cohort != "all") |>
+  mutate(group = paste(cohort, flux, sep = "_")) |>
+  left_join(data.frame(lab = labs_flux, group = names(labs_flux))) |>
+  left_join(data_cwm0) |>
+  group_by(Site, Treatment, Plot, trait, group = lab, Year) |>
+  summarise(value = sum(value / cwm) * 100, diffba = sum(diffba / ba) * 100) |>
+  group_by(Site, Plot, trait, group) |>
+  arrange(Year) |>
+  mutate(valuec = cumsum(value), diffbac = cumsum(diffba)) |>
+  ggplot(aes(
+    x = diffbac, y = valuec,
+    group = paste(Plot, group), col = paste(group, Treatment)
+  )) +
+  geom_vline(xintercept = 0, lty = 2, col = "grey") +
+  geom_hline(yintercept = 0, lty = 2, col = "grey") +
+  geom_path() +
+  geom_point() +
+  facet_grid(trait ~ Site, scales = "free_y") +
+  scale_color_manual(values = RColorBrewer::brewer.pal(10, "Paired")
+  [c(1:4, 9:10, 7:8, 5:6)]) +
+  labs(
+    x = "Cumulative change in BA (% of initial BA)", col = NULL,
+    y = "Cumulative contribution to CWM change (% of initial CWM)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none", panel.grid = element_blank())
+
+legend <- data.frame(
+  treat = rep(c("Logging", "Control"), 5),
+  flux = rep(c("Recruitment", "Growth", "Mortality", "Growth", "Mortality"),
+    each = 2
+  ),
+  cohort = c(rep("Recruits", 6), rep("Survivors", 4))
+) |>
+  mutate(x = (treat == "Logging") * 0.25 + (cohort == "Survivors") * 0.5) |>
+  ggplot(aes(x, flux)) +
+  geom_point(aes(col = paste(flux, cohort, treat)), size = 5) +
+  annotate(geom = "text", x = 0.125, y = 3.5, label = "Recruits") +
+  annotate(geom = "text", x = 0.625, y = 3.5, label = "Survivors") +
+  annotate(geom = "text", x = 0, y = 0.5, label = "Control", size = 3) +
+  annotate(geom = "text", x = 0.25, y = 0.5, label = "Logging", size = 3) +
+  annotate(geom = "text", x = 0.5, y = 0.5, label = "Control", size = 3) +
+  annotate(geom = "text", x = 0.75, y = 0.5, label = "Logging", size = 3) +
+  scale_colour_manual(values = RColorBrewer::brewer.pal(10, "Paired")
+  [c(3:4, 7:8, 9:10, 5:6, 1:2)]) +
+  geom_segment(x = 0.375, y = 0.6, yend = 3.2) +
+  geom_segment(x = 0.125, y = 0.6, yend = 3.2, lty = 2) +
+  geom_segment(x = 0.625, y = 0.6, yend = 3.2, lty = 2) +
+  geom_hline(yintercept = 1.5) +
+  geom_hline(yintercept = 2.5) +
+  labs(x = NULL, y = NULL) +
+  lims(x = c(-0.1, 0.8)) +
+  theme_minimal() +
+  theme(
+    legend.position = "none", panel.grid = element_blank(),
+    axis.text.x = element_blank()
+  )
+ggpubr::ggarrange(gmain, ggpubr::ggarrange(NULL, legend, NULL, nrow = 1),
+  nrow = 2, heights = c(5, 1)
 )
-purrr::walk(
-  sites,
-  \(s) {
-    cat("#### ", s, "\n\n")
-    print(
-      data |>
-        filter(Site == s) |>
-        arrange(plot_new, Year) |>
-        group_by(plot_new, trait, flux = paste0(cohort, "_", flux)) |>
-        mutate(value = cumsum(value)) |>
-        ggplot(aes(x = Year, y = value, group = plot_new, col = Treatment)) +
-        geom_line() +
-        geom_point() +
-        facet_grid(trait ~ flux,
-          scales = "free",
-          labeller = labeller(flux = labs_flux)
-        ) +
-        labs(y = NULL, x = NULL) +
-        theme_minimal()
-    )
-    cat("\n\n")
-  }
+ggsave("paper_cwm/figures/flux_cwm.png", height = 10, width = 8)
+```
+
+### Contribution to CWM change vs BA change - by cohort
+
+```{r}
+#| results: asis
+#| fig.height: 10
+#| fig.width: 8
+
+gmain <- data |>
+  mutate(group = case_when(
+    cohort == "n" ~ "Recruits",
+    cohort == "s" ~ "Survivors"
+  )) |>
+  filter(cohort != "all") |>
+  left_join(data_cwm0) |>
+  group_by(Site, Treatment, Plot, trait, group, Year) |>
+  summarise(value = sum(value / cwm) * 100, diffba = sum(diffba / ba) * 100) |>
+  group_by(Site, Plot, trait, group) |>
+  arrange(Year) |>
+  mutate(valuec = cumsum(value), diffbac = cumsum(diffba)) |>
+  ggplot(aes(
+    x = diffbac, y = valuec,
+    group = paste(Plot, group), col = paste(group, Treatment)
+  )) +
+  geom_path() +
+  geom_point() +
+  facet_grid(trait ~ Site, scales = "free") +
+  scale_color_manual(values = RColorBrewer::brewer.pal(10, "Paired")
+  [c(1:2, 5:6)]) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(
+    x = "Cumulative change in BA (% of initial BA)", col = NULL,
+    y = "Cumulative contribution to CWM change (% of initial CWM)"
+  )
+legend <- data.frame(
+  treat = rep(c("Logging", "Control"), 2),
+  cohort = c(rep("Recruits", 2), rep("Survivors", 2))
+) |>
+  ggplot(aes(cohort, treat)) +
+  geom_point(aes(col = paste(cohort, treat)), size = 5) +
+  scale_colour_manual(values = RColorBrewer::brewer.pal(10, "Paired")
+  [c(1:2, 5:6)]) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "none", panel.grid = element_blank())
+ggpubr::ggarrange(gmain, ggpubr::ggarrange(NULL, legend, NULL, nrow = 1),
+  nrow = 2, heights = c(6, 1)
 )
+ggsave("paper_cwm/figures/cohort_cwm.png")
 ```
 :::

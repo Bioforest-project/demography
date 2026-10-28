@@ -8,7 +8,30 @@
       }
     ]
   },
+  "Bioconductor": {
+    "Version": "3.22"
+  },
   "Packages": {
+    "BiocManager": {
+      "Package": "BiocManager",
+      "Version": "1.30.27",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "utils"
+      ],
+      "Hash": "594af2c6021b55271b6759d004a25ca2"
+    },
+    "BiocVersion": {
+      "Package": "BiocVersion",
+      "Version": "3.22.0",
+      "Source": "Repository",
+      "Repository": "https://bioconductor.org/packages/3.22/bioc",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "4a4115a819943b3a6010e77a90bd6a2f"
+    },
     "DBI": {
       "Package": "DBI",
       "Version": "1.2.3",
@@ -502,6 +525,25 @@
       ],
       "Hash": "c9a0df4fd00d583a3dcfd98f4f341086"
     },
+    "colorBlindness": {
+      "Package": "colorBlindness",
+      "Version": "0.1.9",
+      "Source": "Bioconductor",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "colorspace",
+        "cowplot",
+        "ggplot2",
+        "grDevices",
+        "graphics",
+        "grid",
+        "gridGraphics",
+        "gtable",
+        "methods"
+      ],
+      "Hash": "4cd47b0a9519b68ba3cd363dce6a6dbb"
+    },
     "colorspace": {
       "Package": "colorspace",
       "Version": "2.1-2",
@@ -953,7 +995,7 @@
     },
     "ggplot2": {
       "Package": "ggplot2",
-      "Version": "4.0.1",
+      "Version": "4.0.3",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -971,7 +1013,7 @@
         "vctrs",
         "withr"
       ],
-      "Hash": "1bfa14b2a1668b3569dafb0478b2636b"
+      "Hash": "98520fe6b2745c466dca8e46aaa86242"
     },
     "ggpubr": {
       "Package": "ggpubr",
@@ -1134,6 +1176,18 @@
         "utils"
       ],
       "Hash": "7d7f283939f563670a697165b2cf5560"
+    },
+    "gridGraphics": {
+      "Package": "gridGraphics",
+      "Version": "0.5-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "grDevices",
+        "graphics",
+        "grid"
+      ],
+      "Hash": "5b79228594f02385d4df4979284879ae"
     },
     "gtable": {
       "Package": "gtable",

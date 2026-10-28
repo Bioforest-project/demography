@@ -1,4 +1,4 @@
-sample_model <- function(model, mdata, name = NULL) {
+sample_model <- function(model, mdata, name = NULL, niter = 2000) {
   if (is.null(name)) name <- model
   model_path <- file.path("models", paste0(model, ".stan"))
   stan_model <- cmdstan_model(model_path)
@@ -10,7 +10,9 @@ sample_model <- function(model, mdata, name = NULL) {
     chains = 4,
     parallel_chains = 4,
     save_warmup = FALSE,
-    output_dir = chains_path
+    output_dir = chains_path,
+    iter_warmup = floor(niter / 2),
+    iter_sampling = ceiling(niter / 2)
   )
   print(paste(name, "done!"))
 }

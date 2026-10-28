@@ -1,8 +1,5 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
-
 library(tidyverse)
 library(cmdstanr)
 library(bayesplot)
@@ -21,8 +18,6 @@ Here we tested different versions of the demographic rates model, with some chan
 ## Data
 
 ```{r}
-#| message: false
-#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
   select(site, plot = new_plot, Year_of_harvest, Treatment) |>
@@ -46,9 +41,7 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
     1987, Year_of_harvest
   )) |>
   mutate(trec = Year - Year_of_harvest) |>
-  filter(!(Site == "Tapajos Km67" &
-             grepl("loggedtwice", Plot) & Year > 2014)) |>
-  filter(!(Site == "Tapajos Km67" & grepl("later", Plot)))
+  filter(!(Site == "Tapajos Km67" & (Year >= 2014 | grepl("later", Plot))))
 
 sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
   filter(ncensus >= 10)
@@ -59,8 +52,6 @@ data <- data |>
 We used the following parameter bounds when calibrating the model.
 
 ```{r}
-#| message: false
-#| warning: false
 bounds <- data.frame(
   "theta_min" = 50,
   "theta_max" = 1000,
@@ -87,8 +78,6 @@ bounds |>
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 data_rec <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
   subset(Treatment == "Logging" & trec > 0) |>
@@ -116,8 +105,6 @@ In this version, the kurtosis parameter is set to $\kappa = 2$ and the productiv
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{2} $$
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -159,8 +146,6 @@ In this version, the kurtosis parameter $\kappa$ is fitted, with one value commo
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa} $$
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -203,8 +188,6 @@ In this version, the kurtosis parameter $\kappa$ is fitted, with one value per s
 $$ STPprod_{p,t} = \delta_p \cdot \left( \frac{t}{\tau_s} \cdot exp(1-\frac{t}{\tau_s}) \right)^{\kappa_s} $$
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -251,8 +234,6 @@ We also added a hyperdistribution to all parameters $\kappa_s$:
 $$\kappa_s \sim \mathcal{N}(\mu_{\kappa}, \sigma_{\kappa})$$
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -290,17 +271,17 @@ sample_model("flux_all_simpl_Ksite", mdata_all)
 
 ### AGB recovery
 
-Additionally, we wanted to incorporate into the model our expectation that the total recovered biomass at equilibrium would be close to the parameter $\theta$, i.e. the equilibrium biomass estimated using the biomass of the control plots. 
+Additionally, we wanted to incorporate into the model our expectation that the total recovered biomass at equilibrium would be close to the parameter $\theta$, i.e. the equilibrium biomass estimated using the biomass of the control plots.
 
 Starting from the best previous model (with one kurtosis value per site and no hyperdistribution), we added the following to the model likelihood:
 
 $$AGB0_p + \int_{t0_p}^{+\infty} (STPP_{t,p} -  STPM_{t,p}) \sim \mathcal{N}(\theta_s \cdot exp(\gamma_s), \sigma_{rec})$$
 
-Where: $AGB0_p$ is the biomass at $t0_p$ (the first post-logging census in plot $p$); $STPP_{t,p}$ and $STPM_{t,p}$ are the short-term productivity and mortality process terms, respectively; and the estimated equilibrium biomass in site $s$ is represented by the term $\theta_s$. The term $\gamma_s$ represents the expected deviation from this equilibrium biomass when the biomass recovery of the plots seems to exceed ($\gamma > 0$) or fall below ($\gamma < 0$) the value of biomass in the control plots. $\sigma_{rec}$ is the standard deviation of the biomass recovery. 
+Where: $AGB0_p$ is the biomass at $t0_p$ (the first post-logging census in plot $p$); $STPP_{t,p}$ and $STPM_{t,p}$ are the short-term productivity and mortality process terms, respectively; and the estimated equilibrium biomass in site $s$ is represented by the term $\theta_s$. The term $\gamma_s$ represents the expected deviation from this equilibrium biomass when the biomass recovery of the plots seems to exceed ($\gamma > 0$) or fall below ($\gamma < 0$) the value of biomass in the control plots. $\sigma_{rec}$ is the standard deviation of the biomass recovery.
+
+In this model, we allowed the kurtosis parameter $k$ to vary between plots, to allow for more flexibility in the productivity curve. We chose to leave $\tau$ defined at the site level, because it reflects pioneer species dynamics that we expect to be consistent within site (similar composition).  
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -328,6 +309,7 @@ mdata_all <- list(
   site_log = data_rec$sitenum,
   plot_log = data_rec$plotnum,
   site_plot = ind_rec$sitenum,
+  sd_eq = summarise(group_by(data_old, Site), sd = sd(stocks))$sd,
   theta_bounds = c(bounds$theta_min, bounds$theta_max),
   lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
   alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
@@ -336,20 +318,18 @@ mdata_all <- list(
   k_bounds = c(bounds$k_min, bounds$k_max),
   omega_bounds = c(bounds$omega_min, bounds$omega_max)
 )
-sample_model("flux_all_simpl_recov", mdata_all)
+sample_model("flux_recov_kp", mdata_all)
 ```
 
 ## Results comparison
 
 ```{r}
-#| message: false
-#| warning: false
 fit_flux_all <- c(
   "flux_all_simpl",
   "flux_all_simpl_K",
   "flux_all_simpl_Ksite_nohyper",
   "flux_all_simpl_Ksite",
-  "flux_all_simpl_recov"
+  "flux_recov_kp"
 ) |>
   lapply(function(name) {
     as_cmdstan_fit(list.files(paste0("chains/", name),
@@ -359,8 +339,6 @@ fit_flux_all <- c(
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 obs_data <- data_rec |>
   mutate(
     val = "obs",
@@ -394,8 +372,10 @@ pov_data <- lapply(1:5, function(i) {
     bind_rows(obs_data) |>
     pivot_longer(cols = c(prod, mort), names_to = "variable") |>
     pivot_wider(names_from = val, values_from = value) |>
-    mutate(model = c("K=2", "One K", "Site K", "Site K + Hyperdistribution",
-                     "Recovery term")[i])
+    mutate(model = c(
+      "K=2", "One K", "Site K", "Site K + Hyperdistribution",
+      "Recovery term"
+    )[i])
 }) |>
   bind_rows()
 ```
@@ -403,8 +383,6 @@ pov_data <- lapply(1:5, function(i) {
 ### Traceplots
 
 ```{r}
-#| message: false
-#| warning: false
 lapply(fit_flux_all, function(x) {
   mcmc_trace(x$draws(variables = c("lp__"))) +
     theme(legend.position = "none")
@@ -418,8 +396,6 @@ lapply(fit_flux_all, function(x) {
 ### Goodness of fit
 
 ```{r}
-#| message: false
-#| warning: false
 df_rmse <- pov_data |>
   group_by(variable, model) |>
   summarise(rmse = sqrt(mean((pred - obs)^2)))
@@ -449,8 +425,6 @@ pov_data |>
 The predicted productivity trajectories are presented below.
 
 ```{r}
-#| message: false
-#| warning: false
 #| fig-width: 10
 #| fig-height: 15
 df_rmse <- pov_data |>
@@ -461,6 +435,10 @@ ind_site <- data_rec |>
   select(Site, sitenum) |>
   unique() |>
   arrange(sitenum)
+ind_plot <- data_rec |>
+  select(Site, sitenum, plotnum) |>
+  unique() |>
+  arrange(sitenum, plotnum)
 df_k <- lapply(1:5, function(i) {
   if (i == 1) {
     ind_site |>
@@ -470,12 +448,14 @@ df_k <- lapply(1:5, function(i) {
     ind_site |>
       mutate(model = "One K", k = paste0(k$median, " [", k$q5, ",", k$q95, "]"))
   } else {
-    fit_flux_all[[i]]$summary(c("k_s")) |>
-      mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+    fit_flux_all[[i]]$summary(c("k_s", "k_p")[1 + (i > 4)]) |>
+      bind_cols(list(ind_site, ind_plot)[[1 + (i > 4)]]) |> # add site/plot info
+      group_by(Site, sitenum) |>
+      summarise(across(where(is.numeric), ~ round(mean(.x), 2))) |>
       mutate(k = paste0(median, " [", q5, ",", q95, "]")) |>
-      bind_cols(ind_site) |>
-      mutate(model = c("Site K", "Site K + Hyperdistribution",
-                       "Recovery term")[i - 2]) |>
+      mutate(
+             model = c("Site K", "Site K + Hyperdistribution", "Recovery term")
+             [i - 2]) |>
       select(Site, sitenum, model, k)
   }
 }) |>

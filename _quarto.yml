@@ -15,14 +15,16 @@ book:
         - 23_calibrate_flux_model.qmd
         - 24_expl_variables.qmd
         - 25_explo_res.qmd
+        - 26_figures.qmd
     - part: 30_cwd_flux.qmd
       chapters:
         - 31_cwd_productivity.qmd
-        - 33_calibrate_cwd_model.qmd
+        - 32_calibrate_cwd_model.qmd
   appendices:
     - 91_ipp.qmd
     - 92_diff_equa.qmd
     - 93_test_prod_model.qmd
+    - 94_test_cwm_model.qmd
 
 bibliography: references.bib
 
@@ -34,5 +36,7 @@ format:
 
 editor: visual
 
-# execute:
-#   cache: true
+execute:
+  warning: false
+  message: false
+  error: false

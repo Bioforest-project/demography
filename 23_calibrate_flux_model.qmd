@@ -1,6 +1,4 @@
 ```{r setup}
-#| message: false
-#| warning: false
 #| include: false
 
 library(tidyverse)
@@ -18,8 +16,6 @@ list.files("r", full.names = TRUE, pattern = ".R") |>
 ## Data
 
 ```{r}
-#| message: false
-#| warning: false
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
   select(site, plot = new_plot, Year_of_harvest, Treatment) |>
@@ -43,16 +39,13 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
     1987, Year_of_harvest
   )) |>
   mutate(trec = Year - Year_of_harvest) |>
-  filter(!(Site == "Tapajos Km67" &
-             grepl("loggedtwice", Plot) & Year > 2014)) |>
-  filter(!(Site == "Tapajos Km67" & grepl("later", Plot)))
+  ## tapajos: second logging in 2014-2015
+  filter(!(Site == "Tapajos Km67" & (Year >= 2014 | grepl("later", Plot))))
 ```
 
 For now, we only calibrate the model with sites that meet all the criteria listed [here](https://bioforest-project.github.io/demography/21_flux_data.html), and that have at least 10 censuses.
 
 ```{r}
-#| message: false
-#| warning: false
 sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
   filter(ncensus >= 10)
 data <- data |>
@@ -64,8 +57,6 @@ data <- data |>
 We used the following parameter bounds when calibrating the model.
 
 ```{r}
-#| message: false
-#| warning: false
 bounds <- data.frame(
   "theta_min" = 50,
   "theta_max" = 1000,
@@ -80,7 +71,9 @@ bounds <- data.frame(
   "k_min" = 0.1,
   "k_max" = 5,
   "omega_min" = 1e-3,
-  "omega_max" = 0.5
+  "omega_max" = 0.5,
+  "y0_min" = 0,
+  "y0_max" = 1000
 )
 bounds |>
   pivot_longer(everything(), names_to = "parameter") |>
@@ -90,16 +83,11 @@ bounds |>
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 data_rec <- data |>
   mutate(sitenum = as.numeric(as.factor(Site))) |>
   subset(Treatment == "Logging" & trec > 0) |>
   # problem with first years in SUAS: excessive prod. because of  DBH increases
   filter(!(Site == "SUAS" & trec < 3 & variable == "prod")) |>
-  filter(!(Site == "Tapajos Km67" &
-             Plot %in% c(1:12, paste0(1:12, "E")) &
-             Year >= 2014)) |> # remove second logging event in Tapajos
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
   mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))
@@ -111,8 +99,6 @@ data_old <- data |>
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
@@ -150,8 +136,6 @@ sample_model("flux_all_simpl_Ksite_nohyper", mdata_all)
 The resulting Stan fit summary is presented below.
 
 ```{r}
-#| message: false
-#| warning: false
 fit_flux_all <- as_cmdstan_fit(
   list.files("chains/flux_all_simpl_Ksite_nohyper/", full.names = TRUE)
 )
@@ -172,7 +156,6 @@ rhat_all |>
 The goodness of fit is satisfactory.
 
 ```{r}
-#| warning: false
 #| fig-cap: "Predicted vs observed values."
 #| fig-width: 8
 #| fig-height: 3
@@ -259,8 +242,6 @@ fit_flux_all$summary(c("mu_tau", "sigma_tau", "tau_s")) |>
 The predicted flux and stocks trajectories look consistent with the data.
 
 ```{r}
-#| message: false
-#| warning: false
 #| fig-width: 10
 #| fig-height: 8
 #| fig-cap: "Predicted trajectories."
@@ -279,8 +260,6 @@ pov_data |>
 The predicted AGB recovered at the end of the trajectory is estimated as the sum of the AGB at the start of the trajectory and the integral of the productivity minus the mortality fluxes between the start of the recovery period and $t = +\infty$.
 
 ```{r}
-#| message: false
-#| warning: false
 #| eval: false
 stpp_integral <- function(t0, delta, tau, k) {
   u0 <- k * t0 / tau
@@ -328,7 +307,7 @@ omega <- extract_draws(fit_flux_all, "omega_s") |>
   rename(omega = value) |>
   select(-variable)
 t90_p <- inner_join(tau, kappa) |>
-  group_by(Site, iter) |>
+  group_by(sitenum, iter) |>
   summarise(t90p = optimize(
     function(t) {
       abs(
@@ -348,7 +327,7 @@ pars <- inner_join(site_plot_num, delta) |>
   inner_join(t90_p) |>
   inner_join(data_t0) |>
   mutate(rec = agb0 + stpp_integral(t0, delta, tau, k) -
-           alpha / lambda * exp(-lambda * t0)) |>
+    alpha / lambda * exp(-lambda * t0)) |>
   mutate(stpp = stpp_integral(0, delta, tau, k)) |>
   mutate(stpm = alpha / lambda) |>
   mutate(t90m = log(10) / lambda) |>
@@ -380,8 +359,6 @@ bind_rows(pars_plot, pars_site) |>
 ```
 
 ```{r}
-#| message: false
-#| warning: false
 #| fig-width: 5
 #| fig-height: 4
 #| fig-cap: "Predicted AGB at the end of the recovery trajectories (as the integral of fluxes + the initial AGB) vs the equilibrium biomass parameter theta." #nolint
@@ -402,5 +379,36 @@ read.csv("data/derived_data/params_flux_all.csv") |>
   labs(
     x = "Estimated AGB of unlogged plots (parameter theta)",
     y = "Estimated AGB of logged plots after recovery"
+  )
+```
+
+### Comparison of turnover rate in logged and unlogged plots
+
+```{r}
+omega <- read.csv("data/derived_data/params_flux_all.csv") |>
+  filter(variable == "omega") |>
+  select(Site, median, variable, q5, q95) |>
+  pivot_wider(names_from = variable, values_from = c(median, q5, q95))
+data |>
+  filter(Treatment == "Control") |>
+  pivot_wider(id_cols = c("Site", "Plot", "Year"), names_from = variable) |>
+  drop_na() |>
+  mutate(rate = prod / stocks) |>
+  group_by(Site) |>
+  summarise(
+    median_tor = quantile(rate, 0.5),
+    q5_tor = quantile(rate, 0.05),
+    q95_tor = quantile(rate, 0.95)
+  ) |>
+  inner_join(omega) |>
+  ggplot(aes(median_tor * 100, median_omega * 100, col = Site)) +
+  geom_abline(intercept = 0, slope = 1, lty = 2) +
+  geom_pointrange(aes(ymin = q5_omega * 100, ymax = q95_omega * 100)) +
+  geom_errorbar(aes(xmin = q5_tor * 100, xmax = q95_tor * 100),
+                orientation = "y") +
+  theme_minimal() +
+  labs(
+    x = "Turnover rate of unlogged plots (=AWP/AGB; %/yr)",
+    y = "Parameter omega (%/yr)"
   )
 ```
