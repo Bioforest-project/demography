@@ -369,9 +369,6 @@ rm(tmp, p_p1, p_m1)
 ## Persistence of disturbance effects on AGB changes associated with demographic processes (how long?)
 
 ```{r}
-#| message: false
-#| warning: false
-
 tmp <- data.table::as.data.table(data_explo)
 data.table::setnames(tmp, c("continent"), "Continent")
 tmp[Site == "Tapajos Km67"]$Site <- "Tapajos"
