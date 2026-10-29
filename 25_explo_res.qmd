@@ -197,11 +197,29 @@ data_explo |>
 
 We expect the variability of the duration of over-productivity to depends on:
 
-- the logging intensity =\> cannot be tested as this duration is fitted at the site scale
+- the logging intensity
 
 - the ecology of the pioneer species (life span) =\> could that explain the effect of continent?
 
 - climatic variables related to productivity =\> we see below that over-productivity has a longer duration in the drier sites (higher climate water deficit, dry season intensity and length, vapour pressure deficit (but this is driven by one outlier site) but the trend is quite weak, and this is not suported by evapotranspiration and precipitation. The pattern with soil humidity is also counter-intuitive (but soil humidity is very positively correlated with maximum temperature).
+
+
+```{r}
+data_explo |>
+  filter(variable == "t90p") |>
+  mutate(Site = fct_drop(as.factor(Site))) |>
+  ggplot(aes(x = intensity * 100, y = median)) +
+  geom_pointrange(aes(ymin = q5, ymax = q95, col = Site, shape = continent)) +
+  geom_smooth(aes(col = Site), method = "lm", se = FALSE,
+              size = 0.5, linetype = "dashed") +
+  labs(
+    x = "Logging intensity [ % BA loss ]",
+    y = "AGB over-productivity duration [ yr ]"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
 
 ```{r}
 data_explo |>
@@ -280,6 +298,8 @@ data_explo |>
 ```{r}
 data_explo |>
   filter(variable %in% c("omega", "t90p")) |>
+  group_by(variable, continent, Site) |>
+  summarise(across(where(is.numeric), ~ mean(.x))) |>
   select(Site, variable, median, q5, q95, continent) |>
   pivot_wider(
     names_from = variable,

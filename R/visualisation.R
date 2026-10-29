@@ -41,29 +41,29 @@ visualisation <- function(y, p, m, params, x = seq(0, 100)) {
     theme_minimal()
 }
 
-
-## test
-y <- function(x, theta, lambda, tau, kappa, omega, alpha, beta, y0) {
-  y0 + (theta - y0) / (1 + kappa * exp(-lambda * (x - tau))) + alpha /
-    beta * exp(-beta * x)
-}
-p <- function(x, theta, lambda, tau, kappa, omega, alpha, beta, y0) {
-  (theta - y0) * kappa * lambda * exp(-lambda * (x - tau)) /
-    (1 + kappa * exp(-lambda * (x - tau)))^2 +
-    omega * y(x, theta, lambda, tau, kappa, omega, alpha, beta, y0)
-}
-m <- function(x, theta, lambda, tau, kappa, omega, alpha, beta, y0) {
-  omega * y(x, theta, lambda, tau, kappa, omega, alpha, beta, y0) +
-    alpha * exp(-beta * x)
-}
-params <- list(
-  theta = c(100, 400),
-  lambda = c(0.1, 1),
-  tau = c(5, 50),
-  kappa = c(0.1, 10),
-  omega = c(0.005, 0.1),
-  alpha = c(5, 200),
-  beta = c(0.05, 0.5),
-  y0 = c(0, 100)
-)
-visualisation(y, p, m, params)
+# 
+# ## test
+# y <- function(x, theta, lambda, tau, kappa, omega, alpha, beta, y0) {
+#   y0 + (theta - y0) / (1 + kappa * exp(-lambda * (x - tau))) + alpha /
+#     beta * exp(-beta * x)
+# }
+# p <- function(x, theta, lambda, tau, kappa, omega, alpha, beta, y0) {
+#   (theta - y0) * kappa * lambda * exp(-lambda * (x - tau)) /
+#     (1 + kappa * exp(-lambda * (x - tau)))^2 +
+#     omega * y(x, theta, lambda, tau, kappa, omega, alpha, beta, y0)
+# }
+# m <- function(x, theta, lambda, tau, kappa, omega, alpha, beta, y0) {
+#   omega * y(x, theta, lambda, tau, kappa, omega, alpha, beta, y0) +
+#     alpha * exp(-beta * x)
+# }
+# params <- list(
+#   theta = c(100, 400),
+#   lambda = c(0.1, 1),
+#   tau = c(5, 50),
+#   kappa = c(0.1, 10),
+#   omega = c(0.005, 0.1),
+#   alpha = c(5, 200),
+#   beta = c(0.05, 0.5),
+#   y0 = c(0, 100)
+# )
+# visualisation(y, p, m, params)

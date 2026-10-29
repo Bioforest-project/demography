@@ -30,23 +30,32 @@ We chose the following summary statistics:
 ```{r}
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
-  select(site, plot, new_plot, Year_of_harvest, Treatment)
-sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
-  filter(ncensus >= 10)
+  mutate(thinning = grepl("hinning|evitali", Treatment_original)) |>
+  select(site, plot = new_plot, Year_of_harvest, Treatment, thinning) |>
+  unique()
+
 data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
-  mutate(plot_new = Plot) |>
-  separate(Plot, "Plot", "_") |>
   left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
-  filter(Site %in% sites$Site) |>
-  filter(grepl("^agb", variable)) |>
+  filter(grepl("^agb", variable) & !grepl("]$", variable)) |>
   pivot_wider(names_from = "variable", values_from = "value") |>
   mutate(prod = agb_growth + agb_recr, mort = agb_mort, stocks = agb) |>
   select(!contains("agb")) |>
+  group_by(Site, plot_new = Plot) |>
+  arrange(Year) |>
+  mutate(tdiff = c(0, diff(Year))) |>
+  ungroup() |>
   pivot_longer(cols = c("stocks", "prod", "mort"), names_to = "variable") |>
   mutate(Year_of_harvest = ifelse(Site == "Mbaiki" & Treatment == "Logging",
     1985, Year_of_harvest
   )) |>
-  mutate(trec = Year - Year_of_harvest)
+  mutate(Year_of_harvest = ifelse(Site == "Paracou" & Treatment == "Logging",
+    1987, Year_of_harvest
+  )) |>
+  mutate(trec = Year - Year_of_harvest) |>
+  ## tapajos: second logging in 2014-2015
+  filter(!(Site == "Tapajos Km67" & (Year >= 2014 | grepl("later", Plot)))) |>
+  # remove plots with post-logging treatments
+  filter(!thinning)
 ```
 
 ## Effect of environmental variables
@@ -59,9 +68,9 @@ params <- read.csv("data/derived_data/params_flux_all.csv")
 ```{r}
 environ |>
   group_by(site) |>
-  summarise(pr = mean(dsi)) |>
+  summarise(dsi = mean(dsi)) |>
   inner_join(filter(params, variable == "omega"), by = join_by(site == Site)) |>
-  ggplot(aes(pr, median, col = site)) +
+  ggplot(aes(dsi, median, col = site)) +
   geom_pointrange(aes(ymin = q5, ymax = q95)) +
   labs(x = "Dry season intensity", y = "AGB turnover rate") +
   theme_minimal()
@@ -70,12 +79,12 @@ environ |>
 ```{r}
 environ |>
   group_by(site) |>
-  summarise(pr = mean(pr)) |>
+  summarise(dsi = mean(dsi)) |>
   inner_join(filter(params, variable == "t90p"), by = join_by(site == Site)) |>
-  ggplot(aes(pr, median, col = site)) +
+  ggplot(aes(dsi, median, col = site)) +
   geom_pointrange(aes(ymin = q5, ymax = q95)) +
   labs(
-    x = "Mean annual precipitation [ mm ]",
+    x = "Dry season intensity",
     y = "AGB overproductivity duration [ yr ]"
   ) +
   theme_minimal()
@@ -84,23 +93,26 @@ environ |>
 ## Effect of logging intensity
 
 ```{r}
+sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
+  filter(ncensus >= 10)
 read.csv("data/derived_data/aggregated_data_v10.csv") |>
-  filter(Site %in% sites$Site & variable == "agb") |>
-  left_join(plot_info, by = join_by(Site == site, Plot == new_plot)) |>
-  rename(plot_new = Plot) |>
-  group_by(Site) |>
+  rename_with(tolower) |>
+  filter(site %in% sites$Site & variable == "agb") |>
+  left_join(plot_info) |>
+  group_by(site) |>
   mutate(agb_control = mean(value[Treatment == "Control"])) |>
-  group_by(Site, plot_new, Treatment) |>
+  group_by(site, plot, Treatment) |>
   summarise(
-    agb_0 = ifelse(Year_of_harvest <= min(Year),
-      agb_control, value[Year == min(Year)]
+    agb_0 = ifelse(Year_of_harvest <= min(year),
+      agb_control, value[year == min(year)]
     ),
-    pre = ifelse(Year_of_harvest <= min(Year), "no", "yes"),
-    agb_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
+    pre = ifelse(Year_of_harvest <= min(year), "no", "yes"),
+    agb_min = min(value[year > Year_of_harvest & year <= Year_of_harvest + 5])
   ) |>
   mutate(intensity = (agb_0 - agb_min) / agb_0) |>
-  inner_join(filter(params, variable == "stpp")) |>
-  ggplot(aes(intensity * 100, median / agb_0 * 100, col = Site, shape = pre)) +
+  inner_join(filter(params, variable == "stpp"),
+             by = join_by(site == Site, plot == plot_new)) |>
+  ggplot(aes(intensity * 100, median / agb_0 * 100, col = site, shape = pre)) +
   geom_abline(intercept = 0, slope = 1, lty = 2) +
   geom_pointrange(aes(ymin = q5 / agb_0 * 100, ymax = q95 / agb_0 * 100)) +
   labs(
@@ -113,22 +125,23 @@ read.csv("data/derived_data/aggregated_data_v10.csv") |>
 
 ```{r}
 read.csv("data/derived_data/aggregated_data_v10.csv") |>
-  filter(Site %in% sites$Site & variable == "agb") |>
-  left_join(plot_info, by = join_by(Site == site, Plot == new_plot)) |>
-  rename(plot_new = Plot) |>
-  group_by(Site) |>
+  rename_with(tolower) |>
+  filter(site %in% sites$Site & variable == "agb") |>
+  left_join(plot_info) |>
+  group_by(site) |>
   mutate(agb_control = mean(value[Treatment == "Control"])) |>
-  group_by(Site, plot_new, Treatment) |>
+  group_by(site, plot, Treatment) |>
   summarise(
-    agb_0 = ifelse(Year_of_harvest <= min(Year),
-      agb_control, value[Year == min(Year)]
+    agb_0 = ifelse(Year_of_harvest <= min(year),
+      agb_control, value[year == min(year)]
     ),
-    pre = ifelse(Year_of_harvest <= min(Year), "no", "yes"),
-    agb_min = min(value[Year > Year_of_harvest & Year <= Year_of_harvest + 5])
+    pre = ifelse(Year_of_harvest <= min(year), "no", "yes"),
+    agb_min = min(value[year > Year_of_harvest & year <= Year_of_harvest + 5])
   ) |>
   mutate(intensity = (agb_0 - agb_min) / agb_0) |>
-  inner_join(filter(params, variable == "stpm")) |>
-  ggplot(aes(intensity * 100, median / agb_0 * 100, col = Site, shape = pre)) +
+  inner_join(filter(params, variable == "stpm"),
+             by = join_by(site == Site, plot == plot_new)) |>
+  ggplot(aes(intensity * 100, median / agb_0 * 100, col = site, shape = pre)) +
   geom_abline(intercept = 0, slope = 1, lty = 2) +
   geom_pointrange(aes(ymin = q5 / agb_0 * 100, ymax = q95 / agb_0 * 100)) +
   labs(

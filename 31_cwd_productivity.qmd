@@ -11,7 +11,7 @@ library(dplyr)
 
 The contribution of a given flux (recruitment, growth or mortality) at time $t$ can be written as:
 
-$$CF_{F,t} = \sum_{i\in F_t}\frac{ba_{i,t}  (ft_{i} - CWM_{t0})}{BA_{t}}-\sum_{i\in F_t}\frac{ba_{i,t0} (ft_{i} - CWM_{t0})}{BA_{t0}}$$ 
+$$CF_{F,t} = \sum_{i\in F_t}\frac{ba_{i,t}  (ft_{i} - CWM_{t0})}{BA_{t}}-\sum_{i\in F_t}\frac{ba_{i,t0} (ft_{i} - CWM_{t0})}{BA_{t0}}$$
 
 where $F_t$ is the set of trees contributing to a given flux between $t-1$ and $t$ (recruitment: trees recruited at $t$; growth: trees that were measured and alive at $t$ and $t-1$; mortality: trees that died between $t-1$ and $t$).
 
@@ -221,7 +221,6 @@ purrr::walk(
 ```
 :::
 
-
 ### Contribution to CWM change vs BA change
 
 ```{r}
@@ -260,7 +259,7 @@ gmain <- data |>
   geom_point() +
   facet_grid(trait ~ Site, scales = "free_y") +
   scale_color_manual(values = RColorBrewer::brewer.pal(10, "Paired")
-  [c(1:4, 9:10, 7:8, 5:6)]) +
+                     [c(1:4, 9:10, 7:8, 5:6)]) +
   labs(
     x = "Cumulative change in BA (% of initial BA)", col = NULL,
     y = "Cumulative contribution to CWM change (% of initial CWM)"
@@ -285,7 +284,7 @@ legend <- data.frame(
   annotate(geom = "text", x = 0.5, y = 0.5, label = "Control", size = 3) +
   annotate(geom = "text", x = 0.75, y = 0.5, label = "Logging", size = 3) +
   scale_colour_manual(values = RColorBrewer::brewer.pal(10, "Paired")
-  [c(3:4, 7:8, 9:10, 5:6, 1:2)]) +
+                      [c(3:4, 7:8, 9:10, 5:6, 1:2)]) +
   geom_segment(x = 0.375, y = 0.6, yend = 3.2) +
   geom_segment(x = 0.125, y = 0.6, yend = 3.2, lty = 2) +
   geom_segment(x = 0.625, y = 0.6, yend = 3.2, lty = 2) +
@@ -331,7 +330,7 @@ gmain <- data |>
   geom_point() +
   facet_grid(trait ~ Site, scales = "free") +
   scale_color_manual(values = RColorBrewer::brewer.pal(10, "Paired")
-  [c(1:2, 5:6)]) +
+                     [c(1:2, 5:6)]) +
   theme_minimal() +
   theme(legend.position = "none") +
   labs(
@@ -345,7 +344,7 @@ legend <- data.frame(
   ggplot(aes(cohort, treat)) +
   geom_point(aes(col = paste(cohort, treat)), size = 5) +
   scale_colour_manual(values = RColorBrewer::brewer.pal(10, "Paired")
-  [c(1:2, 5:6)]) +
+                      [c(1:2, 5:6)]) +
   labs(x = NULL, y = NULL) +
   theme_minimal() +
   theme(legend.position = "none", panel.grid = element_blank())
@@ -354,4 +353,4 @@ ggpubr::ggarrange(gmain, ggpubr::ggarrange(NULL, legend, NULL, nrow = 1),
 )
 ggsave("paper_cwm/figures/cohort_cwm.png")
 ```
-:::
+

@@ -18,7 +18,8 @@ list.files("r", full.names = TRUE, pattern = ".R") |>
 ```{r}
 plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
-  select(site, plot = new_plot, Year_of_harvest, Treatment) |>
+  mutate(thinning = grepl("hinning|evitali", Treatment_original)) |>
+  select(site, plot = new_plot, Year_of_harvest, Treatment, thinning) |>
   unique()
 
 data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
@@ -40,10 +41,12 @@ data <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
   )) |>
   mutate(trec = Year - Year_of_harvest) |>
   ## tapajos: second logging in 2014-2015
-  filter(!(Site == "Tapajos Km67" & (Year >= 2014 | grepl("later", Plot))))
+  filter(!(Site == "Tapajos Km67" & (Year >= 2014 | grepl("later", Plot)))) |>
+  # remove plots with post-logging treatments
+  filter(!thinning)
 ```
 
-For now, we only calibrate the model with sites that meet all the criteria listed [here](https://bioforest-project.github.io/demography/21_flux_data.html), and that have at least 10 censuses.
+For now, we only calibrate the model with sites that meet all the criteria listed [here](https://bioforest-project.github.io/demography/21_flux_data.html), and that have at least 10 censuses. We also removed plots that had post-logging thinning as this creates an articially large mortality during the recovery period. 
 
 ```{r}
 sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
@@ -88,6 +91,7 @@ data_rec <- data |>
   subset(Treatment == "Logging" & trec > 0) |>
   # problem with first years in SUAS: excessive prod. because of  DBH increases
   filter(!(Site == "SUAS" & trec < 3 & variable == "prod")) |>
+  # remove plots with post-harvest silv. treatments??
   pivot_wider(names_from = "variable", values_from = "value") |>
   subset(!is.na(prod) & !is.na(mort)) |>
   mutate(plotnum = as.numeric(as.factor(paste(Site, plot_new))))
@@ -104,6 +108,9 @@ ind_rec <- data_rec |>
   select(Site, Plot, sitenum, plotnum) |>
   unique() |>
   arrange(plotnum)
+data_t0 <- data_rec |>
+  group_by(plotnum) |>
+  summarise(t0 = trec[which.min(Year)], y0 = stocks[which.min(Year)])
 mdata_all <- list(
   n_equ = nrow(data_old),
   n_log = nrow(data_rec),
@@ -117,38 +124,40 @@ mdata_all <- list(
   out_log = data_rec$mort,
   time = data_rec$trec,
   dt = data_rec$tdiff,
+  t0 = data_t0$t0,
+  y0 = data_t0$y0,
   site_equ = data_old$sitenum,
   site_log = data_rec$sitenum,
   plot_log = data_rec$plotnum,
   site_plot = ind_rec$sitenum,
+  sd_eq = summarise(group_by(data_old, Site), sd = sd(stocks))$sd,
   theta_bounds = c(bounds$theta_min, bounds$theta_max),
   lambda_bounds = c(bounds$lambda_min, bounds$lambda_max),
   alpha_bounds = c(bounds$alpha_min, bounds$alpha_max),
   delta_bounds = c(bounds$delta_min, bounds$delta_max),
   tau_bounds = c(bounds$tau_min, bounds$tau_max),
   k_bounds = c(bounds$k_min, bounds$k_max),
-  omega_bounds = c(bounds$omega_min, bounds$omega_max),
-  y0_bounds = c(bounds$y0_min, bounds$y0_max)
+  omega_bounds = c(bounds$omega_min, bounds$omega_max)
 )
-sample_model("flux_all_simpl_Ksite_nohyper", mdata_all)
+sample_model("flux_recov_kp", mdata_all)
 ```
 
 The resulting Stan fit summary is presented below.
 
 ```{r}
 fit_flux_all <- as_cmdstan_fit(
-  list.files("chains/flux_all_simpl_Ksite_nohyper/", full.names = TRUE)
+  list.files("chains/flux_recov_kp/", full.names = TRUE)
 )
 fit_flux_all
 mcmc_trace(fit_flux_all$draws(variables = c("lp__")))
 ```
 
-Rhat superior to 1.2:
+Rhat superior to 1.1:
 
 ```{r}
 rhat_all <- summarise_draws(fit_flux_all$draws(), "rhat")
 rhat_all |>
-  filter(rhat > 1.2) |>
+  filter(rhat > 1.1) |>
   arrange(-rhat) |>
   head()
 ```
@@ -217,24 +226,30 @@ pov_data |>
   facet_wrap(~variable, scales = "free", labeller = labeller(variable = labs))
 ```
 
-### Parameters (k and tau)
+### Parameters (kappa and tau)
+
+Mean $\kappa$ value per site: 
+
+> could have hyperdistributions per site
 
 ```{r}
-fit_flux_all$summary(c("k_s")) |>
-  separate(variable, c("variable", "sitenum"), sep = "\\[") |>
-  mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
-  inner_join(unique(data_rec[, c("Site", "sitenum")])) |>
-  select(-sitenum) |>
-  select(variable, Site, mean, median, sd, q5, q95, rhat)
+fit_flux_all$summary(c("k_p")) |>
+  separate(variable, c("variable", "plotnum"), sep = "\\[") |>
+  mutate(plotnum = as.integer(gsub("]", "", plotnum))) |>
+  inner_join(unique(data_rec[, c("Site", "plotnum")])) |>
+  group_by(Site) |>
+  summarise(across(where(is.numeric), ~ round(mean(.x), 2))) |>
+  select(Site, mean, median, sd, q5, q95, rhat)
 ```
+
+Site-level $\tau$ 
 
 ```{r}
 fit_flux_all$summary(c("mu_tau", "sigma_tau", "tau_s")) |>
   separate(variable, c("variable", "sitenum"), sep = "\\[") |>
   mutate(sitenum = as.integer(gsub("]", "", sitenum))) |>
   left_join(unique(data_rec[, c("Site", "sitenum")])) |>
-  select(-sitenum) |>
-  select(variable, Site, mean, median, sd, q5, q95, rhat)
+  select(Site, mean, median, sd, q5, q95, rhat)
 ```
 
 ### Visualising the trajectories
@@ -260,7 +275,6 @@ pov_data |>
 The predicted AGB recovered at the end of the trajectory is estimated as the sum of the AGB at the start of the trajectory and the integral of the productivity minus the mortality fluxes between the start of the recovery period and $t = +\infty$.
 
 ```{r}
-#| eval: false
 stpp_integral <- function(t0, delta, tau, k) {
   u0 <- k * t0 / tau
   log_i <- log(delta) + k + log(tau) - (k + 1) * log(k) +
@@ -290,8 +304,8 @@ tau <- extract_draws(fit_flux_all, "tau_s") |>
   mutate(sitenum = as.numeric(gsub("tau_s|\\[|\\]", "", variable))) |>
   select(-variable) |>
   rename(tau = value)
-kappa <- extract_draws(fit_flux_all, "k_s") |>
-  mutate(sitenum = as.numeric(gsub("k_s|\\[|\\]", "", variable))) |>
+kappa <- extract_draws(fit_flux_all, "k_p") |>
+  mutate(plotnum = as.numeric(gsub("k_p|\\[|\\]", "", variable))) |>
   rename(k = value) |>
   select(-variable)
 delta <- extract_draws(fit_flux_all, "delta_p") |>
@@ -306,16 +320,10 @@ omega <- extract_draws(fit_flux_all, "omega_s") |>
   mutate(sitenum = as.numeric(gsub("omega_s|\\[|\\]", "", variable))) |>
   rename(omega = value) |>
   select(-variable)
-t90_p <- inner_join(tau, kappa) |>
-  group_by(sitenum, iter) |>
-  summarise(t90p = optimize(
-    function(t) {
-      abs(
-        integrate(function(x) (exp(1 - x / tau) * x / tau)^k, 0, t)$value -
-          0.9 * stpp_integral(0, 1, tau, k)
-      )
-    }, c(0, 100)
-  )$minimum)
+t90_p <- inner_join(site_plot_num, kappa) |>
+  inner_join(tau) |>
+  group_by(sitenum, plotnum, iter) |>
+  mutate(t90p = tau * qgamma(0.9, shape = k + 1) / k)
 
 pars <- inner_join(site_plot_num, delta) |>
   inner_join(alpha) |>
@@ -327,15 +335,16 @@ pars <- inner_join(site_plot_num, delta) |>
   inner_join(t90_p) |>
   inner_join(data_t0) |>
   mutate(rec = agb0 + stpp_integral(t0, delta, tau, k) -
-    alpha / lambda * exp(-lambda * t0)) |>
+           alpha / lambda * exp(-lambda * t0)) |>
   mutate(stpp = stpp_integral(0, delta, tau, k)) |>
   mutate(stpm = alpha / lambda) |>
   mutate(t90m = log(10) / lambda) |>
   select(!contains(c("agb0", "t0", "num"))) |>
   pivot_longer(names_to = "variable", cols = !contains(c("ite", "lot")))
 
+vars_plot <- c("alpha", "delta", "rec", "stpp", "stpm", "t90p")
 pars_plot <- pars |>
-  filter(variable %in% c("alpha", "delta", "rec", "stpp", "stpm")) |>
+  filter(variable %in% vars_plot) |>
   group_by(Site, plot_new, variable) |>
   summarise(
     mean = mean(value),
@@ -345,7 +354,7 @@ pars_plot <- pars |>
     q95 = quantile(value, 0.95)
   )
 pars_site <- pars |>
-  filter(!variable %in% c("alpha", "delta", "rec", "stpp", "stpm")) |>
+  filter(!variable %in% vars_plot) |>
   group_by(Site, variable) |>
   summarise(
     mean = mean(value),
@@ -405,10 +414,50 @@ data |>
   geom_abline(intercept = 0, slope = 1, lty = 2) +
   geom_pointrange(aes(ymin = q5_omega * 100, ymax = q95_omega * 100)) +
   geom_errorbar(aes(xmin = q5_tor * 100, xmax = q95_tor * 100),
-                orientation = "y") +
+    orientation = "y"
+  ) +
   theme_minimal() +
   labs(
     x = "Turnover rate of unlogged plots (=AWP/AGB; %/yr)",
     y = "Parameter omega (%/yr)"
   )
 ```
+
+### Comparison of total mortality (observed vs modelled) over the census period
+
+```{r}
+params <- read.csv("data/derived_data/params_flux_all.csv")
+alpha <- filter(params, variable == "alpha") |>
+  rename(alpha = mean) |>
+  select(Site, plot_new, alpha)
+lambda <- filter(params, variable == "lambda") |>
+  rename(lambda = mean) |>
+  select(Site, lambda)
+omega <- filter(params, variable == "omega") |>
+  rename(omega = mean) |>
+  select(Site, omega)
+census_period <- data_rec |>
+  group_by(Site, plot_new = Plot) |>
+  summarise(tmin = min(trec) - tdiff[which.min(trec)], tmax = max(trec))
+model_mort <- inner_join(data_rec, omega) |>
+  group_by(Site, plot_new) |>
+  summarise(base_mort = sum(omega * stocks * tdiff)) |>
+  inner_join(census_period) |>
+  inner_join(alpha) |>
+  inner_join(lambda) |>
+  mutate(over_mort = alpha / lambda * (exp(-lambda * tmin) -
+                                         exp(-lambda * tmax)))
+data_rec |>
+  group_by(Site, plot_new = Plot) |>
+  summarise(obs_mort = sum(mort * tdiff)) |>
+  inner_join(model_mort) |>
+  ggplot(aes(over_mort + base_mort, obs_mort, col = Site)) +
+  geom_abline(intercept = 0, slope = 1, lty = 2) +
+  geom_point() +
+  theme_bw() +
+  labs(
+    x = "Predicted total mortality over the census period [ Mg ha-1 ]",
+    y = "Observed total mortality over the census period [ Mg ha-1 ]"
+  )
+```
+
