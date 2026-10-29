@@ -561,7 +561,7 @@ library(patchwork)
 (p_p3/p_m3)+
   plot_annotation(tag_levels = "A")
 ggsave(file = "figures/intensity.pdf", height = 10, width = 10)
-rm(tmp, p_m3, p_p3)
+rm(tmp_m, p_m3, p_p3)
 ```
 
 ### Drivers
@@ -580,11 +580,10 @@ plot_info_raw <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
   select(site, plot, Year_of_harvest, Treatment)
 
 plot_info <- 
-  read_csv("data/derived_data/aggregated_data_v10.csv") |>
+  read_csv("data/derived_data/aggregated_data_v10.csv", show_col_types = FALSE) |>
   filter(Site %in% site_info$Site & variable %in% c("ba", "diversity_q0_sp", "WD_cwm_ba")) |>
   mutate(plot_new = Plot) |>
-  separate(Plot, "Plot", "_") |>
-  pivot_wider(
+  separate_wider_delim(Plot, delim = "_", names = c("Plot"), too_many = "drop") |>   pivot_wider(
     names_from = "variable",
     values_from = "value"
   ) |>
@@ -595,24 +594,32 @@ plot_info <-
     census_pre = paste(Year[Year < Year_of_harvest], collapse = ","),
     ba_pre = mean(ba[Year < Year_of_harvest]),
     diversity_q0_sp_pre = mean(diversity_q0_sp[Year < Year_of_harvest]),
-    WD_cwm_ba_pre = mean(WD_cwm_ba[Year < Year_of_harvest])
+    WD_cwm_ba_pre = mean(WD_cwm_ba[Year < Year_of_harvest]),
+    .groups = "drop"
   ) |> 
   tidyr::drop_na(ba_pre, diversity_q0_sp_pre, WD_cwm_ba_pre)
 
-drivers <- merge(plot_info, clim, by = c("Site", "plot_new"))
-
-
-
-drivers_long <- drivers %>%
+drivers <- 
+  merge(plot_info, clim, by = c("Site", "plot_new")) |> 
   pivot_longer(
     cols = c(pr, dsl, ba_pre, diversity_q0_sp_pre, WD_cwm_ba_pre),
     names_to = "driver",
     values_to = "value"
+  ) |> 
+  mutate(
+    driver = 
+      fct_recode(
+        driver,
+        "Basal area, m2.ha-1" = "ba_pre",
+        "Species richness" = "diversity_q0_sp_pre",
+        "Wood density" = "WD_cwm_ba_pre",
+        "Precipitation, mm" = "pr",
+        "Dry season length, days" = "dsl"
+      )
   )
-
-
+  
 ggplot(
-  drivers_long,
+  drivers,
   aes(
     x = value, 
     y = median * 100 / agb_0
@@ -632,7 +639,7 @@ ggplot(
   ) +
   labs(
     x = "",
-    y = "AGB over-productivity [% prelogging AGB]"
+    y = "AGB over-productivity\n[% prelogging AGB]"
   ) +
   guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
   scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
@@ -650,105 +657,68 @@ ggplot(
     strip.background = element_blank(),
     strip.placement = "outside"
   )+
-  facet_wrap(~driver, scales = "free_x", strip.position = "bottom")
+  facet_wrap(~factor(driver, c("Basal area, m2.ha-1", "Species richness", "Wood density", "Precipitation, mm", "Dry season length, days")), scales = "free_x", strip.position = "bottom")
 
 
-
-
-
-
-
-
-plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
-  left_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
-  select(site, plot = new_plot, Year_of_harvest, Treatment) |>
-  unique()
-
-drivers <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
-  left_join(plot_info, by = join_by(Site == site, Plot == plot)) |>
-  filter(variable %in% c("ba", "diversity_q0_sp", "WD_cwm_ba"))
-
-
-
-
-
-
-
-ggplot(
-  tmp,
-  aes(
-    x = value, 
-    y = median * 100 / agb_0
-  )
-)+
-  geom_pointrange(
-    aes(
-      ymin = q5 * 100 / agb_0,
-      ymax = q95 * 100 / agb_0,
-      col = factor(Site, c("Corinto", "Paracou", "Mbaiki", "SUAS")),
-      shape = factor(continent, c("America", "Africa", "Asia"))
-    )
-  )+
-  geom_smooth(
-    method = "lm", se = FALSE,
-    linewidth = 0.5, col = alpha("darkgrey", 0.7), linetype = "dashed"
-  ) +
-  labs(
-    x = "",
-    y = "AGB over-productivity [% prelogging AGB]"
-  ) +
-  guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
-  scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
-  theme_classic()+
-  theme(
-    panel.grid.major.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.x = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.major.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    panel.grid.minor.y = element_line(alpha(colour = "lightgrey", .5), linewidth = .1),
-    text = element_text(size = 18),
-    legend.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.position = "bottom",
-    panel.spacing = unit(1, "lines"),
-    strip.background = element_blank(),
-    strip.placement = "outside"
-  )+
-  facet_wrap(~var_clim, scales = "free_x", strip.position = "bottom")
-
-ggsave(file = "figures/drivers_prod.pdf", height = 8, width = 10)
+ggsave(file = "figures/drivers_prod.pdf", height = 7, width = 10)
 rm(tmp)
 ```
 
 #### Over-mortality
 
 ```{r}
-tmp <- 
+clim <- 
   data_explo  |> 
   filter(variable == "stpm" & !(is.na(agb_0))) |>
   select(
-    Site, plot_new, median, q5, q95, agb_0,
-    continent,
-    et, cwd, pr, tmax, vpd, soil, dsl, dsi
+    Site, plot_new, continent, median, q5, q95, agb_0, pr, dsl
+  )
+
+plot_info_raw <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  select(site, plot, Year_of_harvest, Treatment)
+
+plot_info <- 
+  read_csv("data/derived_data/aggregated_data_v10.csv", show_col_types = FALSE) |>
+  filter(Site %in% site_info$Site & variable %in% c("ba", "diversity_q0_sp", "WD_cwm_ba")) |>
+  mutate(plot_new = Plot) |>
+  separate_wider_delim(Plot, delim = "_", names = c("Plot"), too_many = "drop") |>   pivot_wider(
+    names_from = "variable",
+    values_from = "value"
   ) |>
-  pivot_longer(et:dsi, names_to = "var_clim", values_to = "value") |>
+  left_join(plot_info_raw, by = join_by(Site == site, Plot == plot)) |>
+  group_by(Site, plot_new, Treatment, Year_of_harvest) |>
+  filter(Treatment %in% c("Logging")) |> 
+  summarise(
+    census_pre = paste(Year[Year < Year_of_harvest], collapse = ","),
+    ba_pre = mean(ba[Year < Year_of_harvest]),
+    diversity_q0_sp_pre = mean(diversity_q0_sp[Year < Year_of_harvest]),
+    WD_cwm_ba_pre = mean(WD_cwm_ba[Year < Year_of_harvest]),
+    .groups = "drop"
+  ) |> 
+  tidyr::drop_na(ba_pre, diversity_q0_sp_pre, WD_cwm_ba_pre)
+
+drivers <- 
+  merge(plot_info, clim, by = c("Site", "plot_new")) |> 
+  pivot_longer(
+    cols = c(pr, dsl, ba_pre, diversity_q0_sp_pre, WD_cwm_ba_pre),
+    names_to = "driver",
+    values_to = "value"
+  ) |> 
   mutate(
-    var_clim = 
+    driver = 
       fct_recode(
-        var_clim,
-        "Evapotranspiration, mm" = "et",
-        "Climate water deficit, mm" = "cwd",
+        driver,
+        "Basal area, m2.ha-1" = "ba_pre",
+        "Species richness" = "diversity_q0_sp_pre",
+        "Wood density" = "WD_cwm_ba_pre",
         "Precipitation, mm" = "pr",
-        "Maximum temperature, °C" = "tmax",
-        "Vapour Pressure Deficit, kPa" = "vpd",
-        "Soil humidity, mm" = "soil",
-        "Dry season length, days" = "dsl",
-        "Dry season intensity, mm" = "dsi"
+        "Dry season length, days" = "dsl"
       )
   )
 
 
 ggplot(
-  tmp,
+  drivers,
   aes(
     x = value, 
     y = median * 100 / agb_0
@@ -768,7 +738,7 @@ ggplot(
   ) +
   labs(
     x = "",
-    y = "AGB over-mortality [% prelogging AGB]"
+    y = "AGB over-mortality\n[% prelogging AGB]"
   ) +
   guides(shape = guide_legend(title = "Continent", order = 1), colour = guide_legend(order = 2))+
   scale_colour_discrete(name = "Site", palette = c("#C0C000", "#008000", "#A25100", "#4151B0"))+
@@ -786,17 +756,16 @@ ggplot(
     strip.background = element_blank(),
     strip.placement = "outside"
   )+
-  facet_wrap(~var_clim, scales = "free_x", strip.position = "bottom")
+  facet_wrap(~factor(driver, c("Basal area, m2.ha-1", "Species richness", "Wood density", "Precipitation, mm", "Dry season length, days")), scales = "free_x", strip.position = "bottom")
 
-ggsave(file = "figures/environment_mort.pdf", height = 8, width = 10)
-rm(tmp)
+ggsave(file = "figures/drivers_mort.pdf", height = 7, width = 10)
 ```
 
 ### Climate
 
 #### Over-productivity
 
-```{r}
+```{r, eval=FALSE}
 tmp <- 
   data_explo  |> 
   filter(variable == "stpp" & !(is.na(agb_0))) |>
@@ -869,7 +838,7 @@ rm(tmp)
 
 #### Over-mortality
 
-```{r}
+```{r, eval=FALSE}
 tmp <- 
   data_explo  |> 
   filter(variable == "stpm" & !(is.na(agb_0))) |>
