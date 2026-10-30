@@ -16,6 +16,7 @@ book:
         - 24_expl_variables.qmd
         - 25_explo_res.qmd
         - 26_figures.qmd
+        - 27_causal_inference.qmd
     - part: 30_cwd_flux.qmd
       chapters:
         - 31_cwd_productivity.qmd

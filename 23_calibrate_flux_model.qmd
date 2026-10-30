@@ -275,13 +275,11 @@ pov_data |>
 The predicted AGB recovered at the end of the trajectory is estimated as the sum of the AGB at the start of the trajectory and the integral of the productivity minus the mortality fluxes between the start of the recovery period and $t = +\infty$.
 
 ```{r}
-stpp_integral <- function(t0, delta, tau, k) {
-  u0 <- k * t0 / tau
-  log_i <- log(delta) + k + log(tau) - (k + 1) * log(k) +
-    lgamma(k + 1) + pgamma(u0, k + 1, lower.tail = FALSE, log.p = TRUE)
-  exp(log_i)
+stp_area <- function(t1, t2, delta, tau, k) {
+  log_c <- log(delta) + k + log(tau) - (k + 1) * log(k) + lgamma(k + 1)
+  exp(log_c) * (pgamma(k * t2 / tau, shape = k + 1) -
+                  pgamma(k * t1 / tau, shape = k + 1))
 }
-
 data_t0 <- data_rec |>
   group_by(plotnum) |>
   summarise(t0 = trec[which.min(Year)], agb0 = stocks[which.min(Year)])
@@ -334,15 +332,20 @@ pars <- inner_join(site_plot_num, delta) |>
   inner_join(omega) |>
   inner_join(t90_p) |>
   inner_join(data_t0) |>
-  mutate(rec = agb0 + stpp_integral(t0, delta, tau, k) -
+  mutate(rec = agb0 + stp_area(t0, Inf, delta, tau, k) -
            alpha / lambda * exp(-lambda * t0)) |>
-  mutate(stpp = stpp_integral(0, delta, tau, k)) |>
+  mutate(stpp_5 = stp_area(0, 5, delta, tau, k)) |>
+  mutate(stpp_10 = stp_area(0, 10, delta, tau, k)) |>
+  mutate(stpp_20 = stp_area(0, 20, delta, tau, k)) |>
+  mutate(stpp_30 = stp_area(0, 30, delta, tau, k)) |>
+  mutate(stpp = stp_area(0, Inf, delta, tau, k)) |>
   mutate(stpm = alpha / lambda) |>
   mutate(t90m = log(10) / lambda) |>
   select(!contains(c("agb0", "t0", "num"))) |>
   pivot_longer(names_to = "variable", cols = !contains(c("ite", "lot")))
 
-vars_plot <- c("alpha", "delta", "rec", "stpp", "stpm", "t90p")
+vars_plot <- c(grep("stp", unique(pars$variable), value = TRUE),
+               "alpha", "delta", "rec", "t90p")
 pars_plot <- pars |>
   filter(variable %in% vars_plot) |>
   group_by(Site, plot_new, variable) |>

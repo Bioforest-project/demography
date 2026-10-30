@@ -1,0 +1,275 @@
+```{r setup}
+#| include: false
+library(tidyverse)
+library(ggdag)
+```
+
+# Testing drivers
+
+Proposal: overproductivity at different time steps (of rnow: 20 years after logging)
+
+```{r}
+dag_data <- dagify(
+  prod ~ agb + div + dsi + rad + tor + int,
+  agb ~ div + tor + rad + dsi,
+  div ~ tor + rad + dsi,
+  vpd ~ prc + rad,
+  prc ~ cloud,
+  rad ~ cloud,
+  dsi ~ prc + vpd,
+  tor ~ slope + wind
+) |>
+  tidy_dagitty(layout = "stress") |>
+  mutate(
+    node_shape = ifelse(name == "prod", "square", "circle"),
+    type = case_when(
+      name == "prod" ~ "outcome",
+      name %in% c("agb", "div", "tor") ~ "endogeneous",
+      name %in% c("twi", "slope") ~ "topography",
+      name %in% c("int") ~ "logging",
+      name %in% c("cloud", "wind", "rad", "prc", "vpd", "dsi")
+      ~ "climate"
+    )
+  )
+ggplot(dag_data, aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_edges() +
+  geom_dag_node(aes(col = type, shape = node_shape)) +
+  geom_dag_text() +
+  scale_shape_manual(values = c("circle" = 19, "square" = 15)) +
+  guides(shape = "none") +
+  theme_dag()
+```
+
+- prod: overproductivity (outcome variable)
+- int: logging intensity
+- agb: pre-logging aboveground biomass of the plot
+- div: pre-logging species diversity of the plot
+- dsi: dry season intensity
+- rad: solar radiation (light availability)
+- cloud: cloud cover
+- vpd: water vapour pressure deficit
+- prc: annual precipitation
+- pvar: precipitation variability
+- wind: maximum wind speed
+- tor: pre-logging turnover rate ( = stem recruitment / number of stems)
+<!-- - twi: topographic wetness index -->
+- slope: average slope in the plot
+
+
+```{r}
+sites <- read.csv("data/derived_data/sites_to_keep.csv") |>
+  filter(ncensus >= 10)
+vars <- c("ba", "agb", "diversity_q1_gen", "nstem", "nstem_recr")
+plot_info <- read.csv("data/raw_data/bioforest-plot-information.csv") |>
+  rename_with(tolower) |>
+  inner_join(read.csv("data/raw_data/plot_correspondance.csv")) |>
+  select(site, new_plot, treatment, year_of_harvest) |>
+  rename(plot = new_plot) |>
+  unique()
+mean0 <- function(x) mean(x, na.rm = TRUE)
+endo_variables <- read.csv("data/derived_data/aggregated_data_v10.csv") |>
+  rename_with(tolower) |>
+  filter(variable %in% vars & site %in% sites$Site) |>
+  pivot_wider(names_from = "variable") |>
+  mutate(tor = nstem_recr / nstem) |>
+  rename(div = diversity_q1_gen) |>
+  select(-contains("nstem")) |>
+  pivot_longer(cols = c("ba", "agb", "div", "tor"), values_drop_na = TRUE) |>
+  inner_join(plot_info) |>
+  group_by(site, name) |>
+  mutate(eq_s = mean(value[treatment == "Control"])) |>
+  group_by(site, plot, treatment, name, eq_s) |>
+  filter(treatment == "Logging") |>
+  summarise(
+    eq_p = mean(value[year < year_of_harvest]),
+    log_p = value[which.min(value[year > year_of_harvest])]
+  ) |>
+  pivot_wider(values_from = contains("_"), names_glue = "{name}_{.value}") |>
+  ## use site-level BA for plots without pre-logging inventories
+  mutate(int = ifelse(is.na(ba_eq_p),
+    (ba_eq_s - ba_log_p) / ba_eq_s,
+    (ba_eq_p - ba_log_p) / ba_eq_p
+  )) |>
+  select(site, plot, int, contains("eq") & !contains("ba"))
+
+params <- read.csv("data/derived_data/params_flux_all.csv") |>
+  rename_with(tolower) |>
+  rename(plot = plot_new) |>
+  inner_join(endo_variables) |>
+  filter(variable == "stpp_20") |>
+  inner_join(readr::read_tsv("data/raw_data/environment.tsv"))
+```
+
+```{r}
+graph_effect <- function(data, var, coefs, label = var) {
+  if (grepl("eq_p", var)) {
+    data <- data |> mutate(
+      pre_logging = !is.na(get(var)),
+      var = coalesce(get(var), get(gsub("_p", "_s", var)))
+    )
+  } else {
+    data <- data |> mutate(var = get(var), pre_logging = is.na(div_eq_p))
+  }
+  data |>
+    mutate(var = as.vector(scale(var))) |>
+    ggplot(aes(var, mean, shape = pre_logging)) +
+    geom_pointrange(aes(col = site, ymin = q5, ymax = q95)) +
+    geom_function(fun = function(x) exp(coefs[1] + coefs[2] * x), lty = 2) +
+    labs(x = label, y = "Predicted overproductivity duration [yr]") +
+    theme_classic()
+}
+```
+
+### Testing for the effect of logging intensity
+
+
+```{r}
+#| fig-width: 9
+#| fig-height: 7
+ggdag_adjustment_set(dag_data,
+  exposure = "int",
+  outcome = "prod",
+  effect = "direct",
+  node_size = 20
+) +
+  theme_dag()
+```
+
+```{r}
+glmint <- params |>
+  mutate(int = as.vector(scale(int))) |>
+  glm(mean ~ int, family = gaussian(link = "log"), data = _)
+summary(glmint)
+```
+
+```{r}
+graph_effect(params, "int", glmint$coefficients, "Logging intensity (scaled)")
+```
+
+### Testing for the effect of pre-logging diversity
+
+
+```{r}
+#| fig-width: 9
+#| fig-height: 7
+ggdag_adjustment_set(dag_data,
+  exposure = "div",
+  outcome = "prod",
+  effect = "direct",
+  node_size = 20
+) +
+  theme_dag()
+```
+
+With sites that have pre-logging inventories: 
+
+```{r}
+#| include: true
+params |>
+  filter(!is.na(div_eq_p)) |>
+  mutate(across(contains("eq_p") | contains("dsi"), ~ as.vector(scale(.x)))) |>
+  glm(mean ~ div_eq_p + agb_eq_p + tor_eq_p + dsi,
+    family = gaussian(link = "log"), data = _
+  ) |>
+  summary()
+```
+
+With all sites (using control plots for pre-logging conditions in sites where there is no pre-logging inventory): 
+
+```{r}
+#| include: true
+glmreg <- params |>
+  mutate(
+    div_eq_p = coalesce(div_eq_p, div_eq_s),
+    agb_eq_p = coalesce(agb_eq_p, agb_eq_s),
+    tor_eq_p = coalesce(tor_eq_p, tor_eq_s)
+  ) |>
+  mutate(across(contains("eq_p") | contains("dsi"), ~ as.vector(scale(.x)))) |>
+  glm(mean ~ div_eq_p + agb_eq_p + tor_eq_p + dsi,
+    family = gaussian(link = "log"), data = _
+  )
+summary(glmreg)
+```
+
+
+```{r}
+graph_effect(
+  params, "div_eq_p", glmreg$coefficients[c(1, 2)],
+  "Scaled pre-logging Shannon index (genus level)"
+)
+```
+
+
+### Testing for the effect of pre-logging AGB
+
+```{r}
+#| fig-width: 9
+#| fig-height: 7
+ggdag_adjustment_set(dag_data,
+  exposure = "agb",
+  outcome = "prod",
+  effect = "direct",
+  node_size = 20
+) +
+  theme_dag() +
+  theme(legend.position = "bottom")
+```
+
+(same model as for diversity)
+
+```{r}
+graph_effect(
+  params, "agb_eq_p", glmreg$coefficients[c(1, 3)],
+  "Scaled pre-logging AGB"
+)
+```
+
+### Testing for the effect of pre-logging turnover rate
+
+```{r}
+#| fig-width: 9
+#| fig-height: 7
+ggdag_adjustment_set(dag_data,
+  exposure = "tor",
+  outcome = "prod",
+  effect = "direct",
+  node_size = 20
+) +
+  theme_dag() +
+  theme(legend.position = "bottom")
+```
+
+(same model as for diversity)
+
+```{r}
+graph_effect(
+  params, "tor_eq_p", glmreg$coefficients[c(1, 4)],
+  "Pre-logging turnover rate (scaled)"
+)
+```
+
+
+### Testing for the effect of dry season intensity
+
+```{r}
+#| fig-width: 9
+#| fig-height: 7
+ggdag_adjustment_set(dag_data,
+  exposure = "dsi",
+  outcome = "prod",
+  effect = "direct",
+  node_size = 20
+) +
+  theme_dag() +
+  theme(legend.position = "bottom")
+```
+
+(same model as for diversity)
+
+
+```{r}
+graph_effect(
+  params, "dsi", glmreg$coefficients[c(1, 5)],
+  "Dry season intensity (scaled)"
+)
+```
